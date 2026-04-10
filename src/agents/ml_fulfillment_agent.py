@@ -1,6 +1,6 @@
 # src/agents/ml_fulfillment_agent.py
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from datetime import datetime
 from src.agents.base_agent import BaseAgent
 from src.adapters.ml_adapter import MLAdapter
@@ -33,10 +33,21 @@ class MLFulfillmentAgent(BaseAgent):
         order_id = data.get("order_id")
         dims = data.get("package_dimensions", {})
         
-        # 1. Validación de inputs (CLAUDE_LESSON: validation before action)
-        if not order_id: raise RuntimeError("order_id es requerido.")
+        # 1. Validación de inputs — ANTES de cualquier llamada a API
+        if not order_id:
+            raise RuntimeError("order_id es requerido.")
         peso = dims.get("peso", 0)
-        if peso <= 0: raise ValueError(f"Peso inválido: {peso}kg. Debe ser > 0.")
+        if peso <= 0:
+            raise ValueError(f"Peso inválido: {peso}kg. Debe ser > 0.")
+        # CLAUDE_FIX: validar las 3 dimensiones — ML API rechaza valores 0
+        alto = dims.get("alto", 0)
+        ancho = dims.get("ancho", 0)
+        largo = dims.get("largo", 0)
+        if alto <= 0 or ancho <= 0 or largo <= 0:
+            raise ValueError(
+                f"Dimensiones inválidas: alto={alto}, ancho={ancho}, largo={largo}. "
+                "Todas deben ser > 0."
+            )
 
         # 2. Cargar credenciales ML
         await self.ml_adapter.load_credentials()
@@ -88,7 +99,7 @@ class MLFulfillmentAgent(BaseAgent):
             "pdf_bytes": b"%PDF-1.4 mock label content"
         }
 
-    async def _save_label_to_storage(self, pdf_bytes: bytes, order_id: str) -> str:
+    async def _save_label_to_storage(self, pdf_bytes: bytes, order_id: str) -> str:  # noqa: ARG002
         """
         Guarda PDF y retorna URL firmada.
         """
@@ -154,13 +165,15 @@ class MLFulfillmentAgent(BaseAgent):
         except Exception:
             return 0
 
-    # Stubs para cumplir compatibilidad (CLAUDE_LESSON: method access)
-    async def get_vault_secrets(self, tenant_id: str, keys: list) -> dict:
-        # Esto debería ir en un db_client pero el agente hereda supabase
+    # ── Stubs de compatibilidad — el agente actúa como db_client para sus adaptadores ──
+    # R14: En producción estos valores vienen del dashboard, nunca del código.
+    # BLOCKER: reemplazar con llamadas reales a Vault/DB cuando Facturapi esté integrado.
+    async def get_vault_secrets(self, _tenant_id: str, _keys: list) -> dict:
         return {}
 
-    async def get_tenant_config(self, tenant_id: str) -> dict:
+    async def get_tenant_config(self, _tenant_id: str) -> dict:
+        # R14 VIOLATION STUB — reemplazar con query a tenant_config table
         return {"warehouse_whatsapp": "521234567890", "printer_ip": "192.168.1.100"}
-    
-    async def get_vault_secret(self, tenant_id: str, secret_name: str) -> dict:
+
+    async def get_vault_secret(self, _tenant_id: str, _secret_name: str) -> dict:
         return {"client_id": "MOCK_ID", "client_secret": "MOCK_SECRET"}

@@ -1,9 +1,11 @@
 # src/agents/base_agent.py
+import logging
 import re
 import uuid
-import datetime
 from typing import Dict, Any, Optional
 from src.utils.ai_client import AIClientWithFallback
+
+logger = logging.getLogger(__name__)
 
 class BaseAgent:
     """
@@ -21,8 +23,8 @@ class BaseAgent:
         """
         Ciclo de ejecución principal.
         """
-        # 1. Registro de inicio en logs (Simulado por ahora)
-        print(f"[{datetime.datetime.now()}] Agent {self.agent_id} starting for tenant {self.tenant_id}")
+        # 1. Registro de inicio
+        logger.info("Agent %s starting for tenant %s", self.agent_id, self.tenant_id)
         
         # 2. VALIDACIÓN MANDATORIA (Agente #26)
         # Se requiere importar aquí para evitar ciclos o usar un registro
@@ -45,6 +47,8 @@ class BaseAgent:
                 "output": result
             }
         except Exception as e:
+            # CLAUDE_FIX: siempre loggear antes de retornar — antipatrón swallow silencioso
+            logger.error("Agent %s failed for tenant %s: %s", self.agent_id, self.tenant_id, e)
             return {
                 "status": "failed",
                 "agent_id": self.agent_id,
