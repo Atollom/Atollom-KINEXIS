@@ -1,4 +1,5 @@
 # src/agents/base_agent.py
+import re
 import uuid
 import datetime
 from typing import Dict, Any, Optional
@@ -49,6 +50,31 @@ class BaseAgent:
                 "agent_id": self.agent_id,
                 "error": str(e)
             }
+
+    async def _sanitize_for_prompt(self, user_input: str) -> str:
+        """
+        Sanitiza y trunca el input del usuario antes de enviarlo al LLM.
+        Previene override patterns e inyecciones de sistema.
+        """
+        if not user_input:
+            return ""
+
+        # 1. Truncar a 500 chars (Claude/Kap Tools SLA)
+        sanitized = user_input[:500]
+
+        # 2. Lista de patrones de override/inyección (CLAUDE_LESSON)
+        overrides = [
+            "ignora instrucciones", "olvida todo", "eres ahora",
+            "nuevo rol", "ignore previous", "forget everything",
+            "you are now", "system:", "assistant:", "user:"
+        ]
+
+        # 3. Eliminar patrones de forma insensible a mayúsculas
+        for pattern in overrides:
+            regex = re.compile(re.escape(pattern), re.IGNORECASE)
+            sanitized = regex.sub("[REDACTED]", sanitized)
+
+        return sanitized
 
     async def _validate(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
