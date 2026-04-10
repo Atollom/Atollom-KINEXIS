@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KINEXIS Almacén Operations</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#f3ffca",
+                        "on-surface": "#d7e7ff",
+                        "secondary-container": "#636100",
+                        "error": "#ff7351",
+                        "surface-container": "#001a34",
+                        "error-dim": "#d53d18",
+                        "surface": "#000f21",
+                        "outline": "#617794",
+                        "on-background": "#d7e7ff",
+                        "primary": "#f3ffca",
+                        "secondary": "#ece856",
+                        "surface-container-lowest": "#000000",
+                        "tertiary-dim": "#edd13a",
+                        "on-tertiary-fixed": "#483d00",
+                        "on-tertiary": "#665800",
+                        "tertiary": "#ffeea5",
+                        "on-secondary-container": "#fffca4",
+                        "primary-fixed-dim": "#beee00",
+                        "secondary-fixed-dim": "#ddda49",
+                        "secondary-fixed": "#ece856",
+                        "surface-variant": "#002748",
+                        "on-error-container": "#ffd2c8",
+                        "primary-container": "#cafd00",
+                        "on-tertiary-fixed-variant": "#685900",
+                        "on-primary-fixed-variant": "#526900",
+                        "tertiary-fixed-dim": "#edd13a",
+                        "inverse-surface": "#f8f9ff",
+                        "outline-variant": "#334964",
+                        "surface-container-highest": "#002748",
+                        "secondary-dim": "#ddda49",
+                        "primary-dim": "#beee00",
+                        "on-primary": "#516700",
+                        "on-secondary": "#565400",
+                        "error-container": "#b92902",
+                        "surface-dim": "#000f21",
+                        "surface-container-low": "#001429",
+                        "on-tertiary-container": "#5d5000",
+                        "inverse-on-surface": "#405772",
+                        "surface-bright": "#002d52",
+                        "on-primary-fixed": "#3a4a00",
+                        "inverse-primary": "#516700",
+                        "primary-fixed": "#cafd00",
+                        "on-error": "#450900",
+                        "on-secondary-fixed-variant": "#605e00",
+                        "surface-container-high": "#00213e",
+                        "tertiary-container": "#fce047",
+                        "on-surface-variant": "#96adcc",
+                        "background": "#000f21",
+                        "on-secondary-fixed": "#434100",
+                        "on-primary-container": "#4a5e00",
+                        "tertiary-fixed": "#fce047"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-primary:hover {
+            box-shadow: 0 0 15px rgba(204, 255, 0, 0.4);
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000f21; }
+        ::-webkit-scrollbar-thumb { background: #002d52; border-radius: 10px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
+<!-- NavigationDrawer Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col bg-[#001429] dark:bg-[#001429] h-screen w-72 rounded-r-xl shadow-[0_0_24px_rgba(202,253,0,0.08)] z-50">
+<div class="p-8">
+<h1 class="text-2xl font-bold text-[#f3ffca] tracking-tighter font-headline">KINEXIS</h1>
+<p class="font-space-grotesk uppercase tracking-widest text-[10px] text-on-surface-variant mt-1">Operations Hub</p>
+</div>
+<div class="px-4 flex-1">
+<nav class="space-y-2">
+<!-- ERP Active based on Warehouse context -->
+<a class="flex items-center gap-4 px-4 py-3 text-[#96adcc] hover:text-[#f3ffca] transition-colors transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-space-grotesk tracking-tight">Ecommerce</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#96adcc] hover:text-[#f3ffca] transition-colors transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined">language</span>
+<span class="font-space-grotesk tracking-tight">Meta</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#CCFF00] font-bold bg-[#00213e] rounded-lg ml-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+<span class="font-space-grotesk tracking-tight">ERP</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#96adcc] hover:text-[#f3ffca] transition-colors transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined">contact_page</span>
+<span class="font-space-grotesk tracking-tight">CRM</span>
+</a>
+</nav>
+</div>
+<div class="p-6 mt-auto bg-surface-container-low/50">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container">
+<img alt="Neural Commander" class="w-full h-full object-cover" data-alt="professional headshot of a futuristic tech operations manager in a dark studio with subtle blue rim lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRuD4PVpooLpFq_dX_af2ti2k6H8zDG_Ycb5KOBjhQaff_-Vx7Pi8KvYReysZFtUJydck_u-QkBbpduz6VjGidirymNvQng5xPusTaKt8q_5Mjy-N_RLqKeGcLffjxZ5tDNMIAy3cLTDcpdu9WmpXJusLcUmfdtef69iRnh-jBFc9IrBMMrs85j1WUGvprYlgO1aDwIfbTodC1iJEeo-zr8RXCsGbMpRbeU2ljN_uNL5GL5CHEuwTNMXNQEtUR8xpBe8X1gA34OLI"/>
+</div>
+<div>
+<p class="text-sm font-bold text-[#f3ffca] font-headline">Neural Commander</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Socias Role</p>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span class="text-[10px] text-on-surface-variant font-label uppercase">Active Session</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-72 flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-72 z-40 px-8 flex justify-between items-center h-16 bg-[#000f21]/80 backdrop-blur-xl bg-[#001429] shadow-inner">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#CCFF00] cursor-pointer hover:opacity-80">menu</span>
+<h2 class="text-[#CCFF00] font-black italic font-headline">Neural Command Center</h2>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#cafd00]"></span>
+<span class="font-space-grotesk uppercase tracking-widest text-xs text-[#CCFF00]">42 AGENTS ONLINE</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer">notifications</span>
+</div>
+</header>
+<!-- Content Canvas -->
+<section class="mt-16 p-8 flex-1 overflow-y-auto space-y-8 pb-32">
+<!-- Dashboard Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bg-surface-container-low p-6 rounded-xl border-b-2 border-primary-container/20">
+<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Fleet Capacity</p>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-headline font-bold text-on-surface">94.2%</span>
+<span class="text-primary text-xs font-bold font-headline">+2.4%</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border-b-2 border-primary-container/20">
+<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Avg Throughput</p>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-headline font-bold text-on-surface">1.2k/hr</span>
+<span class="text-secondary text-xs font-bold font-headline">STABLE</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border-b-2 border-primary-container/20">
+<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Active Load</p>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-headline font-bold text-on-surface">340.5t</span>
+<span class="text-error text-xs font-bold font-headline">HIGH</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border-b-2 border-primary-container/20">
+<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">System Latency</p>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-headline font-bold text-on-surface">14ms</span>
+<span class="text-primary text-xs font-bold font-headline">OPTIMAL</span>
+</div>
+</div>
+</div>
+<!-- Bento Grid Operations -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Incoming Shipments (High Priority) -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-high rounded-xl p-8 shadow-2xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+<div class="flex items-center justify-between mb-8 relative">
+<div>
+<h3 class="text-xl font-headline font-bold tracking-tight text-on-surface">Incoming Shipments</h3>
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-wider mt-1">Logistics Queue • Live Feed</p>
+</div>
+<button class="bg-surface-bright px-4 py-2 rounded-lg text-xs font-bold font-headline text-primary-fixed border border-outline-variant/30 hover:glow-primary transition-all">
+                            VIEW FULL MANIFEST
+                        </button>
+</div>
+<div class="space-y-4 relative">
+<!-- Shipment Item -->
+<div class="flex items-center gap-6 p-4 bg-surface-container-lowest/40 rounded-xl hover:bg-surface-container-lowest/80 transition-all border-l-2 border-primary">
+<div class="w-12 h-12 bg-surface-bright rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold font-headline">TRK-9002-X <span class="ml-2 font-normal text-xs text-on-surface-variant">NEXUS LOGISTICS</span></p>
+<p class="text-xs text-on-surface-variant mt-0.5">24 pallets • Electronics &amp; Components</p>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-primary font-headline">APPROACHING</p>
+<p class="text-[10px] text-on-surface-variant font-label mt-0.5">ETA: 14 MINS</p>
+</div>
+</div>
+<!-- Shipment Item -->
+<div class="flex items-center gap-6 p-4 bg-surface-container-lowest/40 rounded-xl hover:bg-surface-container-lowest/80 transition-all border-l-2 border-secondary">
+<div class="w-12 h-12 bg-surface-bright rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">flight</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold font-headline">AIR-FL-5501 <span class="ml-2 font-normal text-xs text-on-surface-variant">SKYNET CARGO</span></p>
+<p class="text-xs text-on-surface-variant mt-0.5">12 units • High-Value Sensors</p>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-secondary font-headline">IN CLEARANCE</p>
+<p class="text-[10px] text-on-surface-variant font-label mt-0.5">ETA: 42 MINS</p>
+</div>
+</div>
+<!-- Shipment Item -->
+<div class="flex items-center gap-6 p-4 bg-surface-container-lowest/40 rounded-xl hover:bg-surface-container-lowest/80 transition-all border-l-2 border-outline-variant">
+<div class="w-12 h-12 bg-surface-bright rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">train</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold font-headline">RL-WEST-98 <span class="ml-2 font-normal text-xs text-on-surface-variant">GLOBAL RAIL</span></p>
+<p class="text-xs text-on-surface-variant mt-0.5">80 containers • Bulk Raw Materials</p>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface-variant font-headline">EN ROUTE</p>
+<p class="text-[10px] text-on-surface-variant font-label mt-0.5">ETA: 3.5 HRS</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Stock Levels (Status Visualization) -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-high rounded-xl p-8 shadow-2xl">
+<h3 class="text-xl font-headline font-bold tracking-tight text-on-surface mb-6">Stock Levels</h3>
+<div class="space-y-8">
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Processor Units</span>
+<span class="text-xs font-bold font-headline text-on-surface">88%</span>
+</div>
+<div class="h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[88%] shadow-[0_0_10px_#cafd00]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Cooling Systems</span>
+<span class="text-xs font-bold font-headline text-on-surface">42%</span>
+</div>
+<div class="h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[42%] shadow-[0_0_10px_#ece856]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Power Cells</span>
+<span class="text-xs font-bold font-headline text-on-surface">12%</span>
+</div>
+<div class="h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div class="h-full bg-error w-[12%] shadow-[0_0_10px_#ff7351]"></div>
+</div>
+</div>
+</div>
+<div class="mt-12 p-6 bg-surface-container-lowest/50 rounded-xl">
+<p class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Critical Alert</p>
+<p class="text-sm font-headline font-bold text-error mt-1">REORDER REQUIRED: POWER CELLS</p>
+<button class="mt-4 w-full bg-error-container text-on-error-container text-[10px] font-black uppercase tracking-widest py-3 rounded-lg hover:opacity-90 transition-all">
+                            INITIATE EMERGENCY RESTOCK
+                        </button>
+</div>
+</div>
+<!-- Pending Verifications (Task Based) -->
+<div class="col-span-12 bg-surface-container-low rounded-xl p-8">
+<div class="flex items-center gap-2 mb-8">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<h3 class="text-xl font-headline font-bold tracking-tight text-on-surface">Pending Verifications</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="p-6 bg-surface-container-high rounded-xl border-l-4 border-primary/40 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-label uppercase tracking-widest bg-primary/10 text-primary px-2 py-1 rounded">Visual Match</span>
+<span class="text-[10px] text-on-surface-variant font-label">BATCH-004-9</span>
+</div>
+<div>
+<p class="text-sm font-bold font-headline">Holographic Shielding Units</p>
+<p class="text-xs text-on-surface-variant mt-1">Mismatch detected in optical scan. Requires human override.</p>
+</div>
+<button class="mt-auto text-center w-full py-2 bg-primary-container text-on-primary-fixed text-xs font-bold rounded-lg uppercase tracking-widest active:scale-95 transition-all">
+                                VERIFY ASSET
+                            </button>
+</div>
+<div class="p-6 bg-surface-container-high rounded-xl border-l-4 border-secondary/40 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-label uppercase tracking-widest bg-secondary/10 text-secondary px-2 py-1 rounded">Quantity Check</span>
+<span class="text-[10px] text-on-surface-variant font-label">BATCH-112-C</span>
+</div>
+<div>
+<p class="text-sm font-bold font-headline">Synthetix Nerve Fibers</p>
+<p class="text-xs text-on-surface-variant mt-1">Expected 500m, scanned 498.2m. Tolerance check required.</p>
+</div>
+<button class="mt-auto text-center w-full py-2 bg-surface-bright text-primary text-xs font-bold rounded-lg border border-primary/20 uppercase tracking-widest active:scale-95 transition-all">
+                                RESOLVE VARIANCE
+                            </button>
+</div>
+<div class="p-6 bg-surface-container-high rounded-xl border-l-4 border-error/40 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-label uppercase tracking-widest bg-error/10 text-error px-2 py-1 rounded">Hazard Scan</span>
+<span class="text-[10px] text-on-surface-variant font-label">CONT-99-L</span>
+</div>
+<div>
+<p class="text-sm font-bold font-headline">Volatile Fusion Core</p>
+<p class="text-xs text-on-surface-variant mt-1">Heat signature detected above safety limit in Zone D-12.</p>
+</div>
+<button class="mt-auto text-center w-full py-2 bg-error text-on-error text-xs font-bold rounded-lg uppercase tracking-widest active:scale-95 transition-all">
+                                EMERGENCY QUARANTINE
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-72 right-0 z-50 flex justify-around items-center h-20 px-12 bg-[#000f21] docked full-width bottom-0 border-t border-[#002d52] tonal-shift-recessed drop-shadow-[0_-4px_12px_rgba(202,253,0,0.1)]">
+<a class="flex flex-col items-center justify-center text-[#96adcc] px-4 py-1 hover:text-[#f3ffca] transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">gpp_good</span>
+<span class="font-inter text-[10px] uppercase tracking-wider mt-1">Guardian</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#CCFF00] text-[#000f21] rounded-xl px-4 py-1 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">data_exploration</span>
+<span class="font-inter text-[10px] uppercase tracking-wider mt-1 font-bold">Status</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#96adcc] px-4 py-1 hover:text-[#f3ffca] transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="font-inter text-[10px] uppercase tracking-wider mt-1">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#96adcc] px-4 py-1 hover:text-[#f3ffca] transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="font-inter text-[10px] uppercase tracking-wider mt-1">Health</span>
+</a>
+</nav>
+<!-- FAB (Contextual for Dashboard Operations) -->
+<button class="fixed bottom-28 right-8 w-14 h-14 bg-primary-container text-on-primary-fixed rounded-full shadow-[0_8px_32px_rgba(202,253,0,0.3)] flex items-center justify-center hover:scale-110 active:scale-90 transition-all z-50 group">
+<span class="material-symbols-outlined text-3xl">add</span>
+<div class="absolute right-full mr-4 bg-surface-container-high px-3 py-1 rounded text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">NEW OPERATION</div>
+</button>
+</main>
+</body></html>

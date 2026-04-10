@@ -1,0 +1,177 @@
+agent_id: "cfdi_billing_agent_v1"
+version: "1.0.0"
+display_name: "CFDI Billing Agent"
+responsibility: |
+  Generar, timbrar y gestionar facturas electronicas CFDI 4.0 para Kap Tools SA de CV.
+  Emite CFDIs de tipo Ingreso (I), Egreso/Nota de Credito (E) y Pago (P).
+  Integra con PAC (Proveedor Autorizado de Certificacion) via Facturapi.
+  Envia CFDI en PDF + XML al cliente por email y/o WhatsApp.
+
+# ─── INPUTS ───────────────────────────────────────────────────────────────────
+inputs:
+  tenant_id:
+    type: string
+    required: true
+  order_id:
+    type: string
+    required: true
+    description: "ID de la orden en Supabase que origina la factura"
+  customer_rfc:
+    type: string
+    required: false
+    pattern: "^[A-ZN&]{3,4}[0-9]{6}[A-Z0-9]{3}$"
+    default: "XAXX010101000"
+    description: "Si no se pasa, se usa RFC Publico General para montos < $2,000 MXN"
+  customer_name:
+    type: string
+    required: false
+  customer_email:
+    type: string
+    required: false
+  customer_zip:
+    type: string
+    required: false
+    description: "CP del domicilio fiscal del receptor (CFDI 4.0 obligatorio)"
+  customer_tax_regime:
+    type: string
+    required: false
+    default: "616"
+    description: "Regimen fiscal del receptor. 616=Sin obligaciones fiscales (default B2C)"
+  uso_cfdi:
+    type: string
+    required: true
+    enum: ["G01","G02","G03","I01","I02","I03","S01","CP01","CN01"]
+    description: "Uso del CFDI segun catalogo SAT. G03=Gastos en general (default)"
+  forma_pago:
+    type: string
+    required: true
+    enum: ["01","02","03","04","28","99"]
+    description: "01=Efectivo 02=Cheque 03=Transferencia 04=Tarjeta 28=TD/TC 99=Por definir"
+  metodo_pago:
+    type: string
+    required: true
+    enum: ["PUE","PPD"]
+    description: "PUE=Pago en una sola exhibicion PPD=Pago en parcialidades"
+  cfdi_type:
+    type: string
+    enum: ["I","E","P"]
+    default: "I"
+    description: "I=Ingreso E=Egreso (nota credito) P=Complemento pago"
+  cfdi_relacionado:
+    type: string
+    required: false
+    description: "UUID del CFDI original (para notas de credito o complementos de pago)"
+
+# ─── OUTPUTS ──────────────────────────────────────────────────────────────────
+outputs:
+  cfdi_uuid:
+    type: string
+    description: "Folio fiscal UUID timbrado por el SAT"
+  xml_url:
+    type: string
+    description: "URL de descarga del XML timbrado en Supabase Storage"
+  pdf_url:
+    type: string
+    description: "URL de descarga de la representacion impresa (PDF)"
+  status:
+    type: string
+    enum: ["TIMBRADO","ERROR_PAC","ERROR_VALIDACION","CANCELADO"]
+  folio:
+    type: string
+    description: "Folio interno correlativo de Kap Tools"
+  total:
+    type: number
+  requires_human_review:
+    type: boolean
+  rejection_reason:
+    type: string
+    nullable: true
+
+# ─── REGLAS DE NEGOCIO ────────────────────────────────────────────────────────
+business_rules:
+  - "NUNCA timbrar si el monto total es 0 o negativo"
+  - "NUNCA timbrar si el RFC del cliente tiene formato invalido"
+  - "El RFC emisor siempre es el del tenant configurado (datos en cfdi_tenant_config)"
+  - "IVA = 16% para ventas nacionales, 0% para exportacion"
+  - "Monto minimo para requerir RFC real: $2,000 MXN (por debajo: XAXX010101000)"
+  - "Cancelacion requiere aprobacion humana si CFDI > $10,000 MXN"
+  - "Guardar XML original en Supabase Storage ANTES de enviar al cliente"
+  - "Registrar cada CFDI en tabla cfdi_records con status inicial TIMBRADO"
+  - "Si el PAC retorna error, reintentar maximo 3 veces con backoff exponencial: 2s, 5s, 15s"
+  - "Enviar CFDI al cliente en maximo 24 horas desde que se emite"
+  - "Nunca guardar API keys en texto plano — usar Supabase Vault (pgsodium)"
+
+# ─── AUTONOMIA ────────────────────────────────────────────────────────────────
+autonomy_level: "SUPERVISED"
+autonomy_rules:
+  - condition: "total < 10000 MXN"
+    level: "FULL"
+    description: "Timbra y envia sin intervencion humana"
+  - condition: "total >= 10000 AND total < 50000 MXN"
+    level: "NOTIFY"
+    description: "Timbra y notifica al encargado de facturacion"
+  - condition: "cancelacion ANY amount"
+    level: "HUMAN_REQUIRED"
+    description: "Toda cancelacion requiere aprobacion explicita"
+
+# ─── APIS CONSUMIDAS ──────────────────────────────────────────────────────────
+apis_consumed:
+  - name: facturapi_v2
+    url: "https://www.facturapi.io/v2"
+    purpose: "PAC principal para timbraje CFDI 4.0"
+    cost: "$0.35 MXN por CFDI timbrado"
+  - name: supabase
+    purpose: "Persistencia cfdi_records + Storage XML/PDF"
+  - name: resend
+    purpose: "Envio de email con PDF+XML adjuntos"
+  - name: whatsapp_business_api
+    purpose: "Envio opcional de CFDI por WhatsApp (link de descarga)"
+
+# ─── CONDICIONES DE ESCALAMIENTO ──────────────────────────────────────────────
+escalation_conditions:
+  - "PAC rechaza el CFDI 3 veces consecutivas"
+  - "RFC del cliente en lista negra del SAT (EFOS/LCO)"
+  - "Solicitud de cancelacion de CFDI > $10,000 MXN"
+  - "Cliente solicita complemento de pago PPD (seguimiento manual requerido)"
+  - "Error de conexion con el SAT por mas de 15 minutos"
+  - "RFC del receptor no coincide con razon social en SAT"
+
+# ─── CUMPLIMIENTO SAT ─────────────────────────────────────────────────────────
+sat_compliance:
+  version_cfdi: "4.0"
+  regimen_fiscal_emisor: "601"        # General de Ley Personas Morales
+  lugar_expedicion: "72000"           # CP Puebla — ajustar al CP real de Kap Tools
+  complementos_soportados:
+    - "Pagos20"                       # Para metodo de pago PPD
+    - "ComercioExterior"              # Para exportaciones futuras
+
+# ─── CLAVES SAT CATALOGO KAP TOOLS ───────────────────────────────────────────
+# Configurar en tabla product_sat_keys en Supabase por SKU
+claves_sat_referencia:
+  herramienta_manual:     "27111701"  # Hand tools
+  destornillador:         "27111702"  # Screwdrivers
+  lupa_microscopio:       "41112901"  # Magnifiers/microscopes
+  instrumento_medicion:   "41111500"  # Measuring instruments
+  reactivo_quimico:       "12352100"  # Chemical reagents
+  acido_prueba_joyeria:   "12352107"  # Testing acids
+  consumible_relojeria:   "44121600"  # Watch/clock repair supplies
+  default_sin_catalogo:   "01010101"  # No existe en catalogo SAT
+
+claves_unidad_sat_referencia:
+  pieza:      "H87"   # La mas comun en Kap Tools
+  kilogramo:  "KGM"
+  litro:      "LTR"
+  mililitro:  "MLT"
+  gramo:      "GRM"
+
+# ─── CONFIGURACION INICIAL KAP TOOLS (COMPLETAR) ─────────────────────────────
+configuracion_emisor:
+  rfc_emisor: "[RFC_REAL_KAP_TOOLS]"
+  nombre_emisor: "KAP TOOLS SA DE CV"
+  regimen_fiscal: "601"
+  cp_expedicion: "[CP_FISCAL_KAP_TOOLS]"
+  serie_ingreso: "KT"
+  serie_egreso: "KTNC"
+  serie_pago: "KTP"
+  facturapi_sandbox_url: "https://www.facturapi.io/v2"
+  facturapi_production_url: "https://www.facturapi.io/v2"

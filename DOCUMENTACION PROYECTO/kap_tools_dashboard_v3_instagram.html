@@ -1,0 +1,294 @@
+<h2 class="sr-only">Dashboard actualizado de Kap Tools con integración de Instagram DM, comentarios, WhatsApp, Facebook y todos los canales de comunicación unificados</h2>
+
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; padding: 0; }
+.dashboard { padding: 0; }
+
+.top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.top-bar h1 { font-size: 22px; font-weight: 500; margin: 0; }
+.channel-pills { display: flex; gap: 8px; }
+.channel-pill { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.channel-pill.active { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+.channel-icon { width: 16px; height: 16px; }
+
+.metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
+.metric-label { font-size: 13px; color: var(--color-text-secondary); margin: 0 0 6px; }
+.metric-value { font-size: 24px; font-weight: 500; margin: 0; }
+.metric-badge { font-size: 11px; margin-top: 4px; background: var(--color-background-success); color: var(--color-text-success); padding: 3px 8px; border-radius: var(--border-radius-md); display: inline-block; font-weight: 500; }
+.metric-badge.urgent { background: var(--color-background-danger); color: var(--color-text-danger); }
+
+.main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.card-title { font-size: 16px; font-weight: 500; margin: 0; }
+.card-badge { background: var(--color-background-warning); color: var(--color-text-warning); font-size: 11px; padding: 4px 8px; border-radius: var(--border-radius-md); font-weight: 500; }
+
+.conversation-list { display: flex; flex-direction: column; gap: 10px; }
+.conv-item { display: flex; gap: 12px; padding: 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); cursor: pointer; }
+.conv-item:hover { background: var(--color-background-secondary); }
+.conv-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--color-background-info); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--color-text-info); flex-shrink: 0; }
+.conv-details { flex: 1; min-width: 0; }
+.conv-header { display: flex; align-items: center; justify-content: between; margin-bottom: 4px; }
+.conv-name { font-size: 13px; font-weight: 500; margin: 0; }
+.conv-time { font-size: 11px; color: var(--color-text-secondary); margin-left: auto; }
+.conv-preview { font-size: 12px; color: var(--color-text-secondary); margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conv-platform { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 6px; border-radius: var(--border-radius-md); margin-top: 4px; }
+.platform-ig { background: var(--color-background-pink); color: var(--color-text-pink); }
+.platform-wa { background: var(--color-background-success); color: var(--color-text-success); }
+.platform-fb { background: var(--color-background-info); color: var(--color-text-info); }
+.platform-ml { background: var(--color-background-warning); color: var(--color-text-warning); }
+.unread-badge { background: var(--color-background-danger); color: var(--color-text-danger); font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 500; margin-left: 6px; }
+
+.campaign-list { display: flex; flex-direction: column; gap: 10px; }
+.campaign-item { padding: 12px; border-radius: var(--border-radius-md); background: var(--color-background-secondary); }
+.campaign-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.campaign-name { font-size: 13px; font-weight: 500; margin: 0; }
+.campaign-status { font-size: 11px; padding: 3px 8px; border-radius: var(--border-radius-md); background: var(--color-background-success); color: var(--color-text-success); font-weight: 500; }
+.campaign-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+.campaign-metric { }
+.campaign-metric-label { font-size: 10px; color: var(--color-text-secondary); margin: 0; }
+.campaign-metric-value { font-size: 14px; font-weight: 500; margin: 2px 0 0; }
+
+.order-list { display: flex; flex-direction: column; gap: 10px; }
+.order-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); }
+.order-platform { width: 32px; height: 32px; border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+.platform-ml-box { background: var(--color-background-warning); color: var(--color-text-warning); }
+.platform-amazon { background: var(--color-background-info); color: var(--color-text-info); }
+.platform-shopify { background: var(--color-background-success); color: var(--color-text-success); }
+.order-details { flex: 1; }
+.order-id { font-size: 13px; font-weight: 500; margin: 0; }
+.order-product { font-size: 12px; color: var(--color-text-secondary); margin: 2px 0 0; }
+.order-status { font-size: 12px; padding: 4px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); }
+
+.ai-insights { margin-top: 1.5rem; }
+.insight-card { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 12px; display: flex; gap: 12px; }
+.insight-icon { width: 40px; height: 40px; border-radius: var(--border-radius-md); background: var(--color-background-info); color: var(--color-text-info); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.insight-content { flex: 1; }
+.insight-title { font-size: 14px; font-weight: 500; margin: 0 0 4px; }
+.insight-text { font-size: 13px; color: var(--color-text-secondary); margin: 0; }
+</style>
+
+<div class="dashboard">
+  <div class="top-bar">
+    <h1>Centro de comunicaciones</h1>
+    <div class="channel-pills">
+      <div class="channel-pill active">
+        <span>📱</span>
+        <span>Todos</span>
+      </div>
+      <div class="channel-pill">
+        <span>📷</span>
+        <span>Instagram</span>
+      </div>
+      <div class="channel-pill">
+        <span>💬</span>
+        <span>WhatsApp</span>
+      </div>
+      <div class="channel-pill">
+        <span>🛒</span>
+        <span>ML</span>
+      </div>
+      <div class="channel-pill">
+        <span>📦</span>
+        <span>Amazon</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <p class="metric-label">Mensajes sin leer</p>
+      <p class="metric-value">23</p>
+      <span class="metric-badge urgent">8 Instagram</span>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Comentarios pendientes</p>
+      <p class="metric-value">12</p>
+      <span class="metric-badge">IA respondió 47</span>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Órdenes hoy</p>
+      <p class="metric-value">34</p>
+      <span class="metric-badge">+18% vs ayer</span>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Campañas activas</p>
+      <p class="metric-value">5</p>
+      <span class="metric-badge">ROAS 3.2x</span>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Respuesta IA</p>
+      <p class="metric-value">94%</p>
+      <span class="metric-badge">Tasa resolución</span>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Conversaciones recientes</h2>
+        <span class="card-badge">8 necesitan atención</span>
+      </div>
+      <div class="conversation-list">
+        <div class="conv-item">
+          <div class="conv-avatar">MG</div>
+          <div class="conv-details">
+            <div class="conv-header">
+              <p class="conv-name">María González</p>
+              <span class="conv-time">Hace 3 min</span>
+              <span class="unread-badge">2</span>
+            </div>
+            <p class="conv-preview">¿Tienen el kit de destornilladores de relojero en stock?</p>
+            <span class="conv-platform platform-ig">📷 Instagram DM</span>
+          </div>
+        </div>
+
+        <div class="conv-item">
+          <div class="conv-avatar">JR</div>
+          <div class="conv-details">
+            <div class="conv-header">
+              <p class="conv-name">Joyería Ramírez</p>
+              <span class="conv-time">Hace 8 min</span>
+            </div>
+            <p class="conv-preview">IA: "Tenemos 15 unidades disponibles. ¿Cuántas necesita?"</p>
+            <span class="conv-platform platform-wa">💬 WhatsApp</span>
+          </div>
+        </div>
+
+        <div class="conv-item">
+          <div class="conv-avatar">LP</div>
+          <div class="conv-details">
+            <div class="conv-header">
+              <p class="conv-name">Luis Pérez</p>
+              <span class="conv-time">Hace 15 min</span>
+              <span class="unread-badge">1</span>
+            </div>
+            <p class="conv-preview">¿Incluye estuche? Vi en otras tiendas que sí...</p>
+            <span class="conv-platform platform-ml">🛒 Mercado Libre</span>
+          </div>
+        </div>
+
+        <div class="conv-item">
+          <div class="conv-avatar">CF</div>
+          <div class="conv-details">
+            <div class="conv-header">
+              <p class="conv-name">Casa de Empeño Fernández</p>
+              <span class="conv-time">Hace 22 min</span>
+            </div>
+            <p class="conv-preview">IA: "Les envío cotización por 50 ácidos de prueba..."</p>
+            <span class="conv-platform platform-wa">💬 WhatsApp Business</span>
+          </div>
+        </div>
+
+        <div class="conv-item">
+          <div class="conv-avatar">AM</div>
+          <div class="conv-details">
+            <div class="conv-header">
+              <p class="conv-name">Ana Martínez</p>
+              <span class="conv-time">Hace 1 hora</span>
+            </div>
+            <p class="conv-preview">Me encanta esta herramienta 😍 ¿Envían a Guadalajara?</p>
+            <span class="conv-platform platform-ig">📷 Instagram Comment</span>
+          </div>
+        </div>
+      </div>
+      <button style="width: 100%; margin-top: 12px;" onclick="sendPrompt('Mostrar todas las conversaciones pendientes')">Ver todas las conversaciones ↗</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Campañas publicitarias</h2>
+        <span style="font-size: 12px; color: var(--color-text-secondary);">IA optimizando pujas</span>
+      </div>
+      <div class="campaign-list">
+        <div class="campaign-item">
+          <div class="campaign-header">
+            <p class="campaign-name">Instagram - Herramientas Premium</p>
+            <span class="campaign-status">Activa</span>
+          </div>
+          <div class="campaign-metrics">
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">Alcance</p>
+              <p class="campaign-metric-value">12.4K</p>
+            </div>
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">Clics</p>
+              <p class="campaign-metric-value">387</p>
+            </div>
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">Conversiones</p>
+              <p class="campaign-metric-value">23</p>
+            </div>
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">ROAS</p>
+              <p class="campaign-metric-value">4.2x</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="campaign-item">
+          <div class="campaign-header">
+            <p class="campaign-name">ML - Sponsored Products</p>
+            <span class="campaign-status">Activa</span>
+          </div>
+          <div class="campaign-metrics">
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">Impresiones</p>
+              <p class="campaign-metric-value">8.9K</p>
+            </div>
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">Clics</p>
+              <p class="campaign-metric-value">245</p>
+            </div>
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">Ventas</p>
+              <p class="campaign-metric-value">18</p>
+            </div>
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">ROAS</p>
+              <p class="campaign-metric-value">2.8x</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="campaign-item">
+          <div class="campaign-header">
+            <p class="campaign-name">Amazon - Sponsored Brands</p>
+            <span class="campaign-status">Activa</span>
+          </div>
+          <div class="campaign-metrics">
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">Impresiones</p>
+              <p class="campaign-metric-value">6.2K</p>
+            </div>
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">Clics</p>
+              <p class="campaign-metric-value">156</p>
+            </div>
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">Ventas</p>
+              <p class="campaign-metric-value">12</p>
+            </div>
+            <div class="campaign-metric">
+              <p class="campaign-metric-label">ACoS</p>
+              <p class="campaign-metric-value">18%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button style="width: 100%; margin-top: 12px;" onclick="sendPrompt('Analizar rendimiento de todas las campañas y sugerir optimizaciones')">Optimizar campañas ↗</button>
+    </div>
+  </div>
+
+  <div class="ai-insights">
+    <div class="insight-card">
+      <div class="insight-icon">🤖</div>
+      <div class="insight-content">
+        <p class="insight-title">Insight de IA - Stock crítico detectado</p>
+        <p class="insight-text">3 productos están por agotarse en Amazon FBA. El Procurement Agent ya generó órdenes de reabastecimiento por $12,450 MXN para aprobación. Stock proyectado: 5 días.</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,36 @@
+# specs/validation_agent.yaml
+# AGENT CONTRACT — Agente #26 Validation Agent
+# Version: 1.0
+
+agent:
+  id: "#26"
+  name: "Validation Agent"
+  role: "Guardian Determinista de Reglas de Negocio"
+  type: "DETERMINISTIC" # Sin LLM
+
+capabilities:
+  - check_json_schema: "Valida integridad de la estructura de entrada"
+  - check_price_above_minimum: "Valida márgenes de rentabilidad según plataforma"
+  - check_tenant_isolation: "Asegura aislamiento total de datos (CRÍTICO)"
+  - check_rfc_format: "Valida estructura SAT para RFC emisor/receptor"
+  - check_cfdi_total_positive: "Previene timbrado de facturas en cero o negativo"
+  - check_rate_limits: "Control de flujo para evitar saturación de APIs"
+
+compliance:
+  tenant_isolation: "MANDATORY"
+  rls_enforcement: "STRICT"
+  sat_compliance:
+    rfc_emisor: "KTO2202178K8"
+    lugar_expedicion: "72973"
+    regimen_fiscal_emisor: "601"
+
+margins_config:
+  ml: 1.20
+  amazon_fba: 1.25
+  shopify: 1.30
+  b2b: 1.18
+
+outputs:
+  - is_passing: boolean
+  - failed_checks: list
+  - passed_count: integer

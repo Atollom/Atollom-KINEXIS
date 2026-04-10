@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KINEXIS | Neural Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#f3ffca",
+                        "on-surface": "#d7e7ff",
+                        "secondary-container": "#636100",
+                        "error": "#ff7351",
+                        "surface-container": "#001a34",
+                        "error-dim": "#d53d18",
+                        "surface": "#000f21",
+                        "outline": "#617794",
+                        "on-background": "#d7e7ff",
+                        "primary": "#f3ffca",
+                        "secondary": "#ece856",
+                        "surface-container-lowest": "#000000",
+                        "tertiary-dim": "#edd13a",
+                        "on-tertiary-fixed": "#483d00",
+                        "on-tertiary": "#665800",
+                        "tertiary": "#ffeea5",
+                        "on-secondary-container": "#fffca4",
+                        "primary-fixed-dim": "#beee00",
+                        "secondary-fixed-dim": "#ddda49",
+                        "secondary-fixed": "#ece856",
+                        "surface-variant": "#002748",
+                        "on-error-container": "#ffd2c8",
+                        "primary-container": "#cafd00",
+                        "on-tertiary-fixed-variant": "#685900",
+                        "on-primary-fixed-variant": "#526900",
+                        "tertiary-fixed-dim": "#edd13a",
+                        "inverse-surface": "#f8f9ff",
+                        "outline-variant": "#334964",
+                        "surface-container-highest": "#002748",
+                        "secondary-dim": "#ddda49",
+                        "primary-dim": "#beee00",
+                        "on-primary": "#516700",
+                        "on-secondary": "#565400",
+                        "error-container": "#b92902",
+                        "surface-dim": "#000f21",
+                        "surface-container-low": "#001429",
+                        "on-tertiary-container": "#5d5000",
+                        "inverse-on-surface": "#405772",
+                        "surface-bright": "#002d52",
+                        "on-primary-fixed": "#3a4a00",
+                        "inverse-primary": "#516700",
+                        "primary-fixed": "#cafd00",
+                        "on-error": "#450900",
+                        "on-secondary-fixed-variant": "#605e00",
+                        "surface-container-high": "#00213e",
+                        "tertiary-container": "#fce047",
+                        "on-surface-variant": "#96adcc",
+                        "background": "#000f21",
+                        "on-secondary-fixed": "#434100",
+                        "on-primary-container": "#4a5e00",
+                        "tertiary-fixed": "#fce047"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glow-primary:hover {
+            text-shadow: 0 0 8px rgba(202, 253, 0, 0.6);
+        }
+        .glass-panel {
+            background: rgba(0, 33, 62, 0.4);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(97, 119, 148, 0.15);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-fixed overflow-x-hidden">
+<!-- NavigationDrawer -->
+<nav class="fixed left-0 top-0 h-full flex flex-col bg-[#001429] dark:bg-[#001429] h-screen w-72 rounded-r-xl shadow-[0_0_24px_rgba(202,253,0,0.08)] z-50">
+<div class="p-8">
+<div class="text-2xl font-bold text-[#f3ffca] tracking-tighter mb-10 font-headline">
+                KINEXIS
+            </div>
+<div class="flex items-center gap-4 mb-12 p-3 bg-surface-container-lowest rounded-xl">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User Role Avatar" data-alt="high-contrast professional portrait of a tech executive in dark studio lighting with subtle blue highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLdUewhIjWo_DFPtMcRddWwbjEhRHed49kDmw0GBT2bCkiYl81OLkvu00DdZH3EXtjLPyzV9CNq96EVY68C9V7J-RZfXtKd12RtM9nQ1C248WaNxV6oe4CQydA5yuqL0OeS4PgHn8hZa9hCTHLgKuXlpOAFRF3XG_5vv4KB9mTR21yPaI_e2MHYQfwAxHC4IcLwSCGz0AE3yJgzbw6vx3Z_u1bFXHkHHF2pcvdNwSa-msew6GDoLiQqUrTWMhETMmnHCQTrw6a208"/>
+</div>
+<div>
+<p class="text-[#CCFF00] font-bold tracking-tight font-headline leading-none mb-1">Neural Commander</p>
+<p class="text-[10px] uppercase tracking-widest text-[#96adcc]">Socias Role</p>
+</div>
+</div>
+<div class="space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 text-[#CCFF00] font-bold bg-[#00213e] rounded-lg ml-2 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="font-headline tracking-tight">Ecommerce</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#96adcc] hover:text-[#f3ffca] hover:bg-[#002d52] transition-all duration-300" href="#">
+<span class="material-symbols-outlined">language</span>
+<span class="font-headline tracking-tight">Meta</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#96adcc] hover:text-[#f3ffca] hover:bg-[#002d52] transition-all duration-300" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-headline tracking-tight">ERP</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#96adcc] hover:text-[#f3ffca] hover:bg-[#002d52] transition-all duration-300" href="#">
+<span class="material-symbols-outlined">contact_page</span>
+<span class="font-headline tracking-tight">CRM</span>
+</a>
+</div>
+</div>
+<div class="mt-auto p-8">
+<div class="text-[10px] uppercase tracking-widest text-[#96adcc] flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                Active Session
+            </div>
+</div>
+</nav>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-72 z-40 px-8 flex justify-between items-center h-16 bg-[#000f21]/80 backdrop-blur-xl bg-[#001429] shadow-inner">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#CCFF00] cursor-pointer hover:opacity-80 transition-opacity">menu</span>
+<h1 class="text-[#CCFF00] font-black italic font-headline tracking-widest text-xs uppercase">Neural Command Center</h1>
+</div>
+<div class="flex items-center gap-6">
+<span class="text-[#CCFF00] font-headline text-[10px] tracking-widest uppercase border border-primary/20 px-3 py-1 rounded-full">42 AGENTS ONLINE</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer">notifications_active</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer">settings</span>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-72 mt-16 p-8 pb-32">
+<!-- Dashboard Header -->
+<section class="mb-12 flex justify-between items-end">
+<div>
+<h2 class="text-4xl font-headline font-bold text-on-surface tracking-tight mb-2">CFDI 4.0 Status <span class="text-primary italic">Live</span></h2>
+<p class="text-on-surface-variant max-w-xl">Restricted access portal for Facturapi v2 synchronization and SAT compliance monitoring.</p>
+</div>
+<div class="flex gap-4">
+<button class="bg-surface-container-high text-primary border-b border-primary px-6 py-2 font-headline uppercase text-[10px] tracking-widest hover:bg-surface-bright transition-colors">
+                    Export Audit Log
+                </button>
+<button class="bg-primary-container text-on-primary-fixed px-6 py-2 font-headline font-bold uppercase text-[10px] tracking-widest hover:shadow-[0_0_15px_rgba(202,253,0,0.4)] transition-all">
+                    Generate Global CFDI
+                </button>
+</div>
+</section>
+<!-- Bento Grid Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+<div class="col-span-1 md:col-span-2 glass-panel p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<p class="text-[10px] font-label uppercase tracking-[0.2em] text-on-surface-variant mb-4">SAT Code Compliance</p>
+<div class="flex items-baseline gap-4">
+<span class="text-6xl font-headline font-bold text-primary tracking-tighter">99.8%</span>
+<span class="text-secondary flex items-center gap-1 text-sm font-bold">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                        +0.2%
+                    </span>
+</div>
+<div class="mt-6 h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[99.8%]"></div>
+</div>
+</div>
+<div class="glass-panel p-8 rounded-xl">
+<p class="text-[10px] font-label uppercase tracking-[0.2em] text-on-surface-variant mb-4">Monthly Tax Summary</p>
+<div class="text-3xl font-headline font-bold text-on-surface">$1,248,302</div>
+<p class="text-xs text-on-surface-variant mt-2">MXN Estimated VAT Due</p>
+<div class="mt-6 flex items-center justify-between">
+<span class="text-[10px] font-label uppercase text-secondary">Awaiting Timbrado</span>
+<span class="text-xs font-bold text-on-surface">12 Units</span>
+</div>
+</div>
+<div class="glass-panel p-8 rounded-xl border-l-4 border-primary">
+<p class="text-[10px] font-label uppercase tracking-[0.2em] text-on-surface-variant mb-4">Facturapi Connection</p>
+<div class="flex items-center gap-3 mb-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="text-xl font-headline font-medium text-on-surface">v2.4.0 Active</span>
+</div>
+<p class="text-xs text-on-surface-variant">Latency: 142ms</p>
+<button class="mt-6 text-[10px] uppercase font-bold text-primary tracking-widest hover:underline">Re-Authenticate System</button>
+</div>
+</div>
+<!-- Main Data Table -->
+<section class="glass-panel rounded-xl overflow-hidden mb-12">
+<div class="px-8 py-6 flex justify-between items-center border-b border-outline-variant/10">
+<h3 class="font-headline font-bold uppercase tracking-widest text-xs">Invoice Generation Status</h3>
+<div class="flex gap-4">
+<div class="bg-surface-container-lowest rounded-lg flex items-center px-3 py-1 border border-outline-variant/20">
+<span class="material-symbols-outlined text-on-surface-variant text-sm mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-xs w-48 text-on-surface placeholder:text-on-surface-variant/40" placeholder="Filter by UUID or RFC..." type="text"/>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low/50">
+<tr>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Client / RFC</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Document Type</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Amount</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Status</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-6">
+<div class="font-bold text-sm text-on-surface">CORP TECH LOGISTICS</div>
+<div class="text-[10px] font-mono text-on-surface-variant">CTL920831TX2</div>
+</td>
+<td class="px-8 py-6">
+<span class="bg-surface-variant text-[10px] font-bold px-2 py-1 rounded">I - INGRESO (4.0)</span>
+</td>
+<td class="px-8 py-6">
+<div class="text-sm font-bold text-on-surface">$45,200.00</div>
+<div class="text-[10px] text-on-surface-variant">USD Equivalent: $2,658</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="text-[10px] font-bold text-primary uppercase">Timbrado Success</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<button class="p-2 hover:bg-surface-bright rounded-lg text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">download</span>
+</button>
+<button class="p-2 hover:bg-surface-bright rounded-lg text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-6">
+<div class="font-bold text-sm text-on-surface">ALFA SYSTEMS S.A.</div>
+<div class="text-[10px] font-mono text-on-surface-variant">ASY150412H91</div>
+</td>
+<td class="px-8 py-6">
+<span class="bg-surface-variant text-[10px] font-bold px-2 py-1 rounded">I - INGRESO (4.0)</span>
+</td>
+<td class="px-8 py-6">
+<div class="text-sm font-bold text-on-surface">$12,400.50</div>
+<div class="text-[10px] text-on-surface-variant">USD Equivalent: $729</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-[10px] font-bold text-secondary uppercase">Pending Validation</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<button class="p-2 hover:bg-surface-bright rounded-lg text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">sync</span>
+</button>
+<button class="p-2 hover:bg-surface-bright rounded-lg text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-8 py-6">
+<div class="font-bold text-sm text-on-surface">GLOBAL RETAIL MX</div>
+<div class="text-[10px] font-mono text-on-surface-variant">GRM191120B33</div>
+</td>
+<td class="px-8 py-6">
+<span class="bg-surface-variant text-[10px] font-bold px-2 py-1 rounded">E - EGRESO (4.0)</span>
+</td>
+<td class="px-8 py-6">
+<div class="text-sm font-bold text-on-surface">$1,200.00</div>
+<div class="text-[10px] text-on-surface-variant">USD Equivalent: $70</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+<span class="text-[10px] font-bold text-error uppercase">Error: CFDI40102</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<button class="p-2 hover:bg-surface-bright rounded-lg text-on-surface-variant hover:text-error transition-all">
+<span class="material-symbols-outlined">warning</span>
+</button>
+<button class="p-2 hover:bg-surface-bright rounded-lg text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined">help</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-4 bg-surface-container-lowest/30 flex justify-between items-center">
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest">Showing 1-10 of 2,482 documents</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 border border-outline-variant/30 text-[10px] uppercase tracking-widest text-on-surface-variant hover:border-primary hover:text-primary transition-all">Prev</button>
+<button class="px-3 py-1 bg-primary text-on-primary-fixed text-[10px] uppercase tracking-widest font-bold">1</button>
+<button class="px-3 py-1 border border-outline-variant/30 text-[10px] uppercase tracking-widest text-on-surface-variant hover:border-primary hover:text-primary transition-all">2</button>
+<button class="px-3 py-1 border border-outline-variant/30 text-[10px] uppercase tracking-widest text-on-surface-variant hover:border-primary hover:text-primary transition-all">Next</button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-72 right-0 z-50 flex justify-around items-center h-20 px-12 bg-[#000f21] border-t border-[#002d52] tonal-shift-recessed drop-shadow-[0_-4px_12px_rgba(202,253,0,0.1)]">
+<a class="flex flex-col items-center justify-center text-[#96adcc] px-4 py-1 hover:text-[#f3ffca] active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">gpp_good</span>
+<span class="font-inter text-[10px] uppercase tracking-wider">Guardian</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#CCFF00] text-[#000f21] rounded-xl px-4 py-1 active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">data_exploration</span>
+<span class="font-inter text-[10px] uppercase tracking-wider">Status</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#96adcc] px-4 py-1 hover:text-[#f3ffca] active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">search</span>
+<span class="font-inter text-[10px] uppercase tracking-wider">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#96adcc] px-4 py-1 hover:text-[#f3ffca] active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1">sensors</span>
+<span class="font-inter text-[10px] uppercase tracking-wider">Health</span>
+</a>
+</nav>
+</body></html>

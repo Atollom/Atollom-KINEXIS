@@ -1,0 +1,123 @@
+agent_id: "cfdi_billing_agent_v1"
+version: "1.0.0"
+display_name: "CFDI Billing Agent"
+responsibility: |
+  Generar, timbrar y gestionar facturas electrónicas CFDI 4.0 para Kap Tools SA de CV.
+  Emite CFDIs de tipo Ingreso (I), Egreso/Nota de Crédito (E) y Pago (P).
+  Integra con PAC (Proveedor Autorizado de Certificación) vía Facturapi.
+  Envía CFDI en PDF + XML al cliente por email y/o WhatsApp.
+
+inputs:
+  tenant_id:
+    type: string
+    required: true
+  order_id:
+    type: string
+    required: true
+    description: "ID de la orden en Supabase que origina la factura"
+  customer_rfc:
+    type: string
+    required: true
+    pattern: "^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$"
+  customer_name:
+    type: string
+    required: true
+  customer_email:
+    type: string
+    required: false
+  uso_cfdi:
+    type: string
+    required: true
+    enum: ["G01","G02","G03","I01","I02","I03","D01","D02","D03","D04","D05","D06","D07","D08","D09","D10","S01","CP01","CN01"]
+    description: "Uso del CFDI según catálogo SAT"
+  forma_pago:
+    type: string
+    required: true
+    enum: ["01","02","03","04","28","99"]
+    description: "01=Efectivo 02=Cheque 03=Transferencia 04=Tarjeta 28=TD/TC 99=Por definir"
+  metodo_pago:
+    type: string
+    required: true
+    enum: ["PUE","PPD"]
+    description: "PUE=Pago en una sola exhibición PPD=Pago en parcialidades"
+  items:
+    type: array
+    required: true
+    items:
+      sku: string
+      description: string
+      quantity: number
+      unit_price: number (sin IVA)
+      clave_sat: string  # Clave producto/servicio SAT (ej: 27111701 para herramientas manuales)
+      clave_unidad_sat: string  # ej: H87=pieza, KGM=kilogramo
+      iva_rate: number  # 0.16 o 0.00 (exportación)
+  cfdi_type:
+    type: string
+    enum: ["I","E","P"]
+    default: "I"
+    description: "I=Ingreso E=Egreso(nota crédito) P=Complemento pago"
+  cfdi_relacionado:
+    type: string
+    required: false
+    description: "UUID del CFDI original (para notas de crédito o complementos de pago)"
+
+outputs:
+  cfdi_uuid:
+    type: string
+    description: "Folio fiscal UUID timbrado por el SAT"
+  xml_url:
+    type: string
+    description: "URL de descarga del XML timbrado en Supabase Storage"
+  pdf_url:
+    type: string
+    description: "URL de descarga de la representación impresa (PDF)"
+  status:
+    type: string
+    enum: ["TIMBRADO","ERROR_PAC","ERROR_VALIDACION","CANCELADO"]
+  folio:
+    type: string
+    description: "Folio interno correlativo de Kap Tools"
+  requires_human_review:
+    type: boolean
+  rejection_reason:
+    type: string
+    nullable: true
+
+business_rules:
+  - "NUNCA timbrar si el monto total es 0 o negativo"
+  - "NUNCA timbrar si el RFC del cliente tiene formato inválido"
+  - "El RFC emisor siempre es el del tenant configurado (Kap Tools: XAXX010101000 en sandbox)"
+  - "IVA = 16% para ventas nacionales, 0% para exportación (verificar domicilio del cliente)"
+  - "Monto mínimo para requerir RFC real: $2,000 MXN (por debajo: XAXX010101000 Público General)"
+  - "Cancelación requiere aprobación humana si CFDI > $10,000 MXN"
+  - "Guardar XML original en Supabase Storage ANTES de enviar al cliente"
+  - "Registrar cada CFDI en tabla cfdi_records con status inicial TIMBRADO"
+  - "Si el PAC retorna error, reintentar máximo 3 veces con backoff exponencial"
+  - "Enviar CFDI al cliente en máximo 24 horas desde que se emite"
+
+autonomy_level: "SUPERVISED"
+# Timbraje < $10,000 MXN: FULL (solo registra y notifica)
+# Timbraje $10,000–$50,000 MXN: notificar al encargado de facturación
+# Cancelación cualquier monto: HUMAN_REQUIRED
+
+apis_consumed:
+  - facturapi_v2  # PAC principal (https://www.facturapi.io)
+  - supabase      # Persistencia y Storage
+  - resend        # Envío de email con PDF+XML adjuntos
+  - whatsapp_business_api  # Envío opcional por WhatsApp
+
+escalation_conditions:
+  - "PAC rechaza el CFDI 3 veces consecutivas"
+  - "RFC del cliente en lista negra del SAT (LCO)"
+  - "Solicitud de cancelación de CFDI > $10,000 MXN"
+  - "Cliente solicita complemento de pago (PPD → requiere seguimiento manual)"
+  - "Error de conexión con el SAT por más de 15 minutos"
+
+sat_compliance:
+  version_cfdi: "4.0"
+  regimen_fiscal_emisor: "601"  # General de Ley Personas Morales
+  lugar_expedicion: "72000"  # CP Puebla (ajustar según domicilio fiscal Kap Tools)
+  addenda: false
+  complementos_soportados:
+    - "ComercioExterior"  # Para exportaciones
+    - "Pagos20"           # Para método de pago PPD
