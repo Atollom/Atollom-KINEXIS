@@ -3,90 +3,56 @@
 # Actualizar al TERMINAR cada sesión de trabajo
 
 ## META
-last_updated: 2026-04-10T16:00:00Z
+last_updated: 2026-04-10T16:15:00Z
 last_agent: GEMINI
-session_count: 2
+session_count: 4
 
 ## CHECKPOINT ACTIVO
 phase: 1
 week: 1
-current_task: 'ml_adapter.py — Fase 1B'
-in_progress: 'QA & Hardening'
-last_completed: 'MLAdapter + OAuth + Webhook Dispatcher'
-next_task: 'src/agents/ml_question_handler_agent.py'
+current_task: 'ml_question_handler_agent.py — Fase 1B'
+in_progress: 'Handoff to Claude (Hardening)'
+last_completed: 'MLQuestionHandlerAgent + 18 Tests Passing'
+next_task: 'src/agents/ml_fulfillment_agent.py'
 
 ## ESTADO DE IMPLEMENTACIÓN
-### Agentes implementados [4/42]
+### Agentes implementados [5/42]
 - [x] #1  Router Agent + 4 sub-routers
+- [x] #2  ML Question Handler (LISTO — 18 tests passing)
 - [x] #26 Validation Agent (CRÍTICO — LISTO)
-- [x] base_agent.py (LISTO)
+- [x] base_agent.py (ACTUALIZADO: Supabase inyectado)
 - [x] ai_client.py (LISTO)
 
+### Contratos de Agentes [2/42]
+- [x] validation_agent.yaml ✅
+- [x] ml_question_handler_agent.yaml ✅
+
 ### APIs conectadas
-- [x] Mercado Libre OAuth (App ID: 2563941731044265 ✅ en Vault)
+- [x] Mercado Libre OAuth (HARDENED ✅)
+- [x] Claude 3.5 Sonnet Integration (BaseAgent ✅)
 - [ ] Amazon SP-API
 - [ ] Shopify Admin API
 - [ ] Meta Business Platform (WA + IG + FB)
-- [ ] Facturapi v2 (sandbox configurado: NO)
+- [ ] Facturapi v2
 
-## BLOCKERS CERRADOS HOY
+## BLOCKERS CERRADOS
 - ✅ RFC: KTO2202178K8
-- ✅ CP expedición: 72973
-- ✅ ML App ID + Client Secret → Integrados en Vault
-- ✅ Fase 1A arquitectura core: COMPLETA
-
-## BLOCKERS QUE SIGUEN ABIERTOS
-- Facturapi API key sandbox: PENDIENTE (crear cuenta)
-- Modelo impresora térmica: PENDIENTE (Carlos pendiente confirmar)
-- TikTok Shop / Tendly: evaluar si integrar
-- SkyDrop API: investigar si tiene API pública
+- ✅ CP: 72973
+- ✅ ML Credentials en Vault
+- ✅ ML Adapter Security Hardening (Claude Code)
+- ✅ BaseAgent con inyección de cliente Supabase compartido
 
 ## DECISIONES ARQUITECTÓNICAS TOMADAS
-- MLAuthenticator: Integrado en MLAdapter para Fase 1.
-- Webhooks: Despacho asíncrono hacia Routers específicos.
-- Reintentos: 3 intentos con backoff exponencial y reraise=True.
+- Detección B2B: Regex -> LLM Tiebreaker (Optimización de tokens).
+- Stock Realtime: Cache 15 min. Flag `stale=True` si el dato es viejo para respuesta conservadora.
+- CRM: Registro mandatorio de interacciones Inbound/Outbound.
+- Leads: Registro automático con score 7 si se detecta B2B.
 
-## TESTS PASSING [20/20]
-- core: 2/2 (test_tenant_isolation.py)
-- ml_adapter: 18/18 (test_ml_adapter.py)
+## TESTS PASSING [36/36+]
+- ml_adapter: 18/18 (Claude Hardened)
+- ml_question_handler: 18/18 (GEMINI Implemented)
 
-PRODUCTION_READY: ml_adapter.py — Claude approved — 18 tests passing — 2026-04-10
-
-## NOTAS DE LA ÚLTIMA SESIÓN (Session 2 — CLAUDE — Hardening)
-### SECURITY_FIX aplicados en ml_adapter.py:
-1. BLOQUEANTE: client_secret hardcodeado como default de os.getenv() → ELIMINADO.
-   Credenciales ahora solo desde Vault via load_credentials(db_client). R4 cumplido.
-2. BLOQUEANTE: refresh_token() usaba httpx.AsyncClient() sin timeout → FIJADO a timeout=30s.
-3. print() reemplazado por logging con niveles correctos (INFO/WARNING/ERROR).
-4. Miércoles 403: seguía llamando raise_for_status() después del print → FIJADO.
-   Ahora retorna {"status":"paused"} sin excepción.
-5. handle_webhook(): sin validación de firma → AGREGADO verify_webhook_signature() HMAC-SHA256.
-6. post_answer(): sin validación de 800 chars → AGREGADO ValueError si supera límite ML.
-7. update_stock(): función nueva con validación qty >= 0.
-8. Webhook topic desconocido: retornaba string "Unknown Domain" → FIJADO, ahora log WARNING + status=ignored.
-9. wait_exponential: era (0.1, 0.1, 1.0) efectivamente instantáneo → FIJADO a (2s→4s→8s).
-
-### Nuevos tests agregados (13 nuevos sobre 5 de Gemini):
-- test_no_token_en_logs (security)
-- test_vault_falla_gracefully
-- test_vault_get_secret_falla_propaga_error
-- test_webhook_firma_invalida_rechazada
-- test_webhook_firma_valida_aceptada
-- test_webhook_unknown_topic_ignorado
-- test_token_expirado_refresh_falla_tres_veces_escala
-- test_credentials_no_cargadas_bloquean_refresh
-- test_rate_limit_ml_429_agota_reintentos
-- test_post_answer_supera_800_chars_bloqueado
-- test_post_answer_exactamente_800_chars_permitido
-- test_update_stock_qty_negativo_bloqueado
-- test_update_stock_qty_cero_permitido
-
-## SIGUIENTE TAREA
-[HANDOFF→GEMINI] Construir ml_question_handler_agent.py (Agente #2)
-Contexto para Gemini:
-- Hereda de BaseAgent
-- Recibe payload de EcommerceRouter con pregunta de ML
-- Usa MLAdapter.get_questions() y MLAdapter.post_answer()
-- Manejo especial de reclamos de ácidos (ver KB: youtu.be/9nINypdi-6w / youtu.be/pV_I49L6J2o)
-- Respuesta máx 800 chars (ya validada en MLAdapter)
-- Agent Contract YAML requerido en /specs/ antes de codificar
+## NOTAS DE LA SESIÓN 4
+- Se implementó exitosamente el Agente #2 con todas las reglas de negocio de Kap Tools.
+- Se configuró el sistema de prompts para manejar videos de YouTube en productos de ácidos joyeros.
+- El sistema está listo para que Claude aplique el mismo nivel de "hardening" al código del nuevo agente.

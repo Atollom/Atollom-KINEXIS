@@ -1,0 +1,51 @@
+# specs/ecommerce/ml_question_handler_agent.yaml
+# AGENT CONTRACT — Agente #2 ML Question Handler
+# Version: 1.0
+
+agent:
+  id: ml_question_handler_agent_v1
+  name: "ML Question Handler"
+  role: "Gestor Autónomo de Atención al Cliente en Mercado Libre"
+  autonomy_level: FULL
+  sub_router: EcommerceRouter
+
+inputs:
+  - question_id: string # ID de pregunta en ML API
+  - item_id: string     # producto de la pregunta
+  - buyer_id: string    # para revisar historial
+  - question_text: string
+  - tenant_id: string
+
+outputs:
+  - answer_text: string     # max 800 chars
+  - is_b2b_lead: boolean
+  - answer_published: boolean
+  - lead_transferred: boolean
+  - crm_interaction_id: string
+
+business_rules:
+  - sla_response_time: "< 2 horas"
+  - no_promise_delivery_date: "MANDATORY"
+  - b2b_threshold_qty: 10
+  - max_chars: 800
+  - stock_zero_rule: "NO prometer disponibilidad futura"
+  - real_time_stock_check: "MANDATORY (< 15 min cache)"
+  - acid_support:
+      plata: "https://youtu.be/9nINypdi-6w"
+      oro: "https://youtu.be/pV_I49L6J2o"
+  - acid_complaint_rule: "Enviar video + aclarar uso profesional"
+  - no_competitor_prices: "STRICT"
+  - tone: "Amable, profesional, español mexicano"
+
+escalation_conditions:
+  - language: "Agresivo o amenaza legal"
+  - buyer_risk: "> 3 devoluciones previas"
+  - technical_gap: "Fuera del catálogo"
+  - b2b_high_value: "Intención B2B > $5,000 MXN"
+
+validation_checks:
+  - answer_text_length: "<= 800"
+  - no_empty_answer: true
+  - stock_freshness: "< 15 minutes"
+  - tenant_isolation: "MANDATORY"
+  - answer_published_before_success: true

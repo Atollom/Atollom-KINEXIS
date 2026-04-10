@@ -9,9 +9,10 @@ class BaseAgent:
     Clase Base para todos los agentes de KINEXIS.
     Define el ciclo de vida, trazabilidad y validación mandatoria.
     """
-    def __init__(self, tenant_id: str, agent_id: str):
+    def __init__(self, tenant_id: str, agent_id: str, supabase_client: Any = None):
         self.tenant_id = tenant_id
         self.agent_id = agent_id
+        self.supabase = supabase_client
         self.ai_client = AIClientWithFallback()
         self.session_id = str(uuid.uuid4())
 
