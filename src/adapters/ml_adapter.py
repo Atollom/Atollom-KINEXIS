@@ -195,6 +195,17 @@ class MLAdapter:
         payload = {"question_id": question_id, "text": answer_text}
         return await self._request("POST", "/answers", access_token=access_token, json=payload)
 
+    async def get_item(
+        self,
+        item_id: str,
+        access_token: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Obtiene detalles de una publicación de ML.
+        Tiempo de respuesta esperado: <2s.
+        """
+        return await self._request("GET", f"/items/{item_id}", access_token=access_token)
+
     async def update_stock(
         self,
         item_id: str,

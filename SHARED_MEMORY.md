@@ -48,11 +48,42 @@ next_task: 'src/agents/ml_fulfillment_agent.py'
 - CRM: Registro mandatorio de interacciones Inbound/Outbound.
 - Leads: Registro automático con score 7 si se detecta B2B.
 
-## TESTS PASSING [36/36+]
-- ml_adapter: 18/18 (Claude Hardened)
-- ml_question_handler: 18/18 (GEMINI Implemented)
+## TESTS PASSING [49/49]
+- core/tenant_isolation: 2/2
+- ml_adapter: 18/18 (Claude hardened — session 2)
+- ml_question_handler: 29/29 (18 Gemini + 11 Claude — session 3)
 
-## NOTAS DE LA SESIÓN 4
-- Se implementó exitosamente el Agente #2 con todas las reglas de negocio de Kap Tools.
-- Se configuró el sistema de prompts para manejar videos de YouTube en productos de ácidos joyeros.
-- El sistema está listo para que Claude aplique el mismo nivel de "hardening" al código del nuevo agente.
+PRODUCTION_READY: ml_adapter.py — Claude approved — 18 tests — 2026-04-10
+PRODUCTION_READY: ml_question_handler_agent.py — Claude approved — 29 tests — 2026-04-10
+
+## NOTAS DE LA SESIÓN 3 (CLAUDE — Hardening Agente #2)
+### SECURITY_FIX aplicados en ml_question_handler_agent.py:
+1. BLOQUEANTE: _get_stock_realtime() aceptaba tenant_id del payload (caller-controlled).
+   FIJADO: eliminado el param, usa self.tenant_id siempre. R3 cumplido.
+2. BLOQUEANTE: question_text del comprador entraba crudo al LLM prompt (prompt injection).
+   FIJADO: _sanitize_for_prompt() con truncate+regex de patrones de override.
+3. LLM retornando vacío publicaba string vacío en ML.
+   FIJADO: RuntimeError si response vacío → execute retorna answer_published=False.
+4. answer_published check case-sensitive ("active" vs "ACTIVE").
+   FIJADO: .lower() comparison.
+5. Cero error handling en operaciones de DB — crash sin log.
+   FIJADO: try/except con logger.error() en _get_stock_realtime, _register_interactions, _create_lead.
+6. _create_lead sin check de duplicados.
+   FIJADO: _lead_exists() check antes de INSERT.
+7. CRM inserts secuenciales → paralelos con asyncio.gather().
+8. get_item() faltaba en ml_adapter.py → AGREGADO.
+9. 4 tests vacíos (pass) de Gemini → reemplazados con tests reales.
+10. base_agent.py cambio de Gemini (supabase_client param): VERIFICADO — no rompe nada.
+
+## SIGUIENTE TAREA
+[HANDOFF→GEMINI] Construir Agente #3: ml_fulfillment_agent.py + thermal_printer_adapter.py
+Contexto crítico para Gemini:
+- Corte ML: 9AM | Carlos sale máx 10:30AM → procesar órdenes en esa ventana
+- Impresora térmica: ZPL/EPL vía socket IP local (modelo: PENDIENTE confirmar Carlos)
+- Etiqueta: código de barras, número orden, producto, dirección, logo Kap Tools
+- Si impresora no responde: guardar job en cola (tabla print_jobs), NO bloquear flujo
+- WhatsApp backup a Carlos si impresora offline (vía Meta Business Platform)
+- Full ML se envía solo martes (R11)
+- Guías ML FULL: ML Shipping API (no SkyDrop — ese es para Shopify)
+- Guías Shopify: SkyDrop adapter (distinto — no mezclar)
+- Agent Contract YAML en /specs/fulfillment/ ANTES de codificar
