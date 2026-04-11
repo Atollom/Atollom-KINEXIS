@@ -96,6 +96,88 @@ class MetaAdapter:
             logger.info("WhatsApp enviado a %s para tenant=%s", to_number, self.tenant_id)
             return True
 
+    # ─────────────────────────── INSTAGRAM ───────────────────────────────── #
+
+    @retry(
+        stop=stop_after_attempt(2),
+        wait=wait_exponential(multiplier=2, min=2, max=10),
+        reraise=True,
+    )
+    async def send_instagram_dm(self, ig_user_id: str, message: str) -> bool:
+        """
+        Envía un Direct Message en Instagram.
+        Timeout 10s. MOCK_MODE activo si falta meta_instagram_token.
+        """
+        try:
+            secrets = await self.db_client.get_vault_secrets(
+                self.tenant_id, ["meta_instagram_token"]
+            )
+            token = secrets.get("meta_instagram_token")
+        except Exception as e:
+            logger.warning("Vault no disponible para IG tenant=%s: %s", self.tenant_id, e)
+            token = None
+
+        if not token:
+            logger.warning("META_MOCK_MODE: IG token ausente para tenant=%s. DM a %s", self.tenant_id, ig_user_id)
+            return True
+
+        url = f"{self.GRAPH_API_URL}/{ig_user_id}/messages"
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+        payload = {"recipient": {"id": ig_user_id}, "message": {"text": message[:1000]}}
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(url, json=payload, headers=headers)
+            if resp.status_code >= 400:
+                logger.error("IG DM error %s: %s", resp.status_code, resp.text)
+                return False
+            return True
+
+    async def post_instagram_comment_reply(self, comment_id: str, reply_text: str) -> bool:
+        """
+        Responde a un comentario de Instagram.
+        Límite 150 chars — truncar si es necesario.
+        """
+        try:
+            secrets = await self.db_client.get_vault_secrets(self.tenant_id, ["meta_instagram_token"])
+            token = secrets.get("meta_instagram_token")
+        except Exception:
+            token = None
+
+        if not token:
+            logger.warning("META_MOCK_MODE: IG comment reply mock tenant=%s", self.tenant_id)
+            return True
+
+        # R3: Truncar a 150 chars si es necesario
+        safe_reply = reply_text if len(reply_text) <= 150 else reply_text[:147] + "..."
+        
+        url = f"{self.GRAPH_API_URL}/{comment_id}/replies"
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(url, params={"message": safe_reply}, headers=headers)
+            return resp.status_code < 400
+
+    async def hide_instagram_comment(self, comment_id: str) -> bool:
+        """
+        Oculta un comentario de Instagram (is_hidden=true).
+        Best-effort: log warning si falla, no lanzar excepción.
+        """
+        try:
+            secrets = await self.db_client.get_vault_secrets(self.tenant_id, ["meta_instagram_token"])
+            token = secrets.get("meta_instagram_token")
+            if not token: return True
+
+            url = f"{self.GRAPH_API_URL}/{comment_id}"
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.post(url, params={"is_hidden": "true"}, headers={"Authorization": f"Bearer {token}"})
+                if resp.status_code >= 400:
+                    logger.warning("No se pudo ocultar comentario IG %s: %s", comment_id, resp.text)
+                    return False
+                return True
+        except Exception as e:
+            logger.warning("Error best-effort hide_comment tenant=%s: %s", self.tenant_id, e)
+            return False
+
     # ─────────────────────────── WEBHOOK ─────────────────────────────────── #
 
     async def verify_webhook_signature(

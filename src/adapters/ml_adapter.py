@@ -223,6 +223,55 @@ class MLAdapter:
             "PUT", f"/items/{item_id}", access_token=access_token, json=payload
         )
 
+    async def update_price(
+        self,
+        item_id: str,
+        price: Any,
+        access_token: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Actualiza el precio de una publicación en ML.
+        SECURITY_FIX: valida price > 0.
+        """
+        try:
+            from decimal import Decimal
+            price_val = float(price) if isinstance(price, (Decimal, float, int, str)) else 0.0
+        except (ValueError, TypeError):
+            price_val = 0.0
+
+        if price_val <= 0:
+            raise ValueError(f"price debe ser > 0. Recibido: {price}")
+
+        payload = {"price": price_val}
+        # _request ya maneja retry 3x con backoff y timeout 30s
+        return await self._request(
+            "PUT", f"/items/{item_id}", access_token=access_token, json=payload
+        )
+
+    async def update_item(
+        self,
+        item_id: str,
+        updates: Dict[str, Any],
+        access_token: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        [STUB] MOCK_MODE: Actualiza campos adicionales de un item en ML (título, descripción, etc.).
+        """
+        logger.info("[MOCK_MODE] ml_adapter.update_item llamado para %s con %s", item_id, updates)
+        return {"status": "success", "item_id": item_id}
+
+    async def create_item(
+        self,
+        product: Dict[str, Any],
+        access_token: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        [STUB] MOCK_MODE: Crea una nueva publicación en ML.
+        """
+        logger.info("[MOCK_MODE] ml_adapter.create_item llamado para %s", product.get("sku"))
+        return {"status": "success", "item_id": f"ML-{product.get('sku')}"}
+
+
     # ─────────────────────────── WEBHOOKS ────────────────────────────────── #
 
     def verify_webhook_signature(
