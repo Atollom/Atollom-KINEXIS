@@ -1,0 +1,324 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Google Fonts ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap');
+
+/* ─── CSS Design Tokens ─────────────────────────────────────────────────────── */
+:root {
+  /* Surface hierarchy */
+  --surface:                    #000f21;
+  --surface-container-lowest:   #000000;
+  --surface-container-low:      #001429;
+  --surface-container:          #001a34;
+  --surface-container-high:     #00213e;
+  --surface-container-highest:  #002748;
+  --surface-bright:             #002d52;
+
+  /* Primary — Electric Lime */
+  --primary:           #f3ffca;
+  --primary-dim:       #beee00;
+  --primary-container: #cafd00;
+
+  /* Secondary — Warning Yellow */
+  --secondary:         #ece856;
+
+  /* Text */
+  --on-surface:         #d7e7ff;
+  --on-surface-variant: #96adcc;
+
+  /* Borders */
+  --outline:          #617794;
+  --outline-variant:  #334964;
+
+  /* Status */
+  --error:  #ff4444;
+  --success:#00ff88;
+
+  /* Glows */
+  --volt-glow: 0 0 24px 2px rgba(202, 253, 0, 0.08);
+  --volt-strong: 0 0 15px rgba(202, 253, 0, 0.3);
+}
+
+/* ─── Base Reset ────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Force dark — this is a dark-only interface */
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--surface);
+  color: var(--on-surface);
+  font-family: 'Inter', sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Typography Scale ──────────────────────────────────────────────────────── */
+.font-headline {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Display: Space Grotesk, large, tight */
+.text-display {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3.5rem;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+/* Labels: uppercase + tracking */
+.label-sm,
+.label-md {
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+.label-sm { font-size: 0.625rem; }
+.label-md { font-size: 0.75rem; }
+
+/* ─── Material Symbols ──────────────────────────────────────────────────────── */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', sans-serif;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-style: normal;
+  font-weight: normal;
+  display: inline-block;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ─── Glassmorphism ─────────────────────────────────────────────────────────── */
+.glass-panel {
+  background: rgba(0, 20, 41, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-panel-light {
+  background: rgba(0, 33, 62, 0.7);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+
+/* ─── Volt Glow Utilities ───────────────────────────────────────────────────── */
+.glow-primary {
+  box-shadow: 0 0 15px rgba(202, 253, 0, 0.3);
+}
+
+.glow-primary-soft {
+  box-shadow: 0 0 24px 2px rgba(202, 253, 0, 0.08);
+}
+
+.glow-error {
+  box-shadow: 0 0 12px rgba(255, 68, 68, 0.3);
+}
+
+/* Animated pulse dot for status indicators */
+.pulse-dot {
+  position: relative;
+}
+.pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: rgba(202, 253, 0, 0.3);
+  animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--outline-variant); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--outline); }
+
+/* ─── Selection ─────────────────────────────────────────────────────────────── */
+::selection {
+  background-color: var(--primary-container);
+  color: #3a4a00;
+}
+
+/* ─── Focus States ──────────────────────────────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--primary-container);
+  outline-offset: 2px;
+}
+
+/* ─── Input: "Mission Control" style — bottom border only ───────────────────── */
+.input-mission {
+  background: var(--surface-container-lowest);
+  border: none;
+  border-bottom: 1px solid var(--outline-variant);
+  border-radius: 0;
+  color: var(--on-surface);
+  padding: 0.5rem 0;
+  transition: border-color 0.2s;
+  outline: none;
+}
+.input-mission:focus {
+  border-bottom-color: var(--primary-container);
+  box-shadow: 0 2px 8px rgba(202, 253, 0, 0.15);
+}
+.input-mission::placeholder {
+  color: var(--on-surface-variant);
+  opacity: 0.4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+/* ─── Button: Volt Pulse (Primary CTA) ─────────────────────────────────────── */
+.btn-volt {
+  background: var(--primary-container);
+  color: #3a4a00;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: box-shadow 0.2s, transform 0.1s;
+  cursor: pointer;
+  border: none;
+}
+.btn-volt:hover {
+  box-shadow: 0 0 15px rgba(202, 253, 0, 0.4);
+}
+.btn-volt:active {
+  transform: scale(0.97);
+}
+
+/* ─── Button: Glass Action (Secondary) ─────────────────────────────────────── */
+.btn-glass {
+  background: rgba(0, 39, 72, 0.5);
+  color: var(--on-surface-variant);
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(51, 73, 100, 0.5);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+.btn-glass:hover {
+  background: rgba(0, 45, 82, 0.8);
+  color: var(--primary);
+  border-color: rgba(202, 253, 0, 0.2);
+}
+
+/* ─── AI Status Chip ─────────────────────────────────────────────────────────── */
+.chip-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(202, 253, 0, 0.08);
+  border: 1px solid rgba(202, 253, 0, 0.2);
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--primary-container);
+}
+
+.chip-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(236, 232, 86, 0.08);
+  border: 1px solid rgba(236, 232, 86, 0.2);
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--secondary);
+}
+
+.chip-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 68, 68, 0.08);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--error);
+}
+
+/* ─── KPI Card ──────────────────────────────────────────────────────────────── */
+.kpi-card {
+  background: var(--surface-container-low);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  /* No explicit border — color shift creates boundary */
+  transition: background 0.2s;
+}
+.kpi-card:hover {
+  background: var(--surface-container);
+}
+
+/* ─── Agent row item ─────────────────────────────────────────────────────────── */
+.agent-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.agent-row:hover {
+  background: var(--surface-container-high);
+}
+
+/* ─── Animated gradient line (bottom of KPI card) ──────────────────────────── */
+.kpi-accent-primary {
+  border-bottom: 2px solid rgba(202, 253, 0, 0.2);
+}
+.kpi-accent-secondary {
+  border-bottom: 2px solid rgba(236, 232, 86, 0.2);
+}
+.kpi-accent-error {
+  border-bottom: 2px solid rgba(255, 68, 68, 0.2);
+}
+.kpi-accent-outline {
+  border-bottom: 2px solid rgba(97, 119, 148, 0.2);
+}
