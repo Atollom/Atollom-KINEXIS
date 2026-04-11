@@ -3,29 +3,32 @@
 # Actualizar al TERMINAR cada sesión de trabajo
 
 ## META
-last_updated: 2026-04-11T00:00:00Z
+last_updated: 2026-04-11T01:00:00Z
 last_agent: CLAUDE
-session_count: 8
+session_count: 10
 
 ## CHECKPOINT ACTIVO
 phase: 1
 week: 1
-current_task: 'Siguiente módulo: customer_support + account_manager + import_logistics'
-in_progress: 'Handoff→GEMINI para scaffold Agentes #24, #25, #35'
-last_completed: '[QA✓] lead_qualifier + inventory + procurement — hardened + 227 tests ✅'
-next_task: 'GEMINI: Scaffold customer_support_agent.py (#24) + account_manager_agent.py (#25) + import_logistics_agent.py (#35)'
+current_task: 'Siguiente módulo: amazon_adapter + amazon_orders_agent + shopify_adapter + shopify_orders_agent + skydrop_adapter'
+in_progress: 'Handoff→GEMINI para scaffold Agentes #7, #11 + adapters'
+last_completed: '[QA✓] customer_support + account_manager + import_logistics — hardened + 313 tests ✅'
+next_task: 'GEMINI: Scaffold amazon_adapter.py + amazon_orders_agent.py (#7) + shopify_adapter.py + shopify_orders_agent.py (#11) + skydrop_adapter.py'
 
 ## ESTADO DE IMPLEMENTACIÓN
-### Agentes implementados [13/42]
+### Agentes implementados [16/42]
 - [x] #1  Router Agent + 4 sub-routers
 - [x] #2  ML Question Handler (PRODUCTION_READY ✅)
 - [x] #3  ML Fulfillment Agent (PRODUCTION_READY ✅)
 - [x] #17 WhatsApp Handler Agent (PRODUCTION_READY ✅)
 - [x] #22 Sales B2B Agent (PRODUCTION_READY ✅)
 - [x] #23 Lead Qualifier Agent (PRODUCTION_READY ✅)
+- [x] #24 Customer Support Agent (PRODUCTION_READY ✅)
+- [x] #25 Account Manager Agent (PRODUCTION_READY ✅)
 - [x] #26 Validation Agent (CRÍTICO — LISTO)
 - [x] #32 Inventory Agent (PRODUCTION_READY ✅)
 - [x] #33 Procurement Agent (PRODUCTION_READY ✅)
+- [x] #35 Import Logistics Agent (PRODUCTION_READY ✅)
 - [x] #36 CFDI Billing Agent (PRODUCTION_READY ✅)
 
 ### Adapters Completos
@@ -55,7 +58,7 @@ next_task: 'GEMINI: Scaffold customer_support_agent.py (#24) + account_manager_a
 - ✅ Frozensets para whitelists SAT (FORMAS_PAGO, USOS_CFDI, MOTIVOS_CANCELACION)
 - ✅ SKU sanitizado con regex antes de query a BD (previene path traversal)
 
-## TESTS PASSING [227/227]
+## TESTS PASSING [313/313]
 - S1-S5: 91 tests
 - S6 Gemini (CFDI Module): 27 tests
 - S6 Claude H2 (CFDI Hardening): 12 tests
@@ -63,7 +66,10 @@ next_task: 'GEMINI: Scaffold customer_support_agent.py (#24) + account_manager_a
 - S7 Claude H2 (WA + B2B Hardening): 14 tests
 - S8 Gemini (CRM/ERP Scaffold): 38 tests (lead_qualifier + inventory + procurement)
 - S8 Claude H2 (CRM/ERP Hardening): 16 tests (5+6+5)
-- Total: 227 ✅ (Gemini claimed 249 — cifra incorrecta, baseline real era 211)
+- S9 Gemini (Support/AM/Logistics): 83 tests (customer_support + account_manager + import_logistics)
+  NOTA: incluía 24 tests vacíos (15 extra_* + 8 extra_log_* + 1 pass) — reemplazados
+- S10 Claude H2 (Support/AM/Logistics Hardening): 3 tests netos (rest replaced empty)
+- Total: 313 ✅
 
 ## MÓDULO WA + B2B (PRODUCTION_READY)
 - ✅ HMAC-SHA256 verificado PRIMERO en process() con fallback a X-Hub-Signature legacy
@@ -109,24 +115,68 @@ next_task: 'GEMINI: Scaffold customer_support_agent.py (#24) + account_manager_a
 - ✅ procurement_approval_both ($30k) y procurement_safety_days (15d) desde tenant_config
 - ✅ Campos approver_1_id + approver_2_id en DRAFT desde creación
 
+## MÓDULO SUPPORT/AM/LOGISTICS — S10 (PRODUCTION_READY)
+
+### Customer Support Agent #24
+- ✅ turn_count SIEMPRE de BD — payload externo no puede evitar escalación forzando turn_count
+- ✅ order_id filtrado por tenant_id en tracking (IDOR prevention)
+- ✅ _notify_partners() ticket select con tenant_id (IDOR fix S10)
+- ✅ Devolución: solo abre ticket + notifica — NO autoriza (autorización en Returns Agent #20)
+- ✅ Escalación best-effort en try/except — fallo de WA no rompe flujo
+- ✅ Respuesta truncada a 1024 chars antes de enviar a Meta
+- ✅ Videos ácidos: plata=9nINypdi-6w, oro=pV_I49L6J2o
+- ✅ Keywords de escalación: demanda, legal, profeco, abogado, pendejo, inútil, estafa, chinga
+
+### Account Manager Agent #25
+- ✅ health_score calculado internamente — nunca aceptado del payload
+- ✅ _calculate_health() bare except → logger.error() antes de return 50 (fix S10)
+- ✅ MRR nunca negativo: max(Decimal("0.00"), current + amount) (fix S10)
+- ✅ Rangos de decay: 0-30d=100, 31-60d=70, 61-90d=40, >90d=10
+- ✅ NPS cooldown desde tenant_config (default 90 días)
+- ✅ nps_last_sent_at con _get_now() — no datetime.now()
+- ✅ Alerta churn si health_score < 40
+
+### Import Logistics Agent #35
+- ✅ CRÍTICO: qty de BD en received — payload qty NUNCA usado para actualizar inventario
+- ✅ Discrepancia qty_received vs BD → escala a socias (fix S10)
+- ✅ alert_sent UPDATE con tenant_id filter (IDOR fix S10)
+- ✅ routing_logs insert en cada alerta de ETA (fix S10)
+- ✅ eta_original preservado al crear — nunca sobreescrito
+- ✅ InventoryAgent instanciado con self.tenant_id siempre
+- ✅ import_eta_alert_days desde tenant_config (default 3)
+
 ## [HANDOFF→GEMINI] SIGUIENTE MÓDULO
-### Agente #24: customer_support_agent.py
-- Soporte post-venta: tracking de pedidos, cambios, devoluciones
-- Escalación a humano si no puede resolver en 3 turnos
-- Tabla: support_tickets (tenant_id, order_id, issue_type, status, resolved_at)
-- Canal: WhatsApp (via WhatsAppHandlerAgent) + email
+### Adapter + Agente #7: amazon_adapter.py + amazon_orders_agent.py
+- amazon_adapter.py: wrapper de Amazon SP-API
+  - Auth: LWA tokens (client_id + client_secret + refresh_token) desde Vault
+  - Métodos: get_orders(), get_order_items(), confirm_shipment(), update_inventory()
+  - Rate limits: SP-API burst/restore — tenacity wait_exponential
+  - Timeout: httpx 30s
+- amazon_orders_agent.py (#7):
+  - Recibe webhook Amazon → crea orden en Supabase → dispara MLFulfillmentAgent
+  - Sincroniza tracking de vuelta a Amazon via confirm_shipment()
+  - REGLA CRÍTICA: NUNCA marcar shipped sin tracking real (penalización de cuenta)
+  - Tabla: amazon_orders (tenant_id, amazon_order_id, status, items_json, tracking_number)
+  - Verificación HMAC de webhook Amazon (similar a Meta)
 
-### Agente #25: account_manager_agent.py
-- Seguimiento de cuentas B2B: renovaciones, upsell, NPS
-- Alertas cuando cliente B2B lleva >30 días sin compra
-- Tabla: b2b_accounts (tenant_id, lead_id, mrr, last_purchase_at, health_score)
-- Integración: SalesB2BAgent para cotizaciones, CFDIBillingAgent para historial facturas
+### Adapter + Agente #11: shopify_adapter.py + shopify_orders_agent.py
+- shopify_adapter.py: wrapper de Shopify Admin REST API
+  - Auth: Private App token desde Vault (header X-Shopify-Access-Token)
+  - Métodos: get_orders(), fulfill_order(), update_inventory_level(), verify_webhook()
+  - Webhook verification: HMAC-SHA256 con shopify_webhook_secret de Vault
+  - Tabla: shopify_orders (tenant_id, shopify_order_id, status, fulfillment_id)
+- shopify_orders_agent.py (#11):
+  - Recibe webhook Shopify orders/paid → dispara skydrop para guía
+  - Actualiza inventory_level en Shopify después de cada fulfillment
+  - REGLA: guía de Skydrop ANTES de marcar fulfillment en Shopify
 
-### Agente #35: import_logistics_agent.py
-- Gestión de importaciones: pedido→aduana→almacén→inventario
-- Integración con ProcurementAgent (OC aprobada → trigger import)
-- Tabla: import_shipments (tenant_id, po_id, status, eta, customs_reference)
-- Regla: alerta automática si ETA se retrasa > 3 días
+### Adapter: skydrop_adapter.py
+- Genera guías de envío para pedidos Shopify
+- Auth: API key desde Vault (header Authorization: Bearer)
+- Métodos: create_shipment(), get_label_url(), track_shipment()
+- Signed URL para PDF de guía: token + expires (mismo patrón que facturapi)
+- Tabla: skydrop_labels (tenant_id, shopify_order_id, tracking_number, label_url, expires_at)
+- Timeout: httpx 30s; retry 3x con backoff
 
 ## REGLAS FISCALES KAP TOOLS (REFERENCIA)
 - RFC emisor: KTO2202178K8
