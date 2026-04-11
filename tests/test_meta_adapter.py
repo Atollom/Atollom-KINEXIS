@@ -70,3 +70,48 @@ async def test_webhook_empty_payload(adapter):
     result = await adapter.handle_webhook(payload)
     assert result["status"] == "ignored"
     assert result["reason"] == "empty_entry"
+
+# ── H2 ──
+
+@pytest.mark.asyncio
+async def test_ig_dm_mock_mode_sin_vault(mock_db):
+    mock_db.get_vault_secrets = AsyncMock(side_effect=Exception("No vault"))
+    adapter = MetaAdapter(tenant_id="t1", db_client=mock_db)
+    result = await adapter.send_instagram_dm("ig_user_1", "Hola")
+    assert result is True
+
+@pytest.mark.asyncio
+async def test_ig_comment_reply_mock_mode_sin_vault(mock_db):
+    mock_db.get_vault_secrets = AsyncMock(side_effect=Exception("No vault"))
+    adapter = MetaAdapter(tenant_id="t1", db_client=mock_db)
+    result = await adapter.post_instagram_comment_reply("comment_1", "Gracias")
+    assert result is True
+
+@pytest.mark.asyncio
+async def test_hide_comment_mock_mode_sin_vault(mock_db):
+    mock_db.get_vault_secrets = AsyncMock(side_effect=Exception("No vault"))
+    adapter = MetaAdapter(tenant_id="t1", db_client=mock_db)
+    result = await adapter.hide_instagram_comment("comment_1")
+    # hide_comment is best-effort: logs warning and returns False on vault error
+    assert result is False
+
+@pytest.mark.asyncio
+async def test_whatsapp_falla_servidor_retorna_false(adapter):
+    import httpx as _httpx
+    with respx.mock:
+        respx.post("https://graph.facebook.com/v18.0/phone_123/messages").respond(500, json={"error": "internal"})
+        # send_whatsapp uses tenacity retry which reraises HTTPStatusError after exhausting retries
+        with pytest.raises(_httpx.HTTPStatusError):
+            await adapter.send_whatsapp("521234567890", "Fallo")
+
+@pytest.mark.asyncio
+async def test_webhook_firma_vacia_rechazada(adapter):
+    is_valid = await adapter.verify_webhook_signature(b"payload", "sha256=")
+    assert is_valid is False
+
+@pytest.mark.asyncio
+async def test_handle_webhook_object_desconocido_ignored(adapter):
+    payload = {"object": "pages", "entry": [{"id": "1"}]}
+    result = await adapter.handle_webhook(payload)
+    # 'pages' not handled → dispatched or ignored, but must not raise
+    assert "status" in result

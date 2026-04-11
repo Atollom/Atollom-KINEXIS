@@ -62,3 +62,57 @@ async def test_tenant_isolation_failure():
 
 if __name__ == "__main__":
     asyncio.run(test_tenant_isolation_failure())
+
+# ── H2 ──
+
+@pytest.mark.asyncio
+async def test_precio_menor_margen_ml_falla():
+    agent = ValidationAgent(tenant_id="t1")
+    # ML margin 1.20: price=110, cost=100 → 110 < 120 → fail
+    data = {"tenant_id": "t1", "source": "api", "payload": {"price": 110, "cost": 100, "platform": "ml", "total": 110}}
+    result = await agent.process(data)
+    margin_check = next((c for c in result["failed_checks"] if c["check_name"] == "check_price_above_minimum"), None)
+    assert margin_check is not None
+    assert margin_check["is_passing"] is False
+
+@pytest.mark.asyncio
+async def test_precio_mayor_margen_amazon_pasa():
+    agent = ValidationAgent(tenant_id="t1")
+    # Amazon margin 1.25: price=130, cost=100 → 130 >= 125 → pass
+    data = {"tenant_id": "t1", "source": "api", "payload": {"price": 130, "cost": 100, "platform": "amazon", "total": 130}}
+    result = await agent.process(data)
+    assert result["is_passing"] is True
+
+@pytest.mark.asyncio
+async def test_rfc_formato_invalido_falla():
+    agent = ValidationAgent(tenant_id="t1")
+    data = {"tenant_id": "t1", "source": "api", "payload": {"price": 130, "cost": 100, "platform": "ml", "total": 130, "rfc_emisor": "INVALIDO"}}
+    result = await agent.process(data)
+    rfc_check = next((c for c in result["failed_checks"] if c["check_name"] == "check_rfc_format"), None)
+    assert rfc_check is not None and rfc_check["is_passing"] is False
+
+@pytest.mark.asyncio
+async def test_rfc_formato_valido_pasa():
+    agent = ValidationAgent(tenant_id="t1")
+    # RFC válido de persona moral
+    data = {"tenant_id": "t1", "source": "api", "payload": {"price": 130, "cost": 100, "platform": "ml", "total": 130, "rfc_emisor": "XAXX010101000"}}
+    result = await agent.process(data)
+    # RFC válido no debe aparecer en failed_checks
+    rfc_fail = next((c for c in result["failed_checks"] if c["check_name"] == "check_rfc_format"), None)
+    assert rfc_fail is None
+
+@pytest.mark.asyncio
+async def test_cfdi_total_negativo_bloqueado():
+    agent = ValidationAgent(tenant_id="t1")
+    data = {"tenant_id": "t1", "source": "api", "payload": {"price": 130, "cost": 100, "platform": "ml", "total": -50}}
+    result = await agent.process(data)
+    total_check = next((c for c in result["failed_checks"] if c["check_name"] == "check_cfdi_total_positive"), None)
+    assert total_check is not None and total_check["is_passing"] is False
+
+@pytest.mark.asyncio
+async def test_schema_falta_payload_falla():
+    agent = ValidationAgent(tenant_id="t1")
+    data = {"tenant_id": "t1", "source": "api"}  # no 'payload' key
+    result = await agent.process(data)
+    schema_check = next((c for c in result["failed_checks"] if c["check_name"] == "check_json_schema"), None)
+    assert schema_check is not None and schema_check["is_passing"] is False

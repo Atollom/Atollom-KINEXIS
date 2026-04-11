@@ -82,3 +82,49 @@ def test_zpl_generado_con_campos_correctos(adapter):
     assert "ML456" in zpl
     assert "Pinzas de Precisi" in zpl # Truncado
     assert "^XA" in zpl and "^XZ" in zpl
+
+# ── H2 ──
+
+@pytest.mark.asyncio
+async def test_print_label_sin_ip_encola_job(mock_db):
+    mock_db.get_tenant_config = AsyncMock(return_value={"printer_protocol": "ZPL"})  # no printer_ip
+    adapter = ThermalPrinterAdapter(tenant_id="tenant-kap", db_client=mock_db)
+    result = await adapter.print_label("^XA^XZ", "order_no_ip")
+    assert result["success"] is False
+    assert result["job_queued"] is True
+
+@pytest.mark.asyncio
+async def test_print_label_connection_refused_encola(adapter):
+    with patch("socket.create_connection", side_effect=ConnectionRefusedError):
+        result = await adapter.print_label("^XA^XZ", "order_refused")
+        assert result["job_queued"] is True
+
+@pytest.mark.asyncio
+async def test_get_queue_status_retorna_lista(adapter, mock_db):
+    mock_db.supabase.table().select().eq().eq().execute = AsyncMock(
+        return_value=MagicMock(data=[{"id": "j1"}, {"id": "j2"}])
+    )
+    jobs = await adapter.get_queue_status()
+    assert isinstance(jobs, list)
+
+@pytest.mark.asyncio
+async def test_zpl_escape_caracteres_especiales(adapter):
+    # ^ and ~ are ZPL control chars — must be stripped
+    order_data = {"tracking_number": "TRK^XZ", "external_id": "~CMD", "product_name": "Ok", "shipping_address": "Calle"}
+    zpl = adapter.generate_zpl(order_data)
+    # After escape, raw ^ from tracking should not appear as ^XZ sequence
+    assert "^XZ" in zpl  # only the closing ^XZ is legitimate
+    # The injected ^XZ from tracking_number should be stripped to "TRKXZ"
+    assert "TRKXZ" in zpl
+
+def test_zpl_producto_nombre_largo_truncado(adapter):
+    order_data = {
+        "tracking_number": "TRK1",
+        "external_id": "EXT1",
+        "product_name": "A" * 100,  # 100 chars → must be truncated to 25
+        "shipping_address": "Calle"
+    }
+    zpl = adapter.generate_zpl(order_data)
+    # Product field is max 25 chars
+    assert "A" * 25 in zpl
+    assert "A" * 26 not in zpl

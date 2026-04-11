@@ -76,3 +76,34 @@ async def test_create_shipment_dimensiones_invalidas_bloqueado(adapter):
     """create_shipment con dimensiones en cero debe lanzar ValueError."""
     with pytest.raises(ValueError, match="Dimensiones"):
         await adapter.create_shipment({"weight": 1, "dimensions": {"height": 0, "width": 10, "length": 10}})
+
+@pytest.mark.asyncio
+async def test_paqueteria_ups_en_whitelist(adapter):
+    with patch("httpx.AsyncClient.post") as mock_post:
+        mock_post.return_value = MagicMock(status_code=201, json=lambda: {"tracking_number": "T-UPS"})
+        await adapter.create_shipment({"weight": 2, "dimensions": {"height":5,"width":5,"length":5}, "carrier_preference": "UPS"})
+        assert mock_post.called
+
+@pytest.mark.asyncio
+async def test_paqueteria_fedex_en_whitelist(adapter):
+    with patch("httpx.AsyncClient.post") as mock_post:
+        mock_post.return_value = MagicMock(status_code=201, json=lambda: {"tracking_number": "T-FDX"})
+        await adapter.create_shipment({"weight": 2, "dimensions": {"height":5,"width":5,"length":5}, "carrier_preference": "FedEx"})
+        assert mock_post.called
+
+@pytest.mark.asyncio
+async def test_create_shipment_mock_devuelve_tracking(db_mock):
+    db_mock.get_vault_secrets.return_value = {}
+    adapter = SkyDropAdapter("t1", db_mock)
+    res = await adapter.create_shipment({"weight": 1, "dimensions": {"height":5,"width":5,"length":5}})
+    assert res.get("tracking_number", "").startswith("TRACK-SD")
+
+@pytest.mark.asyncio
+async def test_get_label_url_contiene_shipment_id(adapter):
+    url = await adapter.get_label_url("ship_XYZ")
+    assert "ship_XYZ" in url
+
+@pytest.mark.asyncio
+async def test_dimensiones_length_cero_bloqueado(adapter):
+    with pytest.raises(ValueError):
+        await adapter.create_shipment({"weight": 1, "dimensions": {"height":5,"width":5,"length":0}})
