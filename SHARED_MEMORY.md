@@ -13,9 +13,9 @@ BLOCKER DOCUMENTADO:
 DECISION LOG:
   [HUMAN DECISION: arquitectura 43 agentes aprobada por Carlos Hernán Cortés Ayala y Hiram Alexis Valencia Duarte — evidencia INDAUTOR de autoría humana]
 
-NEXT PHASE: Dashboard / Reporting
+NEXT PHASE: Dashboard Session 3 — Analytics + Finance
   Prioridad: analytics_reports, finance_snapshots, NPS dashboard
-  Estado: migraciones 021-022 listas, agentes pendientes de UI
+  Estado: Session 2 completa ✅ — 4 módulos UI entregados
 
 REGLAS CRITICAS IMPLEMENTADAS:
   R1 — IDOR: tenant_id filter en todos los queries DB
@@ -28,3 +28,36 @@ REGLAS CRITICAS IMPLEMENTADAS:
   R8 — Instagram: requires_approval=True SIEMPRE
   R9 — Márgenes: ML>=1.20, AMZ>=1.25, Shopify>=1.30, B2B>=1.18
   R10 — HMAC-SHA256 verificado PRIMERO en todos los webhooks
+
+## FASE DASHBOARD
+status: INFRAESTRUCTURA COMPLETA
+last_update: 2026-04-11
+
+Claude construye:
+  - globals.css (design system)
+  - layout.tsx (sidebar + header)
+  - Sidebar.tsx
+  - page.tsx (dashboard principal)
+  - Componentes UI
+
+Gemini construye:
+  - API routes (8 endpoints completados) ✅
+  - middleware.ts (auth + tenant + RBAC) ✅
+  - types/index.ts (tipos globales) ✅
+  - hooks/ (5 hooks de datos swr) ✅
+  - lib/auth.ts (helper de tenant) ✅
+  - assets (ícono Atollom AI en /public) ✅
+
+CHECKPOINT_SAVE:
+  agent: CLAUDE
+  session: Dashboard Session 2
+  date: 2026-04-11
+  status: COMPLETO ✅
+  tsc: ZERO ERRORS ✅
+  módulos_entregados:
+    - /ecommerce (MLFeed + OrderCard + PlatformBadge + page)
+    - /warehouse (TaskCard + PrintButton + CutoffAlert + page)
+    - /erp/cfdi (CFDITable + CFDIStatusChip + FacturapiStatus + NewCFDIModal + page)
+    - /chat (MessageBubble + CommandInput + AgentAvatar + ContextSelector + page)
+  componentes_total: 16
+  SSE_streaming: IMPLEMENTADO (/api/chat → ReadableStream)
