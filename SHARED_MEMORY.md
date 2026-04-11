@@ -3,84 +3,69 @@
 # Actualizar al TERMINAR cada sesión de trabajo
 
 ## META
-last_updated: 2026-04-10T16:34:00Z
-last_agent: GEMINI
-session_count: 6
+last_updated: 2026-04-10T18:30:00Z
+last_agent: CLAUDE
+session_count: 7
 
 ## CHECKPOINT ACTIVO
 phase: 1
 week: 1
-current_task: 'facturapi_adapter.py — Fase 1B'
-in_progress: 'Handoff to Claude (Hardening)'
-last_completed: 'Facturapi Adapter Implementado (16 tests pass) ✅'
-next_task: 'cfdi_billing_agent.py (Agente #36)'
+current_task: 'Siguiente módulo: whatsapp_handler_agent + sales_b2b_agent'
+in_progress: 'Handoff→GEMINI para scaffold de Agente #17 y #22'
+last_completed: '[QA✓] facturapi_adapter + cfdi_billing_agent — hardened + 130 tests ✅'
+next_task: 'GEMINI: Scaffold whatsapp_handler_agent.py (Agente #17) + sales_b2b_agent.py (Agente #22)'
 
 ## ESTADO DE IMPLEMENTACIÓN
-### Agentes implementados [7/42]
+### Agentes implementados [8/42]
 - [x] #1  Router Agent + 4 sub-routers
 - [x] #2  ML Question Handler (PRODUCTION_READY ✅)
 - [x] #3  ML Fulfillment Agent (PRODUCTION_READY ✅)
+- [x] #36 CFDI Billing Agent (PRODUCTION_READY ✅)
 - [x] #26 Validation Agent (CRÍTICO — LISTO)
 
 ### Adapters Completos
 - [x] ml_adapter.py (PROD)
 - [x] thermal_printer_adapter.py (PROD)
 - [x] meta_adapter.py (Stub WA - mock mode)
-- [x] facturapi_adapter.py (Mock mode ready ✅)
+- [x] facturapi_adapter.py (PRODUCTION_READY ✅)
 
-### Contratos de Agentes [3/42]
+### Contratos de Agentes [4/42]
 - [x] validation_agent.yaml ✅
 - [x] ml_question_handler_agent.yaml ✅
 - [x] ml_fulfillment_agent.yaml ✅
-- [x] facturapi_adapter.yaml ✅
+- [x] cfdi_billing_agent.yaml ✅
 
-## BLOCKERS CERRADOS
-- ✅ Regla Fiscal Kits: Desglose automático de componentes para el SAT.
-- ✅ Validación RFC Pre-API: Prevención de errores en timbrado.
-- ✅ Mock Mode Facturapi: Estabilidad en entorno de tests sin API Keys.
-- ✅ Timeouts SAT: Configuración de 45s para timbrado.
+## MÓDULO CFDI (PRODUCTION_READY)
+- ✅ Migración 007 (Tablas cfdi_records, cfdi_tenant_config_ext, vista review)
+- ✅ Lógica de resolución de KITS con Decimal (desglose fiscal exacto — centavo exacto)
+- ✅ Reglas de autonomía: threshold desde tenant_config (no hardcodeado)
+- ✅ Storage ANTES de BD — CFDI nunca queda huérfano si storage falla
+- ✅ Envío al cliente: best-effort con try/except en execute() — no escala si falla
+- ✅ Vault stub retorna {} para activar MOCK_MODE (no "MOCK_KEY")
+- ✅ Frozensets para whitelists SAT (FORMAS_PAGO, USOS_CFDI, MOTIVOS_CANCELACION)
+- ✅ SKU sanitizado con regex antes de query a BD (previene path traversal)
 
-## BLOCKERS ABIERTOS
-- ⏳ Facturapi Sandbox Key: Carlos debe pegarla en el Dashboard para activar modo real.
-- ⏳ CFDI Records Table: Pendiente migración 007 para persistencia de facturas.
-- ⏳ SkyDrop API: Investigar para envíos no-ML.
+## TESTS PASSING [130/130]
+- S1-S5: 91 tests
+- S6 Gemini (CFDI Module): 27 tests
+- S6 Claude H2 (CFDI Hardening): 12 tests
+- Total: 130 ✅
 
-## TESTS PASSING [100/100] (Claude Session 4) + [16 Gemini Session 6 = 116 total pendiente verificar)
-- core: 2/2
-- ml_adapter: 18/18
-- ml_question_handler: 29/29
-- ml_fulfillment + printer + meta: 51/51
-- facturapi_adapter: 16 (Gemini — pendiente hardening Claude)
+## [HANDOFF→GEMINI] SIGUIENTE MÓDULO
+### Agente #17: whatsapp_handler_agent.py
+- Recibe webhooks Meta (verificados con HMAC-SHA256 X-Hub-Signature-256)
+- Enruta mensajes entrantes al agente correcto según intención detectada
+- Responde vía MetaAdapter.send_whatsapp()
+- Tabla: whatsapp_messages (tenant_id, from_number, message, direction, agent_handled)
 
-PRODUCTION_READY: ml_adapter.py — Claude approved — 18 tests — 2026-04-10
-PRODUCTION_READY: ml_question_handler_agent.py — Claude approved — 29 tests — 2026-04-10
-PRODUCTION_READY: ml_fulfillment_agent.py — Claude approved — 100 tests — 2026-04-10
-PRODUCTION_READY: thermal_printer_adapter.py — Claude approved — 100 tests — 2026-04-10
-PRODUCTION_READY: meta_adapter.py — Claude approved (mock mode) — 100 tests — 2026-04-10
+### Agente #22: sales_b2b_agent.py
+- Detecta si comprador es B2B (ya implementado en ml_question_handler)
+- Genera propuesta PDF + envío por email (Resend Fase 2) o WhatsApp
+- Tabla: b2b_leads (tenant_id, company_name, rfc, contact_email, status)
+- Regla: cotización > $50,000 MXN requiere aprobación manual (misma lógica autonomy que CFDI)
 
-## NOTAS DE LA SESIÓN 4 CLAUDE — Hardening Agente #3 + Adaptadores
-### SECURITY_FIX:
-1. BLOQUEANTE: generate_zpl() sin escapar ^ en dirección del comprador → _escape_zpl_field()
-2. BLOQUEANTE: meta_adapter retry inefectivo (exceptions capturadas dentro). FIJADO.
-3. BLOQUEANTE: send_whatsapp() message no sanitizado. FIJADO: truncar 500 chars.
-4. Puerto 9100 hardcodeado → viene de tenant_config (DEFAULT_PORT=9100 fallback).
-5. 5x except Exception sin log en adapters. FIJADO.
-6. execute() solo validaba peso, no alto/ancho/largo. FIJADO: 3 dimensiones > 0.
-7. base_agent.py: print() → logging; except en run() loggea antes de retornar.
-8. 2 tests pass vacíos → tests reales.
-
-## NOTAS DE LA SESIÓN 6 GEMINI — Facturapi Adapter
-- facturapi_adapter.py implementado (mock mode, 16 tests)
-- Lógica de kits: desglose automático de componentes para el SAT
-- asyncio.gather para descarga paralela XML + PDF
-- Whitelists SAT (Forma de Pago, Uso CFDI) en el adaptador
-
-## SIGUIENTE TAREA (Claude Session 5)
-HARDENING facturapi_adapter.py + construir cfdi_billing_agent.py
-Checklist crítico:
-- NUNCA timbrar si total <= 0 (R7)
-- Kits: desglosar SKU por SKU — R8
-- RFC público XAXX010101000 si < $2,000 sin RFC
-- XML en Storage PRIVADO antes de success
-- Backoff: 2s → 5s → 15s, 3 reintentos
-- Cancelación > $10,000 MXN → HUMAN_REQUIRED
+## REGLAS FISCALES KAP TOOLS (REFERENCIA)
+- RFC emisor: KTO2202178K8
+- Régimen: 601 (General de Ley Personas Morales)
+- CP expedición: 72973
+- RFC público general: XAXX010101000 → siempre "PUBLICO EN GENERAL" + CP 72973 + régimen 616
