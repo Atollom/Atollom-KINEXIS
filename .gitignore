@@ -1,0 +1,25 @@
+# ── Secrets — NEVER commit ──────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Node / Next.js
+node_modules/
+src/dashboard/node_modules/
+src/dashboard/.next/
+src/dashboard/tsconfig.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db

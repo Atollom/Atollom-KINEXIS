@@ -2,6 +2,7 @@
 import logging
 import re
 import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 from src.utils.ai_client import AIClientWithFallback
 
@@ -93,3 +94,8 @@ class BaseAgent:
         Debe ser implementado por cada agente específico.
         """
         raise NotImplementedError("Subclases deben implementar process()")
+
+    def _get_now(self) -> datetime:
+        """Retorna la hora actual en CDMX (UTC-6 fijo)."""
+        tz_mx = timezone(timedelta(hours=-6))
+        return datetime.now(tz_mx)

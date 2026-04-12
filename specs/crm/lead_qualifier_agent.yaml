@@ -1,0 +1,44 @@
+agent_id: lead_qualifier_agent_v1
+autonomy_level: FULL
+sub_router: CRMRouter
+
+inputs:
+  - message: string (sanitizar antes de LLM)
+  - channel: enum [whatsapp, instagram_dm, mercadolibre, shopify, web_form]
+  - contact_info: object
+      phone: string (nullable)
+      email: string (nullable)
+      name: string (nullable)
+  - tenant_id: string
+  - previous_purchases: array (de Supabase)
+
+outputs:
+  - lead_score: integer (1-10)
+  - lead_type: enum [b2b, b2c, unknown]
+  - next_agent: string
+  - qualification_reason: string
+  - lead_id: string (UUID creado en leads table)
+  - is_duplicate: boolean
+
+business_rules:
+  - B2B signals (cualquiera → score mínimo 7):
+      cantidad > 10 unidades mencionada
+      menciona empresa o RFC
+      solicita factura o comprobante fiscal
+      pregunta por lista de precios o mayoreo
+      menciona volumen o pedido recurrente
+  - Score > 7 → transferir INMEDIATAMENTE a Sales B2B Agent sin esperar
+  - Score < 3 → responder con info básica y cerrar educadamente
+  - Si contacto ya es cliente B2B activo: score mínimo 7 automáticamente
+  - Verificar duplicado ANTES de crear lead: mismo phone o email en últimos 90 días
+  - Registrar lead SIEMPRE aunque score < 3 para análisis de tendencias
+  - Score basado en:
+      historial de compras en ML/WA/CRM
+      señales B2B en el mensaje
+      canal de origen (WA B2B > ML B2C)
+      valor estimado de la compra
+
+escalation_conditions:
+  - Señales de fraude detectadas
+  - RFC proporcionado con formato inválido
+  - Comportamiento anómalo (spam, flood)

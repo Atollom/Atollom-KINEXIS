@@ -1,0 +1,24 @@
+agent_id: account_manager_agent_v1
+autonomy_level: SUPERVISED
+sub_router: CRMRouter
+
+inputs:
+  - event_type: enum [check_health, log_purchase, send_nps]
+  - account_id: string
+  - tenant_id: string
+  - purchase_amount: Decimal (solo en log_purchase)
+
+outputs:
+  - health_score: integer (1-100)
+  - action_taken: string
+  - alert_sent: boolean
+  - nps_sent: boolean
+
+business_rules:
+  - account_id filtrado con tenant_id SIEMPRE
+  - health_score calculado internamente NUNCA aceptado del payload
+  - mrr usa Decimal — no float
+  - NPS cooldown: 90 días configurable de tenant_config NO hardcodeado
+  - Si last_purchase_at > 30 días: health baja. Alerta a socias via WhatsApp
+  - Si health_score < 40: riesgo de churn. Acción inmediata requerida
+  - NPS solo si cooldown expirado

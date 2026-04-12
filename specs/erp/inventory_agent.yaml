@@ -1,0 +1,33 @@
+agent_id: inventory_agent_v1
+autonomy_level: NOTIFY
+sub_router: ERPRouter
+
+inputs:
+  - trigger: enum [sale_confirmed, receipt_scan, manual_adjustment, sync_request, morning_cron]
+  - sku: string (nullable — si es SKU específico)
+  - qty_change: integer (positivo=entrada, negativo=salida)
+  - tenant_id: string
+  - platform: enum [mercadolibre, amazon, shopify, internal]
+
+outputs:
+  - stock_updated: boolean
+  - current_stock: integer
+  - platforms_synced: array
+  - low_stock_alerts: array
+  - procurement_triggered: boolean
+
+business_rules:
+  - Supabase es la ÚNICA fuente de verdad de stock
+  - Sync a ML+Amazon+Shopify tras CADA cambio
+  - Stock de seguridad: 15 días de ventas promedio de tenant_business_rules
+  - Alerta crítica: stock <= 7 días de ventas de tenant_business_rules
+  - Alerta urgente: stock = 0 → notificar socias inmediatamente vía WhatsApp
+  - Si stock crítico: disparar Procurement Agent para generar OC en borrador
+  - Velocidad de ventas: calcular sobre últimos 30 días (configurable tenant)
+  - qty_change validado: no puede dejar stock negativo
+  - Cada movimiento registrado en inventory_movements table
+
+escalation_conditions:
+  - Stock llega a 0 en cualquier SKU activo
+  - Discrepancia > 5 unidades entre plataformas
+  - Fallo de sync en 2+ plataformas simultáneas

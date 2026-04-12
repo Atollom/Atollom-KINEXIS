@@ -1,0 +1,44 @@
+agent_id: whatsapp_handler_agent_v1
+autonomy_level: SUPERVISED
+sub_router: MetaRouter
+
+inputs:
+  - message_text: string (sanitizar antes de LLM)
+  - from_number: string (número de WhatsApp)
+  - tenant_id: string
+  - message_type: enum [text,image,document,audio]
+  - media_url: string (nullable)
+  - webhook_payload: dict (payload completo de Meta)
+
+outputs:
+  - response_sent: boolean
+  - intent_detected: enum [
+      consulta_producto, cotizacion_b2b,
+      solicitud_factura, soporte_postventa,
+      devolución, otro]
+  - lead_created: boolean
+  - ticket_id: string (nullable)
+  - escalated: boolean
+
+business_rules:
+  - Verificar firma HMAC-SHA256 del webhook Meta
+    ANTES de procesar cualquier mensaje
+  - Horario de atención: L-V 8AM-7PM
+    Fuera de horario: mensaje automático de ausencia
+  - Si intención = cotizacion_b2b:
+    transferir a Sales B2B Agent
+  - Si monto mencionado > $5,000 MXN: escalar
+  - Si cliente solicita factura:
+    recolectar RFC, nombre, CP, régimen fiscal
+    luego disparar CFDI Billing Agent
+  - Guardar CADA mensaje en whatsapp_messages
+  - Respuesta máxima: 1,024 chars (límite WA)
+  - message_text pasa por _sanitize_for_prompt()
+    SIEMPRE antes de LLM
+
+escalation_conditions:
+  - Monto mencionado > $5,000 MXN
+  - Cliente con > 2 disputas activas
+  - Solicitud de crédito B2B
+  - Lenguaje agresivo o amenaza legal
+  - Mensaje fuera de horario con urgencia alta

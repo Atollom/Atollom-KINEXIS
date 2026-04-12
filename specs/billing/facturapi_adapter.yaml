@@ -1,0 +1,62 @@
+# specs/billing/facturapi_adapter.yaml
+adapter_id: facturapi_adapter_v2
+version: "2.0"
+provider: Facturapi
+
+sat_compliance:
+  version_cfdi: "4.0"
+  regimen_fiscal_emisor: "601"
+  lugar_expedicion: "72973"
+  rfc_emisor: "KTO2202178K8"
+  complementos_soportados:
+    - name: "Pagos20"
+      status: "Fase 2"
+    - name: "Ingreso"
+      status: "Fase 1: Soportado"
+
+methods:
+  create_customer:
+    description: "Registra o recupera un receptor CFDI después de validar RFC."
+    params:
+      rfc: string
+      name: string
+      email: string
+      zip_code: string
+      tax_regime: string
+    validations:
+      - "^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$"
+  
+  create_invoice:
+    description: "Genera un CFDI 4.0 con desglose dinámico de ítems y kits."
+    params:
+      customer_id: string
+      items: list
+      payment_form: string
+      payment_method: string
+      uso_cfdi: string
+    validations:
+      - "total > 0"
+      - "items not empty"
+      - "payment_form in FORM_PAGO_VALIDAS"
+  
+  download_files:
+    description: "Descarga XML y PDF en paralelo."
+    params:
+      invoice_id: string
+  
+  cancel_invoice:
+    description: "Prepara la cancelación ante el SAT con motivo y sustitución."
+    params:
+      invoice_id: string
+      motivo: string (01, 02, 03, 04)
+      sustitucion_uuid: string (opcional, requerido si motivo=01)
+
+  create_payment_complement:
+    description: "Genera complemento de pago (REP). Pendiente Fase 2."
+    status: "NotImplemented"
+
+business_rules:
+  kits: "Si el producto es un KIT, desglosar componentes individuales consultando kit_components."
+  mock_mode: "Si la API Key no está en Vault, retornar UUID mock y estado MOCK_TIMBRADO."
+  timeout: "30s estándar, 45s para timbrado de facturas."
+  retries: "3 intentos con backoff exponencial para llamadas al SAT."

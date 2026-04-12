@@ -14,10 +14,13 @@ export async function GET(req: NextRequest) {
   try {
     const { tenant_id } = auth;
 
-    // 1. Orders and Revenue Today (CDMX)
-    const today = new Date();
-    today.setHours(today.getHours() - 6); // Ajuste básico a CDMX
-    const dateStr = today.toISOString().split('T')[0];
+    // 1. Orders and Revenue Today — CDMX timezone (not naive UTC-6; uses locale string)
+    const cdmxStr = new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' });
+    const cdmxDate = new Date(cdmxStr);
+    const y = cdmxDate.getFullYear();
+    const m = String(cdmxDate.getMonth() + 1).padStart(2, '0');
+    const d = String(cdmxDate.getDate()).padStart(2, '0');
+    const dateStr = `${y}-${m}-${d}`;
 
     const { data: ordersData } = await supabase
       .from('orders')

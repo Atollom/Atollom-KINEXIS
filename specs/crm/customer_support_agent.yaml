@@ -1,0 +1,33 @@
+agent_id: customer_support_agent_v1
+autonomy_level: SUPERVISED
+sub_router: CRMRouter
+
+inputs:
+  - ticket_type: enum [tracking, return, exchange, complaint, other]
+  - order_id: string
+  - message: string
+  - tenant_id: string
+  - contact_phone: string
+
+outputs:
+  - response_sent: boolean
+  - ticket_id: string
+  - ticket_status: enum [open, resolved, escalated]
+  - turn_count: integer
+  - escalated: boolean
+
+business_rules:
+  - order_id SIEMPRE filtrado con tenant_id
+  - turn_count leído de BD — NUNCA del payload
+  - Si turno 3 sin resolución → escalated
+  - resolved_at solo se escribe cuando status cambia a 'resolved'
+  - Escalación best-effort — try/except si meta_adapter falla: log + continuar
+  - Respuesta máxima 1,024 chars
+  - Reclamos de ácidos: responder con videos
+    plata: https://youtu.be/9nINypdi-6w
+    oro: https://youtu.be/pV_I49L6J2o
+
+escalation_conditions:
+  - Turno 3 sin resolución
+  - Amenaza legal en el mensaje
+  - Disputa activa en ML o Amazon

@@ -31,7 +31,11 @@ REGLAS CRITICAS IMPLEMENTADAS:
 
 ## FASE DASHBOARD
 status: INFRAESTRUCTURA COMPLETA
+deploy_status: READY_FOR_STAGING
+vercel: configured
+railway: configured
 last_update: 2026-04-11
+pendiente: ejecutar migraciones en Supabase prod
 
 Claude construye:
   - globals.css (design system)
@@ -41,23 +45,36 @@ Claude construye:
   - Componentes UI
 
 Gemini construye:
-  - API routes (8 endpoints completados) ✅
+  - API routes (8 iniciales + 7 adicionales = 15 endpoints) ✅
   - middleware.ts (auth + tenant + RBAC) ✅
   - types/index.ts (tipos globales) ✅
   - hooks/ (5 hooks de datos swr) ✅
   - lib/auth.ts (helper de tenant) ✅
   - assets (ícono Atollom AI en /public) ✅
+  - Autenticación: /login (page + layout + LoginForm) ✅
+
+SESSION 2 PARALELO (Gemini): COMPLETO ✅
+  - 7 API routes (ML Questions, CRM, ERP, Meta)
+  - Login Neural Command Center
+
+SESSION 3 PARALELO (Gemini): COMPLETO ✅
+  - Módulos UI Scaffolding:
+    - /crm (Pipeline 6 columnas)
+    - /meta (WhatsApp + IG Unified Feed)
+    - /erp/inventory (SKU Health Table + Visual Bars)
+    - /erp/procurement (OC Approval + Expiry Timers)
+  - Data Hooks: useLeads, useConversations, useInventory, usePurchaseOrders
+  - Types: Lead, ConversationSummary, LeadStage
 
 CHECKPOINT_SAVE:
-  agent: CLAUDE
-  session: Dashboard Session 2
+  agent: GEMINI (Modules Scaffolding)
   date: 2026-04-11
-  status: COMPLETO ✅
-  tsc: ZERO ERRORS ✅
-  módulos_entregados:
-    - /ecommerce (MLFeed + OrderCard + PlatformBadge + page)
-    - /warehouse (TaskCard + PrintButton + CutoffAlert + page)
-    - /erp/cfdi (CFDITable + CFDIStatusChip + FacturapiStatus + NewCFDIModal + page)
-    - /chat (MessageBubble + CommandInput + AgentAvatar + ContextSelector + page)
-  componentes_total: 16
-  SSE_streaming: IMPLEMENTADO (/api/chat → ReadableStream)
+  status: TSC VERIFIED ✅ — READY FOR CLAUDE HARDENING
+
+PENDIENTE SESSION 3:
+  - Settings Module (Task 3)
+  - Realtime Notifications (Task 4)
+  - /crm (Leads + Soporte + NPS)
+  - /erp/inventory (Inventario + Alertas)
+  - /meta (WhatsApp + Instagram)
+  - /erp/procurement (OCs pendientes)

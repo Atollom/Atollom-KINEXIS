@@ -1,0 +1,71 @@
+# specs/erp/cfdi_billing_agent.yaml
+agent_id: cfdi_billing_agent_v1
+autonomy_level: SUPERVISED
+sub_router: ERPRouter
+
+inputs:
+  - order_id: string (ID de la orden origen en KINEXIS)
+  - tenant_id: string
+  - customer_rfc: string (default: XAXX010101000)
+  - customer_name: string (Razón Social)
+  - customer_email: string (Opcional para envío automático)
+  - customer_zip: string (Código Postal del receptor)
+  - customer_tax_regime: string (Régimen Fiscal del receptor, default: 616)
+  - uso_cfdi: 
+      type: enum
+      values: [G01, G02, G03, I01, S01, CP01, CN01]
+  - forma_pago:
+      type: enum
+      values: ['01', '02', '03', '04', '28', '99']
+  - metodo_pago:
+      type: enum
+      values: [PUE, PPD]
+  - cfdi_type:
+      type: enum
+      values: [I, E, P]
+      default: I
+  - cfdi_relacionado: string (Opcional, UUID del CFDI a relacionar en Notas de Crédito/Pagos)
+  - items:
+      type: array
+      description: "Lista de productos con descripción, SKU, precio y clave SAT."
+
+outputs:
+  - cfdi_uuid: string (UUID oficial del SAT)
+  - folio: string (Folio interno con serie)
+  - xml_url: string (URL firmada de descarga XML)
+  - pdf_url: string (URL firmada de descarga PDF)
+  - status:
+      type: enum
+      values: [TIMBRADO, ERROR_PAC, ERROR_VALIDACION, CANCELADO]
+  - total: decimal
+  - requires_human_review: boolean
+
+business_rules:
+  - NUNCA timbrar si total <= 0.
+  - NUNCA timbrar si el RFC emisor no está configurado o es inválido.
+  - Usar RFC público XAXX010101000 si el monto de la venta es < $2,000 MXN (configurable por tenant).
+  - Aplicar IVA 16% para ventas nacionales por defecto.
+  - REGLA DE KITS: Desglosar SKU por SKU consultando kit_components; NUNCA facturar el kit completo.
+  - Guardar archivos en Supabase Storage ANTES de retornar éxito al solicitante.
+  - Reintentos de timbrado: 3 intentos con backoff exponencial (2s, 5s, 15s).
+  - Cancelación > $10,000 MXN requiere aprobación humana obligatoria.
+  - Enviar CFDI al cliente en un plazo máximo de 24 horas tras la emisión.
+  - Obtener API Key de Facturapi exclusivamente desde el Vault.
+
+autonomy_rules:
+  - total < 10000 MXN: FULL (Timbra, guarda y envía automáticamente sin intervención).
+  - total >= 10000 MXN: NOTIFY (Genera borrador/notifica a socias antes de timbrar).
+  - cancelacion: HUMAN_REQUIRED (Todas las cancelaciones deben ser aprobadas manualmente).
+
+escalation_conditions:
+  - El PAC rechaza el timbrado 3 veces consecutivas.
+  - RFC del cliente detectado en listas negras (EFOS/LCO) si se cuenta con el servicio.
+  - Intentos de cancelación que superen el umbral de $10,000 MXN.
+  - Errores de comunicación con el SAT persistentes por más de 15 minutos.
+  - Discrepancia entre RFC receptor y Razón Social según validación de Facturapi.
+
+sat_compliance:
+  version_cfdi: "4.0"
+  regimen_fiscal_emisor: "601"
+  lugar_expedicion: "72973"
+  rfc_emisor: "KTO2202178K8"

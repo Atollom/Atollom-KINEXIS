@@ -1,0 +1,35 @@
+agent_id: procurement_agent_v1
+autonomy_level: NOTIFY
+sub_router: ERPRouter
+
+inputs:
+  - trigger: enum [stock_alert, manual_request, scheduled_review]
+  - sku_alerts: array of objects
+      sku: string
+      current_stock: integer
+      days_remaining: float
+      urgency: enum [urgent, critical, warning]
+  - tenant_id: string
+
+outputs:
+  - po_id: string (UUID de la OC en borrador)
+  - purchase_order_draft: object
+  - approval_request_sent: boolean
+  - approval_url: string
+  - supplier_selected: string
+
+business_rules:
+  - NUNCA — bajo ninguna circunstancia — enviar OC al proveedor sin aprobación socias
+  - Status workflow: DRAFT → APPROVED → SENT. Solo pasar a SENT después de aprobación
+  - Solo proveedores en approved_suppliers table
+  - OC > $30,000 MXN: aprobación AMBAS socias
+  - OC <= $30,000 MXN: aprobación 1 socia
+  - Para compras > $10,000 MXN: generar 3 opciones de proveedor si hay disponibles
+  - Link de aprobación expira en 48 horas
+  - Cantidad a pedir: (días_seguridad - días_restantes) × velocity × 1.2 (buffer 20%)
+  - Precio estimado: último precio de compra de purchase_orders históricos
+
+escalation_conditions:
+  - No hay proveedor aprobado para el SKU
+  - Intento de enviar OC sin aprobación (Validation Agent #26 lo bloquea y escala)
+  - Proveedor con >2 incumplimientos en 90 días

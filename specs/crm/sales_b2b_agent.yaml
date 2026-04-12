@@ -1,0 +1,47 @@
+agent_id: sales_b2b_agent_v1
+autonomy_level: SUPERVISED
+sub_router: CRMRouter
+
+inputs:
+  - lead_id: string
+  - tenant_id: string
+  - conversation_history: array
+  - customer_profile: object
+      rfc: string (nullable)
+      empresa: string (nullable)
+      historial_compras: array
+  - action: enum [
+      follow_up, send_quote,
+      confirm_order, request_invoice]
+
+outputs:
+  - message_sent: string
+  - quote_pdf_url: string (nullable)
+  - order_id: string (nullable)
+  - cfdi_triggered: boolean
+  - next_followup_date: date
+  - deal_stage: enum [
+      new, contacted, quote_sent,
+      negotiating, won, lost]
+
+business_rules:
+  - Precio mínimo: costo × (1 + b2b_min_margin)
+    leer margen de tenant_business_rules
+  - Descuento máximo sin aprobación: 10%
+    de tenant_business_rules
+  - Venta > $15,000 MXN: HUMAN_REQUIRED
+    notificar a socias antes de confirmar
+  - Venta > $50,000 MXN: aprobación AMBAS socias
+  - Seguimiento máximo: 4 horas hábiles
+  - Registrar TODA interacción en crm_interactions
+  - Si pago confirmado + auto_invoice_b2b=true:
+    disparar CFDI Billing Agent automáticamente
+  - Cotización válida por 15 días calendario
+  - NUNCA prometer stock sin verificar inventory
+
+escalation_conditions:
+  - Monto > $15,000 MXN
+  - Descuento solicitado > 10%
+  - Solicitud de crédito (pago a plazos)
+  - Cliente con disputas activas en ML/Amazon
+  - RFC proporcionado en lista EFOS/LCO SAT

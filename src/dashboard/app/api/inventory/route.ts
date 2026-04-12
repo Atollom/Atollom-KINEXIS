@@ -48,12 +48,14 @@ export async function GET(req: NextRequest) {
         status = 'warning';
       }
 
+      // `products` is a joined object; cast to access the name field
+      const productRow = item.products as { name: string } | null;
       return {
-        sku: item.sku,
-        name: (item as any).products?.name || item.sku,
-        qty: item.stock,
+        sku:           item.sku,
+        name:          productRow?.name || item.sku,
+        stock:         item.stock,
         days_remaining: days,
-        status: status
+        status:        status,
       };
     });
 

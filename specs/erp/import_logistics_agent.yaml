@@ -1,0 +1,29 @@
+agent_id: import_logistics_agent_v1
+autonomy_level: SUPERVISED
+sub_router: ERPRouter
+
+inputs:
+  - event_type: enum [po_approved, customs_cleared, received, eta_check_cron]
+  - shipment_id: string
+  - tenant_id: string
+  - eta_days: integer (solo en po_approved)
+
+outputs:
+  - shipment_status: string
+  - eta: date (nullable)
+  - inventory_updated: boolean
+  - alert_sent: boolean
+
+business_rules:
+  - shipment_id filtrado con tenant_id SIEMPRE
+  - qty en 'received' leída de BD — NUNCA payload Previene manipulación de stock
+  - eta calculado con _get_now() — no datetime.now() suelto
+  - Alert si ETA se retrasa > import_eta_alert_days de tenant_config (default 3 días)
+  - En 'received': llamar InventoryAgent con mismo self.tenant_id
+  - Notificar almacén (Carlos) en customs_cleared
+  - El cron _check_eta_alerts() corre como evento 'eta_check_cron'
+
+escalation_conditions:
+  - Retraso > import_eta_alert_days días
+  - Problema aduanal detectado
+  - qty recibida != qty en OC (discrepancia)

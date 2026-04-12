@@ -85,3 +85,49 @@ export interface Notification {
   priority: 'low' | 'medium' | 'high' | 'critical';
   created_at: string;
 }
+
+// CRM & Meta additions
+export type LeadStage = 'new' | 'contacted' | 'quote_sent' | 'negotiating' | 'won' | 'lost';
+
+export interface Lead {
+  lead_id: string;
+  name: string;
+  company: string;
+  channel: string;
+  score: number;
+  deal_stage: LeadStage;
+  last_activity: string;
+  assigned_to?: string;
+  value?: number;
+}
+
+export type ConversationIntent = 'venta' | 'soporte' | 'reclamo' | 'otro' | 'unknown';
+
+export interface ConversationSummary {
+  contact: string;
+  channel: 'whatsapp' | 'instagram';
+  last_message: string;
+  intent: ConversationIntent;
+  unread_count: number;
+  last_activity: string;
+  avatar_url?: string;
+}
+
+// ── ERP — Purchase Orders ─────────────────────────────────────────
+export interface POItem {
+  name: string;
+  qty: number;
+  unit_cost?: number;
+}
+
+export type POStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'RECEIVED';
+
+export interface PurchaseOrder {
+  po_id: string;
+  supplier: string;
+  items: POItem[];
+  total: number;
+  status: POStatus;
+  approval_expires_at: string;
+  created_at: string;
+}
