@@ -30,10 +30,10 @@ REGLAS CRITICAS IMPLEMENTADAS:
   R10 — HMAC-SHA256 verificado PRIMERO en todos los webhooks
 
 ## FASE DASHBOARD
-status: INFRAESTRUCTURA COMPLETA
-deploy_status: READY_FOR_STAGING
-vercel: configured
-railway: configured
+status: DEPLOYED_PRODUCTION ✅
+deploy_status: LIVE & CONNECTED
+vercel: configured (zero-config, Next.js 14.2 downgrade applied for auth compatibility)
+railway: configured (Rootless setup con railway.json en raíz)
 last_update: 2026-04-11
 pendiente: ejecutar migraciones en Supabase prod
 
@@ -67,9 +67,9 @@ SESSION 3 PARALELO (Gemini): COMPLETO ✅
   - Types: Lead, ConversationSummary, LeadStage
 
 CHECKPOINT_SAVE:
-  agent: GEMINI (Modules Scaffolding)
-  date: 2026-04-11
-  status: TSC VERIFIED ✅ — READY FOR CLAUDE HARDENING
+  agent: GEMINI (Deployment Vercel & Railway Fixes)
+  date: 2026-04-12
+  status: FULLY DEPLOYED ✅ — READY FOR META WEBHOOKS & CLAUDE HARDENING
 
 PENDIENTE SESSION 3:
   - Settings Module (Task 3)
