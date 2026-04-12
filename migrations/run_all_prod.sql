@@ -95,7 +95,6 @@ CREATE TABLE IF NOT EXISTS platform_credentials (
     platform_name TEXT NOT NULL CHECK (platform_name IN ('ml', 'amazon', 'shopify', 'meta', 'facturapi', 'skydrop', 'resend')),
     key_name TEXT NOT NULL, -- e.g., 'API_KEY', 'CLIENT_SECRET'
     encrypted_value TEXT NOT NULL, -- El valor real se maneja vía pgsodium en la app layer o vía serverless functions
-    vault_secret_id UUID, -- Referencia opcional al ID en vault.secrets si se usa integración nativa Supabase
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
@@ -262,21 +261,16 @@ CREATE POLICY core_inventory_isolation ON inventory FOR ALL USING (tenant_id IN 
 -- Nota: Para que estas funciones existan, pgsodium y vault deben estar habilitados en Supabase.
 
 -- 1. App ID
-SELECT vault.create_secret(
-  '2563941731044265',
-  'ml_app_id',
-  'Mercado Libre App ID - Kap Tools'
-);
+-- NOTA: Configurar secrets via Supabase Dashboard
+-- Settings -> Vault -> Add Secret
+-- Key: [nombre_del_secret]
 
 -- 2. Client Secret
-SELECT vault.create_secret(
-  'vDQxAUGDo4jwDmi4VEyLB5UoXQWe8TP7',
-  'ml_client_secret',
-  'Mercado Libre Client Secret - Kap Tools'
-);
+-- NOTA: Configurar secrets via Supabase Dashboard
+-- Settings -> Vault -> Add Secret
+-- Key: [nombre_del_secret]
 
 -- 3. Comentario de Auditoría
-COMMENT ON TABLE vault.secrets IS 'Contiene las claves sensibles de ML inyectadas durante la Fase 1B';
 
 -- ═══════════════════════════════════════════
 -- FILE: migrations/006_print_queue.sql
