@@ -891,8 +891,8 @@ ALTER TABLE price_history ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can only see their tenant's price history"
 ON price_history FOR ALL
 TO authenticated
-USING (tenant_id = auth.jwt() ->> 'tenant_id')::uuid
-WITH CHECK (tenant_id = auth.jwt() ->> 'tenant_id')::uuid;
+USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
 
 -- Índices optimizados
 CREATE INDEX idx_price_history_tenant_sku ON price_history(tenant_id, sku);
@@ -928,8 +928,8 @@ ALTER TABLE returns ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can only see their tenant's returns"
 ON returns FOR ALL
 TO authenticated
-USING (tenant_id = auth.jwt() ->> 'tenant_id')::uuid
-WITH CHECK (tenant_id = auth.jwt() ->> 'tenant_id')::uuid;
+USING (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+WITH CHECK (tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
 
 -- Índices optimizados
 CREATE INDEX idx_returns_tenant_status ON returns(tenant_id, status);
