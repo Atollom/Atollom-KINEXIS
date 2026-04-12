@@ -11,7 +11,7 @@ BLOCKER DOCUMENTADO:
   amazon_reviews_api: 'Amazon SP-API get_reviews() pendiente de implementar — stub activo en amazon_adapter'
 
 DECISION LOG:
-  [HUMAN DECISION: arquitectura 43 agentes aprobada por Carlos Hernán Cortés Ayala y Hiram Alexis Valencia Duarte — evidencia INDAUTOR de autoría humana]
+  [HUMAN DECISION: arquitectura 43 agentes aprobada por Carlos Hernán Cortés Ayala y Alexis Hiram Valencia Duarte — evidencia INDAUTOR de autoría humana]
 
 NEXT PHASE: Dashboard Session 3 — Analytics + Finance
   Prioridad: analytics_reports, finance_snapshots, NPS dashboard

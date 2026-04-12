@@ -1,6 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationPanel } from "./NotificationPanel";
+
 export function Header() {
+  const [panelOpen, setPanelOpen] = useState(false);
+  const { notifications, criticalCount, isLoading } = useNotifications();
+
   return (
     <header
       className="
@@ -14,7 +22,6 @@ export function Header() {
     >
       {/* Left: title */}
       <div className="flex items-center gap-4">
-        {/* Mobile hamburger (sidebar toggled via BottomNav on mobile) */}
         <button
           className="md:hidden text-primary-container hover:opacity-80 transition-opacity"
           aria-label="Abrir menú"
@@ -43,25 +50,59 @@ export function Header() {
             style={{ boxShadow: "0 0 6px rgba(202,253,0,0.6)" }}
             aria-hidden="true"
           />
-          <span className="label-sm text-primary-container">
-            43 AGENTES ONLINE
-          </span>
+          <span className="label-sm text-primary-container">43 AGENTES ONLINE</span>
         </div>
 
         {/* Action icons */}
         <div className="flex items-center gap-3">
-          <button
-            className="text-on-surface-variant hover:text-primary-container transition-colors"
-            aria-label="Notificaciones"
-          >
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <button
+          {/* Notifications bell */}
+          <div className="relative">
+            <button
+              onClick={() => setPanelOpen((o) => !o)}
+              className="relative text-on-surface-variant hover:text-primary-container transition-colors"
+              aria-label={`Notificaciones${criticalCount > 0 ? ` — ${criticalCount} críticas` : ""}`}
+              aria-expanded={panelOpen}
+            >
+              <span className="material-symbols-outlined">
+                {criticalCount > 0 ? "notifications_active" : "notifications"}
+              </span>
+
+              {/* Unread badge */}
+              {criticalCount > 0 && (
+                <span
+                  className="
+                    absolute -top-1 -right-1
+                    w-4 h-4 rounded-full
+                    bg-error text-white
+                    text-[9px] font-bold
+                    flex items-center justify-center
+                    leading-none
+                  "
+                  aria-hidden="true"
+                >
+                  {criticalCount > 9 ? "9+" : criticalCount}
+                </span>
+              )}
+            </button>
+
+            {/* Panel dropdown */}
+            {panelOpen && (
+              <NotificationPanel
+                notifications={notifications}
+                isLoading={isLoading}
+                onClose={() => setPanelOpen(false)}
+              />
+            )}
+          </div>
+
+          {/* Settings link */}
+          <Link
+            href="/settings"
             className="text-on-surface-variant hover:text-primary-container transition-colors"
             aria-label="Configuración"
           >
             <span className="material-symbols-outlined">settings</span>
-          </button>
+          </Link>
         </div>
       </div>
     </header>
