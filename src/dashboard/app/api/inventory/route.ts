@@ -48,11 +48,14 @@ export async function GET(req: NextRequest) {
         status = 'warning';
       }
 
-      // `products` is a joined object; cast to access the name field
-      const productRow = item.products as { name: string } | null;
+      // Supabase join check
+      const productsRow = item.products as unknown as { name: string }[] | { name: string } | null;
+      const productName = Array.isArray(productsRow)
+        ? (productsRow[0]?.name || item.sku)
+        : (productsRow?.name || item.sku);
       return {
         sku:           item.sku,
-        name:          productRow?.name || item.sku,
+        name:          productName,
         stock:         item.stock,
         days_remaining: days,
         status:        status,

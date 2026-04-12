@@ -37,11 +37,15 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json((pos || []).map(po => {
-      // Supabase join: `approved_suppliers` is a single related row
-      const supplier = (po.approved_suppliers as { name: string } | null)?.name ?? 'Proveedor desconocido';
+      // Supabase join might return an array or single object depending on schema; cast safely
+      const suppliers = po.approved_suppliers as unknown as { name: string }[] | { name: string } | null;
+      const supplierName = Array.isArray(suppliers) 
+        ? (suppliers[0]?.name ?? 'Proveedor desconocido')
+        : (suppliers?.name ?? 'Proveedor desconocido');
+
       return {
         po_id:               po.id,
-        supplier,
+        supplier:            supplierName,
         items:               po.items ?? [],
         total:               po.total_estimate,
         status:              po.status,
