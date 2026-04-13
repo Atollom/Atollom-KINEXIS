@@ -1,7 +1,7 @@
 agentes_implementados: 43/43
 agent_contracts_done: 43/43
 migraciones: 032/N
-tests_totales: 769 passing ✅  (747 previos + 22 Settings Module H1)
+tests_totales: 836 passing ✅  (769 previos + 67 Dashboard H1: Settings+Notifications+Pages+Onboarding)
 
 ESTADO: PRODUCTION_READY
 claude_approved_date: 2026-04-13
@@ -123,6 +123,34 @@ DASHBOARD PAGES H1 HARDENING — 2026-04-13:
   - unauthenticated → 401
   - restock_request crea OC con status DRAFT (no APPROVED) → 201
   - almacenista → 403 en POST purchase-orders
+
+ONBOARDING H1 HARDENING — 2026-04-13:
+  BUGS ENCONTRADOS Y CORREGIDOS:
+  [BUG-CRITICAL] middleware.ts — /onboarding sin RBAC server-side. Non-owner podía acceder durante loadingUser=true (timing window). Fix: RBAC middleware solo owner puede acceder a /onboarding
+  [BUG-CRITICAL] onboarding/page.tsx — finishOnboarding() solo hacía router.push("/"), nunca marcaba onboarding_complete=true. Fix: llama POST /api/onboarding/complete antes de navegar
+  [BUG-HIGH]    onboarding/page.tsx — "Omitir Todo" llamaba router.push("/") sin guardar datos del paso actual. Fix: skipAll() guarda paso actual en best-effort antes de salir
+  [BUG-HIGH]    onboarding/page.tsx — saveStep3() ignoraba response de API de perfil. RFC inválido → API retorna 400 pero usuario avanzaba igual. Fix: saveStep3 retorna boolean, nextStep bloquea avance si !ok
+  [BUG-HIGH]    middleware.ts — /api/onboarding sin RBAC. Fix: solo role === "owner" puede acceder
+
+  NUEVO ENDPOINT:
+  [API] /api/onboarding/complete (POST) — owner-only, upserta onboarding_complete=true + onboarding_completed_at + config_change_log
+
+  H1 CHECKLIST RESULTS:
+  [OK] API keys nunca en console.log ni en config_change_log con valor real ✅ (vault PATCH loggea [REDACTED])
+  [OK] "Saltar Todo" → skipAll() guarda paso actual antes de salir ✅
+  [OK] Solo owner puede acceder: middleware server-side redirect + API route guard ✅
+  [OK] RFC validado server-side en ProfileSchema (z.string().regex) + error bloqueante en client ✅
+  [OK] finishOnboarding → llama API → onboarding_complete=true en DB ✅
+  [OK] Interrupción a mitad: cada saveStep es independiente, falla en saveStep3 → no avanza ✅
+
+  TESTS (vitest) 12/12:
+  - admin/socia/viewer → 403 POST /api/onboarding/complete
+  - unauthenticated → 401
+  - owner → 200, upsert con onboarding_complete: true
+  - config_change_log registra field "onboarding.complete"
+  - 4 RFC inválidos → 400 server-side
+  - RFC válido → !400
+  - vault PATCH: config_change_log nunca contiene valor real ([REDACTED])
 
 NEXT PHASE: Dashboard Session 3 — Analytics + Finance
   Prioridad: analytics_reports, finance_snapshots, NPS dashboard
