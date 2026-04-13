@@ -86,9 +86,12 @@ export interface ChatMessage {
 
 export type ChatContext = 'full' | 'warehouse' | 'fiscal';
 
+export type NotificationModule = 'ecommerce' | 'erp' | 'crm' | 'sistema';
+
 export interface Notification {
   id: string;
   type: string;
+  module: NotificationModule;
   message: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
   created_at: string;

@@ -1,7 +1,7 @@
 agentes_implementados: 43/43
 agent_contracts_done: 43/43
 migraciones: 032/N
-tests_totales: 728 passing ✅  (710 previos + 18 nuevos SECURITY_FIX)
+tests_totales: 747 passing ✅  (728 previos + 4 Meta webhook + 15 Realtime Notifications)
 
 ESTADO: PRODUCTION_READY
 claude_approved_date: 2026-04-13
@@ -38,6 +38,25 @@ DASHBOARD H1 HARDENING — 2026-04-13:
   [RBAC]   DashboardShell.tsx → userRole default changed to "viewer" (was "owner")
   [RBAC]   ModuleNav.tsx → ROLE_VISIBLE_MODULES covers all 8 roles including socia/almacenista/agente
   [TYPES]  types/index.ts → UserRole now includes socia | almacenista | agente
+
+REALTIME NOTIFICATIONS — 2026-04-13:
+  [REALTIME] lib/realtime.ts → subscribeToTable con reconexión exponential backoff (1s→2s→4s→…→30s, max 8 intentos)
+  [REALTIME] lib/realtime.ts → subscribeToNotificationSources() — suscripción a 5 tablas fuente en una llamada
+  [HOOK]     useNotifications.ts → SIN polling (refreshInterval:0) — solo Realtime dispara revalidación
+  [HOOK]     useNotifications.ts → read state en localStorage (key: kinexis-read-notifs-{tenantId}, max 500 IDs)
+  [HOOK]     useNotifications.ts → markRead(id), markAllAsRead() exportados
+  [HOOK]     useNotifications.ts → sonido crítico via Web Audio API (beep A5→A4, 0.3s) cuando llega nueva notif high/critical
+  [HOOK]     useNotifications.ts → computeUnreadCount, markOneRead, markAllRead exportados como funciones puras para tests
+  [UI]       NotificationPanel.tsx → slide-over desde la derecha, agrupado por módulo (Sistema>ERP>Ecommerce>CRM)
+  [UI]       NotificationPanel.tsx → icono por tipo, color por prioridad, tiempo relativo
+  [UI]       NotificationPanel.tsx → marcar leída al clic, "Leer todo" button, badge de unread en header del panel
+  [UI]       NotificationPanel.tsx → cierra con Escape, foco automático al abrir (accesibilidad)
+  [UI]       Header.tsx → badge muestra unreadCount (no solo criticalCount), pulsa solo si hay críticas
+  [API]      /api/notifications/route.ts → campo module añadido (erp/ecommerce/crm/sistema), derivado por type
+  [API]      /api/notifications/route.ts → tenant_id siempre de getAuthenticatedTenant(), nunca de query params
+  [TYPES]    types/index.ts → NotificationModule = 'ecommerce'|'erp'|'crm'|'sistema' añadido a Notification
+  [TESTS]    __tests__/notifications.test.ts → 15 tests vitest (puro, sin DOM): computeUnreadCount, markOneRead, markAllRead, realtime badge increment/decrement
+  [TEST_FW]  vitest@1.6.1 instalado + vitest.config.ts configurado
 
 NEXT PHASE: Dashboard Session 3 — Analytics + Finance
   Prioridad: analytics_reports, finance_snapshots, NPS dashboard

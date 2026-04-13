@@ -1,165 +1,330 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Notification } from "@/types";
+import type { Notification, NotificationModule } from "@/types";
 
-interface NotificationPanelProps {
-  notifications: Notification[];
-  isLoading: boolean;
-  onClose: () => void;
-}
+// ── Module config ─────────────────────────────────────────────────────────────
 
-const PRIORITY_CONFIG: Record<
-  Notification["priority"],
-  { dot: string; label: string; border: string }
-> = {
-  critical: { dot: "bg-error",            label: "text-error",            border: "border-error/20" },
-  high:     { dot: "bg-[#ff9900]",        label: "text-[#ff9900]",        border: "border-[#ff9900]/20" },
-  medium:   { dot: "bg-secondary",        label: "text-secondary",        border: "border-secondary/20" },
-  low:      { dot: "bg-on-surface-variant", label: "text-on-surface-variant", border: "border-outline/10" },
+const MODULE_LABELS: Record<NotificationModule, string> = {
+  ecommerce: "Ecommerce",
+  erp:       "ERP",
+  crm:       "CRM",
+  sistema:   "Sistema",
 };
 
-const TYPE_ICONS: Record<string, string> = {
-  cfdi_error:     "receipt_long",
+const MODULE_COLORS: Record<NotificationModule, string> = {
+  ecommerce: "#3B82F6",
+  erp:       "#22C55E",
+  crm:       "#F59E0B",
+  sistema:   "#A8E63D",
+};
+
+// ── Priority / type icon config ───────────────────────────────────────────────
+
+const PRIORITY_COLOR: Record<string, string> = {
+  critical: "#ef4444",
+  high:     "#f59e0b",
+  medium:   "#60a5fa",
+  low:      "#6b7280",
+};
+
+const TYPE_ICON: Record<string, string> = {
+  cfdi_error:     "description",
   stock_critical: "inventory_2",
   return_pending: "assignment_return",
-  po_pending:     "shopping_cart",
-  crisis_active:  "warning",
+  po_pending:     "shopping_basket",
+  crisis_active:  "emergency_home",
 };
 
-function formatAge(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const mins   = Math.floor(diffMs / 60_000);
-  if (mins < 1)  return "ahora";
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}d`;
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function relativeTime(isoString: string): string {
+  const diff  = Date.now() - new Date(isoString).getTime();
+  const mins  = Math.floor(diff / 60_000);
+  const hours = Math.floor(diff / 3_600_000);
+  const days  = Math.floor(diff / 86_400_000);
+  if (mins  < 1)  return "ahora";
+  if (mins  < 60) return `hace ${mins}m`;
+  if (hours < 24) return `hace ${hours}h`;
+  return `hace ${days}d`;
+}
+
+function groupByModule(
+  notifications: Notification[]
+): Map<NotificationModule, Notification[]> {
+  const groups = new Map<NotificationModule, Notification[]>();
+  for (const n of notifications) {
+    const list = groups.get(n.module) ?? [];
+    list.push(n);
+    groups.set(n.module, list);
+  }
+  return groups;
+}
+
+// ── NotifRow ──────────────────────────────────────────────────────────────────
+
+function NotifRow({
+  notif,
+  isRead,
+  onMarkRead,
+}: {
+  notif: Notification;
+  isRead: boolean;
+  onMarkRead: (id: string) => void;
+}) {
+  const icon  = TYPE_ICON[notif.type] ?? "notifications";
+  const color = isRead ? "#617794" : PRIORITY_COLOR[notif.priority];
+
+  return (
+    <button
+      type="button"
+      onClick={() => !isRead && onMarkRead(notif.id)}
+      className={`
+        w-full text-left flex items-start gap-3
+        px-4 py-3 rounded-xl transition-all duration-150
+        ${isRead
+          ? "opacity-40 cursor-default"
+          : "hover:bg-white/[0.06] bg-white/[0.02] cursor-pointer"
+        }
+      `}
+      aria-label={`${isRead ? "Leída" : "Sin leer"}: ${notif.message}`}
+    >
+      {/* Type icon */}
+      <div
+        className="mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: `${color}18` }}
+      >
+        <span
+          className="material-symbols-outlined text-base"
+          style={{ color }}
+          aria-hidden="true"
+        >
+          {icon}
+        </span>
+      </div>
+
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <p
+          className={`text-[12px] leading-snug ${
+            isRead ? "text-on-surface-variant" : "text-on-surface font-medium"
+          }`}
+        >
+          {notif.message}
+        </p>
+        <p className="text-[10px] text-outline mt-0.5">
+          {relativeTime(notif.created_at)}
+        </p>
+      </div>
+
+      {/* Unread dot */}
+      {!isRead && (
+        <div
+          className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0"
+          style={{
+            backgroundColor: PRIORITY_COLOR[notif.priority],
+            boxShadow: `0 0 6px ${PRIORITY_COLOR[notif.priority]}80`,
+          }}
+          aria-hidden="true"
+        />
+      )}
+    </button>
+  );
+}
+
+// ── NotificationPanel ─────────────────────────────────────────────────────────
+
+export interface NotificationPanelProps {
+  notifications: Notification[];
+  isLoading: boolean;
+  readIds: ReadonlySet<string>;
+  onClose: () => void;
+  onMarkRead: (id: string) => void;
+  onMarkAllRead: () => void;
 }
 
 export function NotificationPanel({
   notifications,
   isLoading,
+  readIds,
   onClose,
+  onMarkRead,
+  onMarkAllRead,
 }: NotificationPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
-
-  // Close on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose]);
+  const unreadCount = notifications.filter((n) => !readIds.has(n.id)).length;
+  const groups = groupByModule(notifications);
 
   // Close on Escape
   useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
-  return (
-    <div
-      ref={panelRef}
-      className="
-        absolute top-full right-0 mt-2 w-80 sm:w-96
-        bg-surface-container-high
-        border border-outline-variant/20
-        rounded-2xl shadow-volt-strong
-        z-50 overflow-hidden
-      "
-      role="dialog"
-      aria-label="Panel de notificaciones"
-    >
-      {/* Header */}
-      <div className="px-4 py-3 flex items-center justify-between border-b border-outline-variant/10">
-        <h2 className="font-headline font-bold text-sm text-on-surface uppercase tracking-wider">
-          Notificaciones
-        </h2>
-        {notifications.length > 0 && (
-          <span className="label-sm text-on-surface-variant">
-            {notifications.length} activas
-          </span>
-        )}
-      </div>
+  // Focus panel on mount for keyboard accessibility
+  useEffect(() => { panelRef.current?.focus(); }, []);
 
-      {/* Body */}
-      <div className="max-h-[400px] overflow-y-auto divide-y divide-outline-variant/10">
-        {isLoading ? (
-          <div className="p-4 space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex gap-3 animate-pulse">
-                <div className="w-2 h-2 rounded-full bg-surface-container-lowest mt-1.5 flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-surface-container-lowest rounded w-3/4" />
-                  <div className="h-2 bg-surface-container-lowest rounded w-1/3" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : notifications.length === 0 ? (
-          <div className="py-12 text-center">
+  // Render order: sistema first (highest priority), then erp, ecommerce, crm
+  const MODULE_ORDER: NotificationModule[] = ["sistema", "erp", "ecommerce", "crm"];
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-40 bg-black/20"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      {/* Slide-over */}
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Panel de notificaciones"
+        tabIndex={-1}
+        className="
+          fixed right-0 top-16 bottom-0 z-50
+          w-full sm:w-[400px]
+          flex flex-col
+          bg-[#0A1628]/98 backdrop-blur-2xl
+          border-l border-white/[0.06]
+          shadow-2xl outline-none
+        "
+        style={{ animation: "slideInRight 0.2s ease-out" }}
+      >
+        {/* ── Header ──────────────────────────── */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
+          <div className="flex items-center gap-2.5">
             <span
-              className="material-symbols-outlined text-3xl text-on-surface-variant/30 block mb-2"
+              className="material-symbols-outlined text-[#A8E63D] text-xl"
               aria-hidden="true"
             >
-              notifications_off
+              notifications
             </span>
-            <p className="label-sm text-on-surface-variant/40">Sin alertas activas</p>
-          </div>
-        ) : (
-          notifications.map((n) => {
-            const cfg  = PRIORITY_CONFIG[n.priority];
-            const icon = TYPE_ICONS[n.type] ?? "info";
-            return (
-              <div
-                key={n.id}
-                className={`px-4 py-3 flex gap-3 hover:bg-surface-container transition-colors border-l-2 ${cfg.border}`}
+            <h2 className="font-headline font-bold text-on-surface text-sm">
+              Notificaciones
+            </h2>
+            {unreadCount > 0 && (
+              <span
+                className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none"
+                aria-label={`${unreadCount} sin leer`}
               >
-                {/* Icon */}
-                <span
-                  className={`material-symbols-outlined text-base ${cfg.label} flex-shrink-0 mt-0.5`}
-                  aria-hidden="true"
-                >
-                  {icon}
-                </span>
+                {unreadCount}
+              </span>
+            )}
+          </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-on-surface leading-snug">{n.message}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} flex-shrink-0`} />
-                    <span className={`text-[9px] font-bold uppercase tracking-wider ${cfg.label}`}>
-                      {n.priority}
-                    </span>
-                    <span className="text-[9px] text-on-surface-variant/50 ml-auto font-mono">
-                      {formatAge(n.created_at)}
-                    </span>
+          <div className="flex items-center gap-3">
+            {unreadCount > 0 && (
+              <button
+                onClick={onMarkAllRead}
+                className="text-[10px] font-bold text-on-surface-variant hover:text-[#A8E63D] transition-colors uppercase tracking-wider"
+                aria-label="Marcar todas como leídas"
+              >
+                Leer todo
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/[0.06] transition-all"
+              aria-label="Cerrar panel de notificaciones"
+            >
+              <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                close
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── Body ────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto py-2" role="list" aria-label="Lista de notificaciones">
+          {isLoading ? (
+            <div className="px-5 py-8 space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-3 animate-pulse">
+                  <div className="w-7 h-7 rounded-lg bg-white/[0.06] flex-shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 bg-white/[0.06] rounded w-full" />
+                    <div className="h-2 bg-white/[0.04] rounded w-1/3" />
                   </div>
                 </div>
-              </div>
-            );
-          })
+              ))}
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-48 text-on-surface-variant gap-3">
+              <span
+                className="material-symbols-outlined text-4xl opacity-30"
+                aria-hidden="true"
+              >
+                notifications_off
+              </span>
+              <p className="text-sm">Sin notificaciones activas</p>
+            </div>
+          ) : (
+            MODULE_ORDER.map((mod) => {
+              const items = groups.get(mod);
+              if (!items?.length) return null;
+              const modColor = MODULE_COLORS[mod];
+
+              return (
+                <div key={mod} className="mb-2" role="group" aria-label={`Módulo ${MODULE_LABELS[mod]}`}>
+                  {/* Module separator */}
+                  <div className="flex items-center gap-2 px-5 py-2">
+                    <div
+                      className="h-px flex-1 rounded-full"
+                      style={{ backgroundColor: `${modColor}25` }}
+                    />
+                    <span
+                      className="text-[9px] font-bold uppercase tracking-[0.15em]"
+                      style={{ color: modColor }}
+                    >
+                      {MODULE_LABELS[mod]}
+                    </span>
+                    <div
+                      className="h-px flex-1 rounded-full"
+                      style={{ backgroundColor: `${modColor}25` }}
+                    />
+                  </div>
+
+                  {/* Items */}
+                  <div className="px-2 space-y-0.5" role="list">
+                    {items.map((notif) => (
+                      <div key={notif.id} role="listitem">
+                        <NotifRow
+                          notif={notif}
+                          isRead={readIds.has(notif.id)}
+                          onMarkRead={onMarkRead}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* ── Footer ──────────────────────────── */}
+        {notifications.length > 0 && (
+          <div className="px-5 py-3 border-t border-white/[0.06] flex-shrink-0">
+            <p className="text-[10px] text-outline text-center">
+              {unreadCount === 0
+                ? "Todas las notificaciones están leídas ✓"
+                : `${unreadCount} sin leer · Clic para marcar como leída`}
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Footer */}
-      {notifications.length > 0 && (
-        <div className="px-4 py-3 border-t border-outline-variant/10">
-          <button
-            className="label-sm text-on-surface-variant/60 hover:text-primary-container transition-colors w-full text-center"
-            onClick={onClose}
-          >
-            VER TODAS EN /CHAT
-          </button>
-        </div>
-      )}
-    </div>
+      {/* Slide-in animation */}
+      <style>{`
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to   { transform: translateX(0);    opacity: 1; }
+        }
+      `}</style>
+    </>
   );
 }

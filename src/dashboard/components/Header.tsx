@@ -51,7 +51,15 @@ function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
 export function Header({ onMenuToggle }: HeaderProps) {
   const pathname = usePathname();
   const [panelOpen, setPanelOpen] = useState(false);
-  const { notifications, criticalCount, isLoading } = useNotifications();
+  const {
+    notifications,
+    unreadCount,
+    criticalCount,
+    isLoading,
+    readIds,
+    markRead,
+    markAllAsRead,
+  } = useNotifications();
 
   const breadcrumbs = getBreadcrumbs(pathname);
   const pageTitle = breadcrumbs.length > 0
@@ -139,38 +147,41 @@ export function Header({ onMenuToggle }: HeaderProps) {
                 hover:bg-white/[0.04]
                 transition-all duration-200
               "
-              aria-label={`Notificaciones${criticalCount > 0 ? ` — ${criticalCount} críticas` : ""}`}
+              aria-label={`Notificaciones${unreadCount > 0 ? ` — ${unreadCount} sin leer` : ""}`}
               aria-expanded={panelOpen}
             >
               <span className="material-symbols-outlined text-xl">
                 {criticalCount > 0 ? "notifications_active" : "notifications"}
               </span>
 
-              {/* Unread badge */}
-              {criticalCount > 0 && (
+              {/* Unread badge — shows total unread, pulses when there are critical */}
+              {unreadCount > 0 && (
                 <span
-                  className="
+                  className={`
                     absolute top-1 right-1
                     w-4 h-4 rounded-full
                     bg-red-500 text-white
                     text-[9px] font-bold
                     flex items-center justify-center
                     leading-none
-                    animate-pulse
-                  "
+                    ${criticalCount > 0 ? "animate-pulse" : ""}
+                  `}
                   aria-hidden="true"
                 >
-                  {criticalCount > 9 ? "9+" : criticalCount}
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </button>
 
-            {/* Panel dropdown */}
+            {/* Slide-over panel */}
             {panelOpen && (
               <NotificationPanel
                 notifications={notifications}
                 isLoading={isLoading}
+                readIds={readIds}
                 onClose={() => setPanelOpen(false)}
+                onMarkRead={markRead}
+                onMarkAllRead={markAllAsRead}
               />
             )}
           </div>
