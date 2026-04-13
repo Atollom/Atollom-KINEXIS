@@ -41,7 +41,22 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/', req.url));
   }
 
-  // ── 1b. Page-level RBAC for /settings ───────────────────────────────────────
+  // ── 1b. Page-level RBAC for /onboarding ─────────────────────────────────────
+  // Only the tenant owner can run the onboarding wizard.
+  // Non-owner roles are redirected to / before any client-side code runs.
+  if (session && pathname.startsWith('/onboarding')) {
+    const { data: onbProfile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (onbProfile?.role !== 'owner') {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+  }
+
+  // ── 1c. Page-level RBAC for /settings ───────────────────────────────────────
   // viewer / agente / warehouse / almacenista / contador cannot access Settings.
   // They are redirected to / so they never see even the page skeleton.
   if (session && pathname.startsWith('/settings')) {
@@ -53,6 +68,20 @@ export async function middleware(req: NextRequest) {
 
     const settingsRole = settingsProfile?.role as string | undefined;
     if (!settingsRole || !['owner', 'admin', 'socia'].includes(settingsRole)) {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+  }
+
+  // ── 1d. Page-level RBAC for /atollom ───────────────────────────────────────
+  // only atollom_admin can access Atollom internal dashboard
+  if (session && pathname.startsWith('/atollom')) {
+    const { data: atollomProfile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (atollomProfile?.role !== 'atollom_admin') {
       return NextResponse.redirect(new URL('/', req.url));
     }
   }
@@ -136,6 +165,13 @@ export async function middleware(req: NextRequest) {
     if (pathname.startsWith('/api/settings')) {
       if (!AGENT_ROLES.includes(role)) {
         return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
+      }
+    }
+
+    // /api/onboarding/* → owner only
+    if (pathname.startsWith('/api/onboarding')) {
+      if (role !== 'owner') {
+        return NextResponse.json({ error: 'Prohibido: Solo el propietario puede completar el onboarding' }, { status: 403 });
       }
     }
   }
