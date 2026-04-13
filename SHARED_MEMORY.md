@@ -1,11 +1,22 @@
 agentes_implementados: 43/43
 agent_contracts_done: 43/43
 migraciones: 032/N
-tests_totales: 710 passing ✅
+tests_totales: 728 passing ✅  (710 previos + 18 nuevos SECURITY_FIX)
 
 ESTADO: PRODUCTION_READY
-claude_approved_date: 2026-04-11
-hardening_sessions: BLOQUE1 + BLOQUE2 + BLOQUE3 + BLOQUE4 + BLOQUE5 (completo)
+claude_approved_date: 2026-04-13
+hardening_sessions: BLOQUE1 + BLOQUE2 + BLOQUE3 + BLOQUE4 + BLOQUE5 + BLOQUE6 (completo)
+
+SECURITY_FIX — 2026-04-13:
+  [HMAC] instagram_dm_handler_agent.py — payload_bytes sin signature ahora RECHAZADO (antes bypasseaba)
+  [HMAC] Eliminado "status: error" interno del return para consistencia con BaseAgent wrapper
+  [API]  main.py — Bearer auth con hmac.compare_digest() (constant-time, anti timing-attack)
+  [API]  main.py — supabase_client inyectado desde env, nunca del request
+  [API]  main.py — errores internos NO expuestos al caller (stack trace queda en logger)
+  [API]  main.py — 404 no enumera agentes disponibles (anti information-disclosure)
+  [API]  main.py — 503 cuando AGENT_SECRET no está configurado (fail-closed)
+  [TESTS] test_instagram_hmac.py — 7 tests HMAC (inválido, faltante, bytes vacíos, interno, válido)
+  [TESTS] test_main.py — 11 tests API (401, 503, 404, 400, happy path, error leak, health, registry)
 
 BLOCKER DOCUMENTADO:
   amazon_reviews_api: 'Amazon SP-API get_reviews() pendiente de implementar — stub activo en amazon_adapter'

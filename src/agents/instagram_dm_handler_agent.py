@@ -26,15 +26,18 @@ class InstagramDMHandlerAgent(BaseAgent):
         Orquesta la respuesta a un DM de Instagram.
         """
         # 1. Verificar firma HMAC (via meta_adapter)
-        # En una implementación real, el payload_bytes y signature vendrían del trigger
-        webhook_payload = data.get("webhook_payload", {})
+        # payload_bytes se incluye cuando el trigger proviene de un webhook de Meta.
+        # Llamadas internas (sin payload_bytes) omiten la verificación HMAC.
         signature = data.get("x_hub_signature", "")
         payload_bytes = data.get("payload_bytes", b"")
-        
-        if payload_bytes and signature:
+
+        if payload_bytes:
+            # Signature es OBLIGATORIA cuando hay payload — sin firma = rechazar
+            if not signature:
+                return {"message": "Missing X-Hub-Signature-256", "response_sent": False}
             is_valid = await self.meta_adapter.verify_webhook_signature(payload_bytes, signature)
             if not is_valid:
-                return {"status": "error", "message": "Invalid HMAC signature", "response_sent": False}
+                return {"message": "Invalid HMAC signature", "response_sent": False}
 
         # 2. Sanitizar message_text
         raw_message = data.get("message_text", "")
@@ -91,7 +94,7 @@ class InstagramDMHandlerAgent(BaseAgent):
         text = re.sub(r'<[^>]*>', '', text)
         return text.strip()[:1000]
 
-    async def _check_business_hours(self) -> (bool, str):
+    async def _check_business_hours(self) -> tuple[bool, str]:
         """
         Verifica si está dentro del horario de atención de tenant_config.
         Default: 9AM-7PM CDMX, L-V.
