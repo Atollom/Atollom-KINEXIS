@@ -3,67 +3,123 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Roles with warehouse/inventory access
+const WAREHOUSE_ROLES = ['warehouse', 'almacenista', 'admin', 'owner', 'socia'];
+// Roles with fiscal/accounting access
+const FISCAL_ROLES = ['contador', 'admin', 'owner', 'socia'];
+// Roles with CRM/sales access
+const CRM_ROLES = ['agente', 'admin', 'owner', 'socia'];
+// Roles with agent management access
+const AGENT_ROLES = ['admin', 'owner', 'socia'];
+
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
 
-  // Verificar sesión
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  // 1. Proteger todas las rutas /dashboard/*
-  if (req.nextUrl.pathname.startsWith('/dashboard')) {
-    if (!session) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
+  const { pathname } = req.nextUrl;
+
+  // ── 1. Protect page routes ───────────────────────────────────────────────────
+  // All routes except /login and static assets require authentication.
+  // Page routes are anything that doesn't start with /api/, /login, or /_next.
+  const isPageRoute =
+    !pathname.startsWith('/api/') &&
+    !pathname.startsWith('/login') &&
+    !pathname.startsWith('/_next') &&
+    pathname !== '/favicon.ico' &&
+    pathname !== '/robots.txt';
+
+  if (isPageRoute && !session) {
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  // 2. Validar roles para API routes sensibles
-  if (req.nextUrl.pathname.startsWith('/api/')) {
+  // Redirect already-authenticated users away from login
+  if (pathname.startsWith('/login') && session) {
+    return NextResponse.redirect(new URL('/', req.url));
+  }
+
+  // ── 2. RBAC for API routes ───────────────────────────────────────────────────
+  if (pathname.startsWith('/api/')) {
+    // Public API routes (no auth required)
+    if (pathname === '/api/health') return res;
+
     if (!session) {
-      return NextResponse.json({ error: 'No autorizado', status: 401 }, { status: 401 });
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    // Obtener rol del perfil
+    // Fetch role once for all API RBAC checks
     const { data: profile } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('id', session.user.id)
       .single();
 
-    const role = profile?.role;
+    const role = profile?.role as string | undefined;
 
-    // RBAC: /api/warehouse/* → warehouse | admin | owner
-    if (req.nextUrl.pathname.startsWith('/api/warehouse')) {
-      if (!['warehouse', 'admin', 'owner'].includes(role)) {
-        return NextResponse.json({ error: 'Prohibido: Rol insuficiente', status: 403 }, { status: 403 });
+    if (!role) {
+      return NextResponse.json({ error: 'Rol no encontrado' }, { status: 403 });
+    }
+
+    // /api/warehouse/* → warehouse roles
+    if (pathname.startsWith('/api/warehouse')) {
+      if (!WAREHOUSE_ROLES.includes(role)) {
+        return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
       }
     }
 
-    // RBAC: /api/cfdi/* → contador | admin | owner
-    if (req.nextUrl.pathname.startsWith('/api/cfdi')) {
-      if (!['contador', 'admin', 'owner'].includes(role)) {
-        return NextResponse.json({ error: 'Prohibido: Rol insuficiente', status: 403 }, { status: 403 });
+    // /api/inventory/* → warehouse roles
+    if (pathname.startsWith('/api/inventory')) {
+      if (!WAREHOUSE_ROLES.includes(role)) {
+        return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
       }
     }
 
-    // RBAC: /api/agents/* → admin | owner
-    if (req.nextUrl.pathname.startsWith('/api/agents')) {
-      if (!['admin', 'owner'].includes(role)) {
-        return NextResponse.json({ error: 'Prohibido: Rol insuficiente', status: 403 }, { status: 403 });
+    // /api/cfdi/* → fiscal roles
+    if (pathname.startsWith('/api/cfdi')) {
+      if (!FISCAL_ROLES.includes(role)) {
+        return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
       }
     }
 
-    // RBAC: /api/dashboard/* → admin | owner
-    if (req.nextUrl.pathname.startsWith('/api/dashboard')) {
-      if (!['admin', 'owner'].includes(role)) {
-        return NextResponse.json({ error: 'Prohibido: Rol insuficiente', status: 403 }, { status: 403 });
+    // /api/erp/* → warehouse roles (ERP covers inventory, procurement, etc.)
+    if (pathname.startsWith('/api/erp')) {
+      if (!WAREHOUSE_ROLES.includes(role)) {
+        return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
       }
     }
 
-    // RBAC: /api/inventory/* → warehouse | admin | owner
-    if (req.nextUrl.pathname.startsWith('/api/inventory')) {
-      if (!['warehouse', 'admin', 'owner'].includes(role)) {
-        return NextResponse.json({ error: 'Prohibido: Rol insuficiente', status: 403 }, { status: 403 });
+    // /api/crm/* → CRM roles
+    if (pathname.startsWith('/api/crm')) {
+      if (!CRM_ROLES.includes(role)) {
+        return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
+      }
+    }
+
+    // /api/meta/* → CRM roles (WhatsApp, Instagram)
+    if (pathname.startsWith('/api/meta')) {
+      if (!CRM_ROLES.includes(role)) {
+        return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
+      }
+    }
+
+    // /api/agents/* → agent management roles
+    if (pathname.startsWith('/api/agents')) {
+      if (!AGENT_ROLES.includes(role)) {
+        return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
+      }
+    }
+
+    // /api/dashboard/* → all authenticated roles (data is filtered per role in the route handler)
+    // /api/ecommerce/* → all authenticated roles (ecommerce visible to owner/admin/socia)
+    // /api/chat/* → all authenticated roles
+    // /api/notifications/* → all authenticated roles
+    // /api/settings/* → admin/owner/socia only
+    if (pathname.startsWith('/api/settings')) {
+      if (!AGENT_ROLES.includes(role)) {
+        return NextResponse.json({ error: 'Prohibido: Rol insuficiente' }, { status: 403 });
       }
     }
   }
@@ -73,7 +129,10 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/api/:path*',
+    /*
+     * Match all request paths except Next.js internals and static files.
+     * This ensures middleware runs on all page routes AND API routes.
+     */
+    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

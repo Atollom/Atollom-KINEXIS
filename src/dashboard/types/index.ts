@@ -1,6 +1,14 @@
 // src/dashboard/types/index.ts
 
-export type UserRole = 'owner' | 'admin' | 'warehouse' | 'contador' | 'viewer';
+export type UserRole =
+  | 'owner'
+  | 'admin'
+  | 'socia'        // dueñas del negocio — acceso total
+  | 'warehouse'    // operaciones de almacén
+  | 'almacenista'  // alias de warehouse
+  | 'contador'     // acceso fiscal/ERP
+  | 'agente'       // representantes de ventas — CRM only
+  | 'viewer';      // solo lectura, sin módulos
 
 export interface TenantUser {
   id: string;

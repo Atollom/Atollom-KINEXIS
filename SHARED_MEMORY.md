@@ -24,6 +24,21 @@ BLOCKER DOCUMENTADO:
 DECISION LOG:
   [HUMAN DECISION: arquitectura 43 agentes aprobada por Carlos Hernán Cortés Ayala y Alexis Hiram Valencia Duarte — evidencia INDAUTOR de autoría humana]
 
+DASHBOARD H1 HARDENING — 2026-04-13:
+  [AUTH]   layout.tsx → async server component, fetches real user from user_profiles, conditional DashboardShell (login page excluded)
+  [RBAC]   middleware.ts → matcher fixed (was /dashboard/:path*, now covers /, /ecommerce/*, /erp/*, /crm/*, /meta/*, /warehouse/*)
+  [RBAC]   middleware.ts → added socia/almacenista/agente roles to all RBAC guards
+  [RBAC]   middleware.ts → /api/crm/* and /api/meta/* now require agente role minimum
+  [RBAC]   middleware.ts → redirects authenticated users away from /login
+  [DATA]   page.tsx → ALL mock data removed: useKPIs, useInventory, useLeads, usePurchaseOrders wired up
+  [DATA]   page.tsx → Ecommerce section uses real orders aggregated by platform via /api/ecommerce/orders?date=today
+  [DATA]   page.tsx → CFDI section shows kpis.cfdi_pending (real) instead of hardcoded "24"
+  [DATA]   page.tsx → loading skeletons + empty states for all sections
+  [FIX]    DashboardShell.tsx → removed unused usePathname import + variable
+  [RBAC]   DashboardShell.tsx → userRole default changed to "viewer" (was "owner")
+  [RBAC]   ModuleNav.tsx → ROLE_VISIBLE_MODULES covers all 8 roles including socia/almacenista/agente
+  [TYPES]  types/index.ts → UserRole now includes socia | almacenista | agente
+
 NEXT PHASE: Dashboard Session 3 — Analytics + Finance
   Prioridad: analytics_reports, finance_snapshots, NPS dashboard
   Estado: Session 2 completa ✅ — 4 módulos UI entregados
