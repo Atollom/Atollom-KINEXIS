@@ -48,3 +48,52 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }
+
+// POST /api/meta/conversations — Enviar respuesta manual a un contacto
+// Roles permitidos: owner, admin, socia, agente
+export async function POST(req: NextRequest) {
+  const supabase = createClient();
+  const auth = await getAuthenticatedTenant(supabase);
+
+  if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  if (!['owner', 'admin', 'socia', 'agente'].includes(auth.role)) {
+    return NextResponse.json({ error: 'Prohibido: se requiere rol agente o superior' }, { status: 403 });
+  }
+
+  try {
+    const body: unknown = await req.json();
+    if (
+      typeof body !== 'object' ||
+      body === null ||
+      typeof (body as Record<string, unknown>).contact !== 'string' ||
+      typeof (body as Record<string, unknown>).message !== 'string' ||
+      !['whatsapp', 'instagram'].includes((body as Record<string, unknown>).channel as string)
+    ) {
+      return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
+    }
+
+    const { contact, channel, message } = body as { contact: string; channel: string; message: string };
+
+    // Registrar el mensaje saliente en la tabla correspondiente
+    const table = channel === 'whatsapp' ? 'whatsapp_messages' : 'instagram_messages';
+    const { error } = await supabase
+      .from(table)
+      .insert({
+        tenant_id:    auth.tenant_id,
+        contact_phone: contact,
+        message_text: message,
+        direction:    'outgoing',
+        status:       'sent',
+        sent_by:      auth.id,
+        created_at:   new Date().toISOString(),
+      });
+
+    if (error) throw error;
+    return NextResponse.json({ success: true });
+
+  } catch (err: any) {
+    console.error('[Meta Conversations POST] Error:', err);
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+  }
+}

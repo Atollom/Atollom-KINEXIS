@@ -85,6 +85,45 @@ SETTINGS MODULE H1 — 2026-04-13:
   - módulos conocidos aceptados → 200
   - nivel inválido → 400
 
+DASHBOARD PAGES H1 HARDENING — 2026-04-13:
+  BUGS ENCONTRADOS Y CORREGIDOS:
+  [BUG-CRITICAL] crm/page.tsx — handleApproveQuote sin .eq("tenant_id") — IDOR. Cualquier usuario autenticado podía aprobar quotes de otros tenants con UUID. Fix: añadir estado tenantId + .eq("tenant_id", tenantId) en UPDATE
+  [BUG-CRITICAL] crm/page.tsx — handleApproveQuote sin RBAC. Cualquier rol podía aprobar cotizaciones. Fix: guard if (role !== "owner" && role !== "socia") return
+  [BUG-HIGH]    crm/page.tsx — canApprove incluía "admin". Solo owner/socia aprueban cotizaciones (igual que OCs). Fix: remover "admin"
+  [BUG-HIGH]    meta/page.tsx — role descartado con [, setRole]. No había guard en handleReply. Fix: restaurar [role, setRole] + guard de rol
+  [BUG-HIGH]    purchase-orders/route.ts — GET y PATCH excluían "socia". Fix: añadir "socia" a MANAGE_ROLES
+  [BUG-HIGH]    purchase-orders/route.ts — PATCH solo aceptaba action "approve". submit/reject/mark_sent → 400. Fix: tabla de transiciones ACTION_TRANSITIONS con RBAC por acción
+  [BUG-HIGH]    purchase-orders/route.ts — Sin POST handler. restock_request del inventario iba a 404. Fix: POST handler que crea OC en DRAFT (nunca APPROVED)
+  [BUG-MEDIUM]  purchase-orders/route.ts — PATCH no validaba que el status actual coincidiera con la transición → bypass de flujo DRAFT→APPROVED. Fix: leer status actual + validar before→after; errores 409 si no coincide
+  [BUG-MEDIUM]  meta/conversations/route.ts — Sin POST handler. Replies silenciosamente fallaban. Fix: POST handler con RBAC (owner/admin/socia/agente) + tenant isolation
+
+  H1 CHECKLIST RESULTS:
+  [OK] crm/page.tsx — handleApproveQuote: RBAC owner/socia + tenant_id en UPDATE ✅
+  [OK] crm/page.tsx — canApprove: owner/socia solo (admin excluido) ✅
+  [OK] meta/page.tsx — role restaurado; handleReply guard por rol ✅
+  [OK] erp/inventory/page.tsx — Crear OC → restock_request → POST → DRAFT (no bypass) ✅
+  [OK] erp/procurement/page.tsx — canApprove=owner/socia; canManage=owner/admin/socia ✅
+  [OK] purchase-orders/route.ts — socia incluida en GET/PATCH; transiciones con RBAC ✅
+  [OK] purchase-orders/route.ts — tenant_id filter doble en PATCH UPDATE ✅
+  [OK] meta/conversations/route.ts — POST con RBAC y tenant isolation ✅
+
+  TESTS (vitest) 18/18 — 0 regressions (55 total = 15+22+18):
+  - almacenista/viewer → 403 GET purchase-orders
+  - socia puede ver OCs → 200
+  - admin intenta aprobar OC → 403 (rol insuficiente para approve)
+  - socia puede aprobar OC → 200
+  - admin puede submit DRAFT → 200
+  - flujo bypass DRAFT→APPROVED → 409
+  - viewer/contador → 403 POST meta/conversations
+  - agente puede responder → 200
+  - canal inválido → 400
+  - tenant isolation: OC de otro tenant → 404
+  - body sin po_id → 400
+  - acción desconocida → 400
+  - unauthenticated → 401
+  - restock_request crea OC con status DRAFT (no APPROVED) → 201
+  - almacenista → 403 en POST purchase-orders
+
 NEXT PHASE: Dashboard Session 3 — Analytics + Finance
   Prioridad: analytics_reports, finance_snapshots, NPS dashboard
   Estado: Session 2 completa ✅ — 4 módulos UI entregados
