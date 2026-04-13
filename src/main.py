@@ -269,6 +269,120 @@ async def execute_agent(agent_id: str, request: Request):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Meta Webhook — verificación de suscripción (GET) y recepción de eventos (POST)
+# Docs: https://developers.facebook.com/docs/graph-api/webhooks/getting-started
+# ──────────────────────────────────────────────────────────────────────────────
+@app.get("/webhooks/meta")
+async def meta_webhook_verify(request: Request):
+    """
+    Responde al challenge de verificación de Meta.
+    Meta envía:
+      hub.mode=subscribe  hub.challenge=<token>  hub.verify_token=<secret>
+    Debe devolver hub.challenge como texto plano con status 200.
+    """
+    import hmac
+    from fastapi.responses import PlainTextResponse
+
+    params = dict(request.query_params)
+    mode           = params.get("hub.mode")
+    challenge      = params.get("hub.challenge")
+    received_token = params.get("hub.verify_token", "")
+
+    meta_verify_token = os.getenv("META_VERIFY_TOKEN", "")
+    if not meta_verify_token:
+        logger.error("META_VERIFY_TOKEN not configured — rejecting Meta verification")
+        raise HTTPException(status_code=503, detail="Webhook not configured")
+
+    if mode != "subscribe":
+        raise HTTPException(status_code=400, detail="Invalid hub.mode")
+
+    if not hmac.compare_digest(received_token.encode(), meta_verify_token.encode()):
+        logger.warning("Meta webhook verification failed — token mismatch")
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    if not challenge:
+        raise HTTPException(status_code=400, detail="Missing hub.challenge")
+
+    logger.info("Meta webhook verified successfully")
+    return PlainTextResponse(content=challenge, status_code=200)
+
+
+@app.post("/webhooks/meta")
+async def meta_webhook_receive(request: Request):
+    """
+    Recibe eventos de Meta (WhatsApp, Instagram).
+    Verifica la firma X-Hub-Signature-256 antes de procesar.
+    Despacha al agente correspondiente según el campo 'object'.
+    """
+    import hashlib
+    import hmac as hmac_lib
+    from fastapi.responses import PlainTextResponse
+
+    app_secret = os.getenv("META_APP_SECRET", "")
+    if not app_secret:
+        logger.error("META_APP_SECRET not configured — rejecting Meta event")
+        raise HTTPException(status_code=503, detail="Webhook not configured")
+
+    # 1. Verificar firma HMAC-SHA256 (PRIMERO, antes de leer el body)
+    raw_body = await request.body()
+    signature_header = request.headers.get("X-Hub-Signature-256", "")
+
+    if not signature_header:
+        logger.warning("Meta webhook POST missing X-Hub-Signature-256")
+        raise HTTPException(status_code=400, detail="Missing X-Hub-Signature-256")
+
+    expected = "sha256=" + hmac_lib.new(
+        app_secret.encode(), raw_body, hashlib.sha256
+    ).hexdigest()
+
+    if not hmac_lib.compare_digest(expected.encode(), signature_header.encode()):
+        logger.warning("Meta webhook POST invalid HMAC signature")
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    # 2. Parsear body JSON
+    try:
+        import json
+        body = json.loads(raw_body)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    # 3. Despachar al agente según el objeto Meta
+    object_type = body.get("object", "")
+    tenant_id   = os.getenv("DEFAULT_TENANT_ID", "")   # multi-tenant: extraer del número de teléfono o page_id
+    payload     = {"event": body, "raw": True}
+
+    if object_type == "whatsapp_business_account":
+        agent_id = "whatsapp_handler"
+    elif object_type == "instagram":
+        agent_id = "instagram_dm_handler"
+    else:
+        logger.info("Unhandled Meta object type: %s", object_type)
+        return PlainTextResponse(content="EVENT_RECEIVED", status_code=200)
+
+    agent_class = AGENT_REGISTRY.get(agent_id)
+    if agent_class and tenant_id:
+        supabase_client = None
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        if supabase_url and supabase_key:
+            try:
+                from supabase import create_client
+                supabase_client = create_client(supabase_url, supabase_key)
+            except Exception:
+                logger.error("Supabase client creation failed for Meta webhook dispatch")
+
+        try:
+            agent = agent_class(tenant_id=tenant_id, supabase_client=supabase_client)
+            await agent.run(payload)
+        except Exception:
+            # Never let agent errors break the 200 response — Meta reintenta si no recibe 200
+            logger.error("Meta webhook agent dispatch error: agent=%s", agent_id, exc_info=True)
+
+    # Meta requiere 200 OK inmediato — siempre
+    return PlainTextResponse(content="EVENT_RECEIVED", status_code=200)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Entrypoint
 # ──────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":

@@ -161,6 +161,62 @@ def test_registry_has_40_agents():
     assert len(AGENT_REGISTRY) == 40
 
 
+# ── Meta Webhook — GET verification ──────────────────────────────────────── #
+
+def test_meta_verify_returns_challenge(client, monkeypatch):
+    """Valid verify_token → 200 + plain-text challenge."""
+    monkeypatch.setenv("META_VERIFY_TOKEN", "kinexis-meta-secret")
+    resp = client.get(
+        "/webhooks/meta",
+        params={
+            "hub.mode":         "subscribe",
+            "hub.verify_token": "kinexis-meta-secret",
+            "hub.challenge":    "CHALLENGE_TOKEN_123",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.text == "CHALLENGE_TOKEN_123"
+
+
+def test_meta_verify_wrong_token_returns_403(client, monkeypatch):
+    monkeypatch.setenv("META_VERIFY_TOKEN", "kinexis-meta-secret")
+    resp = client.get(
+        "/webhooks/meta",
+        params={
+            "hub.mode":         "subscribe",
+            "hub.verify_token": "wrong-token",
+            "hub.challenge":    "CHALLENGE_TOKEN_123",
+        },
+    )
+    assert resp.status_code == 403
+
+
+def test_meta_verify_wrong_mode_returns_400(client, monkeypatch):
+    monkeypatch.setenv("META_VERIFY_TOKEN", "kinexis-meta-secret")
+    resp = client.get(
+        "/webhooks/meta",
+        params={
+            "hub.mode":         "unsubscribe",
+            "hub.verify_token": "kinexis-meta-secret",
+            "hub.challenge":    "CHALLENGE_TOKEN_123",
+        },
+    )
+    assert resp.status_code == 400
+
+
+def test_meta_verify_missing_env_returns_503(client, monkeypatch):
+    monkeypatch.delenv("META_VERIFY_TOKEN", raising=False)
+    resp = client.get(
+        "/webhooks/meta",
+        params={
+            "hub.mode":         "subscribe",
+            "hub.verify_token": "anything",
+            "hub.challenge":    "CHALLENGE_TOKEN_123",
+        },
+    )
+    assert resp.status_code == 503
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────── #
 
 def _make_mock_agent_class(result: dict):
