@@ -1,7 +1,7 @@
 agentes_implementados: 43/43
 agent_contracts_done: 43/43
 migraciones: 032/N
-tests_totales: 747 passing ✅  (728 previos + 4 Meta webhook + 15 Realtime Notifications)
+tests_totales: 769 passing ✅  (747 previos + 22 Settings Module H1)
 
 ESTADO: PRODUCTION_READY
 claude_approved_date: 2026-04-13
@@ -57,6 +57,33 @@ REALTIME NOTIFICATIONS — 2026-04-13:
   [TYPES]    types/index.ts → NotificationModule = 'ecommerce'|'erp'|'crm'|'sistema' añadido a Notification
   [TESTS]    __tests__/notifications.test.ts → 15 tests vitest (puro, sin DOM): computeUnreadCount, markOneRead, markAllRead, realtime badge increment/decrement
   [TEST_FW]  vitest@1.6.1 instalado + vitest.config.ts configurado
+
+SETTINGS MODULE H1 — 2026-04-13:
+  BUGS ENCONTRADOS Y CORREGIDOS:
+  [BUG-CRITICAL] autonomy/route.ts — z.record(z.string(),...) aceptaba cualquier moduleId arbitrario → inyección de claves en tenant_agent_autonomy. Fix: z.object({ecommerce,erp,crm}).strict() — solo módulos conocidos, claves desconocidas → 400
+  [BUG-CRITICAL] settings/page.tsx — userRole hardcodeado a "owner". Cualquier sesión veía UI de owner. Fix: useState("viewer") + useEffect con createClientComponentClient → user_profiles
+  [BUG-HIGH]     middleware.ts — /settings page sin RBAC. Viewer podía cargar la página. Fix: si role no es owner/admin/socia → redirect a /
+
+  H1 CHECKLIST RESULTS:
+  [OK] vault/route.ts   — GET retorna solo { key_name: boolean }, nunca valores reales ✅
+  [OK] users/route.ts   — PATCH: solo owner puede cambiar roles, tenant isolation en update ✅
+  [OK] profile/route.ts — RFC regex /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/ correcto para SAT ✅
+  [OK] autonomy/route.ts — tenant_id siempre de auth, nunca del body ✅ (+ fix module whitelist)
+  [OK] settings/page.tsx — inputs API keys nunca mandan valor al cliente (vaultStatus es bool) ✅
+
+  TESTS (vitest) 22/22:
+  - admin/socia/viewer PATCH /users → 403 (3 tests)
+  - unauthenticated → 401
+  - 6 RFC inválidos → 400 (longitud, minúsculas, solo números, vacío)
+  - 3 RFC válidos → !400
+  - vault GET: todos los valores son boolean, true para configuradas, false para no (2 tests)
+  - viewer → 403 en vault GET
+  - vault PATCH loguea [REDACTED], nunca el valor real
+  - profile PATCH loguea campo y valores correctos en config_change_log
+  - autonomy PATCH loguea cambio de nivel
+  - body con clave desconocida → 400
+  - módulos conocidos aceptados → 200
+  - nivel inválido → 400
 
 NEXT PHASE: Dashboard Session 3 — Analytics + Finance
   Prioridad: analytics_reports, finance_snapshots, NPS dashboard

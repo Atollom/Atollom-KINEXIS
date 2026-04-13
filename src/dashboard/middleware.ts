@@ -41,6 +41,22 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/', req.url));
   }
 
+  // ── 1b. Page-level RBAC for /settings ───────────────────────────────────────
+  // viewer / agente / warehouse / almacenista / contador cannot access Settings.
+  // They are redirected to / so they never see even the page skeleton.
+  if (session && pathname.startsWith('/settings')) {
+    const { data: settingsProfile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    const settingsRole = settingsProfile?.role as string | undefined;
+    if (!settingsRole || !['owner', 'admin', 'socia'].includes(settingsRole)) {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+  }
+
   // ── 2. RBAC for API routes ───────────────────────────────────────────────────
   if (pathname.startsWith('/api/')) {
     // Public API routes (no auth required)
