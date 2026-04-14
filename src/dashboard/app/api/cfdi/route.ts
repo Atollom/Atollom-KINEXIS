@@ -5,8 +5,9 @@ import { getAuthenticatedTenant } from '@/lib/auth';
 import { z } from 'zod';
 
 const GenerateCFDISchema = z.object({
+  empresa_id:          z.string().uuid().optional(),
   order_id:            z.string().min(1),
-  customer_rfc:        z.string().regex(/^[A-ZN&]{3,4}[0-9]{6}[A-Z0-9]{3}$/).optional(),
+  customer_rfc:        z.string().regex(/^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$/).optional(),
   customer_name:       z.string().optional(),
   customer_email:      z.string().email().optional(),
   customer_zip:        z.string().length(5).optional(),
@@ -16,6 +17,7 @@ const GenerateCFDISchema = z.object({
   metodo_pago:         z.enum(['PUE','PPD']).default('PUE'),
   credit_note_for_uuid: z.string().uuid().optional(),
 });
+
 
 const CancelCFDISchema = z.object({
   cfdi_uuid:         z.string().uuid(),
@@ -37,16 +39,30 @@ export async function POST(req: NextRequest) {
 
     const data = parsed.data;
 
-    // Verificar config
-    const { data: cfdiConfig } = await supabase
-      .from('cfdi_tenant_config_ext')
-      .select('facturapi_org_id, cp_expedicion')
-      .eq('tenant_id', auth.tenant_id)
-      .single();
-
-    if (!cfdiConfig) {
-      return NextResponse.json({ error: 'Facturacion no configurada' }, { status: 422 });
+    // Verificar config de la empresa seleccionada o la principal
+    let cfdiConfig;
+    if (data.empresa_id) {
+      const { data: emp } = await supabase
+        .from('tenant_empresas')
+        .select('facturapi_org_id, cp_expedicion')
+        .eq('id', data.empresa_id)
+        .eq('tenant_id', auth.tenant_id)
+        .single();
+      cfdiConfig = emp;
+    } else {
+      const { data: principal } = await supabase
+        .from('tenant_empresas')
+        .select('facturapi_org_id, cp_expedicion')
+        .eq('tenant_id', auth.tenant_id)
+        .eq('es_principal', true)
+        .single();
+      cfdiConfig = principal;
     }
+
+    if (!cfdiConfig || !cfdiConfig.facturapi_org_id) {
+      return NextResponse.json({ error: 'Facturación no configurada para la empresa seleccionada' }, { status: 422 });
+    }
+
 
     // Llamar al microservicio Python de CFDI (simulado o via API)
     // El CFDI Billing Agent (#36) es el encargado de esto.

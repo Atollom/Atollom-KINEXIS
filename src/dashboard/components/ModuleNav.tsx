@@ -44,6 +44,7 @@ const ROLE_VISIBLE_MODULES: Record<UserRole, string[] | "all"> = {
   contador:    ["erp"],              // fiscal: solo ERP (inventory + CFDI + procurement)
   agente:      ["crm"],              // ventas: solo CRM (leads, pipeline, whatsapp, instagram)
   viewer:      [],                   // sin módulos visibles
+  atollom_admin: "all",
 };
 
 function canSeeModule(role: UserRole, moduleId: string): boolean {

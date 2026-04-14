@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 
 interface NewCFDIModalProps {
   isOpen: boolean;
@@ -19,6 +20,31 @@ const FORMAS_PAGO = [
 export function NewCFDIModal({ isOpen, onClose }: NewCFDIModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [companies, setCompanies] = useState<{ id: string; nombre: string; es_principal: boolean }[]>([]);
+  const [selectedEmpresaId, setSelectedEmpresaId] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      fetch("/api/settings/companies")
+        .then(r => r.json())
+        .then(data => {
+          const list = data.companies || [];
+          setCompanies(list);
+          
+          // Prioridad: 1. localStorage active_company_id, 2. principal, 3. primero de la lista
+          const savedActive = localStorage.getItem("active_company_id");
+          if (savedActive && list.some((c: any) => c.id === savedActive)) {
+            setSelectedEmpresaId(savedActive);
+          } else {
+            const principal = list.find((c: any) => c.es_principal);
+            if (principal) setSelectedEmpresaId(principal.id);
+            else if (list.length > 0) setSelectedEmpresaId(list[0].id);
+          }
+        })
+        .catch(err => console.error("Error loading companies:", err));
+    }
+  }, [isOpen]);
+
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,6 +56,7 @@ export function NewCFDIModal({ isOpen, onClose }: NewCFDIModalProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          empresa_id:          form.get("empresa_id"),
           order_id:            form.get("order_id"),
           customer_rfc:        form.get("customer_rfc") || undefined,
           customer_name:       form.get("customer_name") || undefined,
@@ -39,6 +66,7 @@ export function NewCFDIModal({ isOpen, onClose }: NewCFDIModalProps) {
           forma_pago:          form.get("forma_pago"),
           metodo_pago:         form.get("metodo_pago"),
         }),
+
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error");
@@ -88,7 +116,33 @@ export function NewCFDIModal({ isOpen, onClose }: NewCFDIModalProps) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Empresa Emisora */}
+          {companies.length > 1 && (
+            <div>
+              <label className="label-sm text-on-surface-variant block mb-1" htmlFor="empresa_id">
+                Empresa Emisora
+              </label>
+              <select
+                id="empresa_id"
+                name="empresa_id"
+                value={selectedEmpresaId}
+                onChange={e => setSelectedEmpresaId(e.target.value)}
+                className="
+                  bg-surface-container-lowest text-on-surface text-xs
+                  border-b border-outline-variant focus:border-primary-container
+                  w-full py-2 outline-none transition-colors rounded-t-sm
+                "
+              >
+                {companies.map(c => (
+                  <option key={c.id} value={c.id}>{c.nombre}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {companies.length === 1 && <input type="hidden" name="empresa_id" value={companies[0].id} />}
+
           {/* Order ID */}
+
           <div>
             <label className="label-sm text-on-surface-variant block mb-1" htmlFor="order_id">
               ID de Orden *
