@@ -45,11 +45,13 @@ export default function OnboardingPage() {
   const [amzApiKey, setAmzApiKey] = useState("");
   const [shpApiKey, setShpApiKey] = useState("");
 
-  // Datos Paso 3: ERP
-  const [facturapiKey, setFacturapiKey] = useState("");
+  // Datos Paso 3: ERP (FacturAPI ya no la configura el cliente — Atollom la aprovisiona)
   const [rfc, setRfc] = useState("");
   const [taxRegime, setTaxRegime] = useState("");
   const [cp, setCp] = useState("");
+  const [facturapiProvisionStatus, setFacturapiProvisionStatus] = useState<
+    "idle" | "provisioning" | "done" | "error"
+  >("idle");
 
   // Datos Paso 4: CRM
   const [metaAccessToken, setMetaAccessToken] = useState("");
@@ -196,14 +198,6 @@ export default function OnboardingPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      // ERP keys => Vault (best effort — no bloquea si falla)
-      if (facturapiKey) {
-        await fetch("/api/settings/vault", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ keys: { facturapi_api_key: facturapiKey } })
-        });
-      }
       // Perfil fiscal — verificar respuesta del servidor (RFC validado server-side)
       if (rfc || taxRegime || cp) {
         const res = await fetch("/api/settings/profile", {
@@ -217,6 +211,26 @@ export default function OnboardingPage() {
           return false;
         }
       }
+
+      // Aprovisionar organización FacturAPI en background — no bloquea el onboarding
+      // Atollom crea la org con FACTURAPI_USER_KEY y guarda la live key en vault
+      if (rfc && taxRegime) {
+        setFacturapiProvisionStatus("provisioning");
+        fetch("/api/onboarding/provision-facturapi", { method: "POST" })
+          .then(async r => {
+            const data = await r.json().catch(() => ({}));
+            if (r.ok && (data.status === "provisioned" || data.status === "already_provisioned")) {
+              setFacturapiProvisionStatus("done");
+            } else if (data.status === "skipped") {
+              // Sin FACTURAPI_USER_KEY en env — se aprovisiona después manualmente
+              setFacturapiProvisionStatus("done");
+            } else {
+              setFacturapiProvisionStatus("error");
+            }
+          })
+          .catch(() => setFacturapiProvisionStatus("error"));
+      }
+
       return true;
     } finally {
       setSaving(false);
@@ -351,20 +365,47 @@ export default function OnboardingPage() {
 
           {step === 3 && (
             <div className="max-w-2xl">
-              <h1 className="text-3xl font-headline font-bold mb-2">Conexión ERP & Fiscal</h1>
+              <h1 className="text-3xl font-headline font-bold mb-2">Datos Fiscales & ERP</h1>
               <p className="text-[#8DA4C4] text-[13px] mb-8">
-                Para la emisión automática de CFDI 4.0 y la comunicación con el SAT, necesitamos tus datos fiscales y la llave de FacturAPI.
+                Ingresa tus datos fiscales para la emisión automática de CFDI 4.0.
+                Kinexis configura la facturación por ti — no necesitas ninguna llave de API.
               </p>
 
+              {/* Indicador de aprovisionamiento automático FacturAPI */}
+              <div className={`
+                flex items-center gap-3 px-4 py-3 rounded-xl border mb-6 text-[12px] font-medium transition-all
+                ${facturapiProvisionStatus === "done"
+                  ? "bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]"
+                  : facturapiProvisionStatus === "error"
+                  ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-400"
+                  : facturapiProvisionStatus === "provisioning"
+                  ? "bg-[#3B82F6]/10 border-[#3B82F6]/20 text-[#3B82F6]"
+                  : "bg-white/[0.03] border-white/[0.06] text-[#8DA4C4]"
+                }
+              `}>
+                {facturapiProvisionStatus === "provisioning" && (
+                  <div className="w-3.5 h-3.5 rounded-full border-2 border-[#3B82F6] border-t-transparent animate-spin flex-shrink-0" />
+                )}
+                {facturapiProvisionStatus === "done" && (
+                  <span className="material-symbols-outlined text-base flex-shrink-0">check_circle</span>
+                )}
+                {facturapiProvisionStatus === "error" && (
+                  <span className="material-symbols-outlined text-base flex-shrink-0">warning</span>
+                )}
+                {facturapiProvisionStatus === "idle" && (
+                  <span className="material-symbols-outlined text-base flex-shrink-0">receipt_long</span>
+                )}
+                <span>
+                  {facturapiProvisionStatus === "idle" && "Facturación automática — Kinexis configura esto por ti al guardar"}
+                  {facturapiProvisionStatus === "provisioning" && "Configurando facturación automáticamente..."}
+                  {facturapiProvisionStatus === "done" && "Facturación configurada correctamente"}
+                  {facturapiProvisionStatus === "error" && "La facturación se configurará en un momento — puedes continuar"}
+                </span>
+              </div>
+
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="col-span-2">
-                  <IntegrationInput 
-                    name="facturapi" color="#22C55E" label="FacturAPI (Secret Key)" icon="receipt_long"
-                    value={facturapiKey} onChange={setFacturapiKey} link="https://dashboard.facturapi.io"
-                  />
-                </div>
                 <div>
-                  <label className="block text-[10px] text-[#8DA4C4] uppercase font-bold tracking-wider mb-1.5 ml-1">RFC Emisor</label>
+                  <label className="block text-[10px] text-[#8DA4C4] uppercase font-bold tracking-wider mb-1.5 ml-1">RFC Emisor *</label>
                   <input
                     type="text"
                     placeholder="ABC123456T1"
@@ -378,7 +419,7 @@ export default function OnboardingPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-[10px] text-[#8DA4C4] uppercase font-bold tracking-wider mb-1.5 ml-1">Código Postal</label>
+                  <label className="block text-[10px] text-[#8DA4C4] uppercase font-bold tracking-wider mb-1.5 ml-1">Código Postal *</label>
                   <input
                     type="text"
                     maxLength={5}
@@ -389,8 +430,8 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-[10px] text-[#8DA4C4] uppercase font-bold tracking-wider mb-1.5 ml-1">Régimen Fiscal</label>
-                  <select 
+                  <label className="block text-[10px] text-[#8DA4C4] uppercase font-bold tracking-wider mb-1.5 ml-1">Régimen Fiscal *</label>
+                  <select
                     value={taxRegime} onChange={e => setTaxRegime(e.target.value)}
                     className="w-full bg-[#0D1B3E] border border-white/[0.08] rounded-xl px-4 py-3 focus:outline-none focus:border-[#22C55E]/40 text-[#E8EAF0]"
                   >

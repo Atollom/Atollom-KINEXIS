@@ -1,6 +1,7 @@
 # src/adapters/facturapi_adapter.py
 import asyncio
 import logging
+import os
 import re
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Dict, List, Optional
@@ -10,6 +11,10 @@ import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 logger = logging.getLogger(__name__)
+
+# Atollom master account key — usada solo para crear organizaciones nuevas.
+# NUNCA se usa para emitir facturas de un tenant.
+_FACTURAPI_USER_KEY: Optional[str] = os.environ.get("FACTURAPI_USER_KEY")
 
 # ── Whitelists SAT como frozensets INMUTABLES (CLAUDE_FIX: antes eran list mutables) ──
 FORMAS_PAGO_VALIDAS: frozenset = frozenset({
@@ -50,19 +55,121 @@ class FacturapiAdapter:
     # ───────────────────────── AUTH ──────────────────────────────────────── #
 
     async def _get_api_key(self) -> Optional[str]:
-        """Carga API Key desde Supabase Vault. Key name exacto: 'facturapi_key'."""
+        """
+        Carga la API key del tenant desde Supabase Vault.
+        Precedencia: facturapi_live_key (org key) > facturapi_key (legacy).
+        El cliente NUNCA configura FacturAPI directamente — Atollom aprovisiona
+        la organización y guarda la org live key en vault como 'facturapi_live_key'.
+        """
         try:
             secrets = await self.db_client.get_vault_secrets(
-                self.tenant_id, ["facturapi_key"]
+                self.tenant_id, ["facturapi_live_key", "facturapi_key"]
             )
-            return secrets.get("facturapi_key") or None
+            # Org key tiene prioridad (multi-org flow)
+            return (
+                secrets.get("facturapi_live_key")
+                or secrets.get("facturapi_key")
+                or None
+            )
         except Exception as e:
-            # CLAUDE_FIX: loggear antes de swallow — antes era silencioso
             logger.warning(
-                "Vault no disponible para facturapi_key tenant=%s: %s. Activando MOCK_MODE.",
+                "Vault no disponible para facturapi keys tenant=%s: %s. Activando MOCK_MODE.",
                 self.tenant_id, e,
             )
             return None
+
+    # ───────────────────────── MULTI-ORG PROVISIONING ────────────────────── #
+
+    @staticmethod
+    async def create_organization(
+        rfc: str,
+        business_name: str,
+        tax_regime: str,
+        zip_code: str,
+        db_client: Any,
+        tenant_id: str,
+    ) -> Dict[str, Any]:
+        """
+        Crea una organización FacturAPI en la cuenta Atollom (FACTURAPI_USER_KEY).
+        Guarda el org_id en cfdi_tenant_config_ext y la live key en Supabase Vault.
+        Solo Atollom llama esto — el cliente nunca toca FacturAPI directamente.
+
+        Raises:
+            RuntimeError: si FACTURAPI_USER_KEY no está configurado.
+            ValueError: si RFC tiene formato inválido.
+            httpx.HTTPStatusError: si FacturAPI rechaza la organización.
+        """
+        if not _FACTURAPI_USER_KEY:
+            raise RuntimeError(
+                "FACTURAPI_USER_KEY no configurado en env. "
+                "Atollom debe tener su cuenta maestra de FacturAPI."
+            )
+
+        rfc_clean = rfc.upper().strip()
+        if not RFC_REGEX.match(rfc_clean):
+            raise ValueError(f"RFC con formato inválido para crear organización: {rfc_clean}")
+
+        timeout = httpx.Timeout(30.0)
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            # 1. Crear organización
+            org_payload = {
+                "name": business_name,
+                "legal": {
+                    "name": business_name,
+                    "rfc": rfc_clean,
+                    "tax_system": tax_regime,
+                    "address": {"zip": zip_code},
+                },
+            }
+            resp = await client.post(
+                f"{FacturapiAdapter.BASE_URL}/organizations",
+                json=org_payload,
+                auth=(_FACTURAPI_USER_KEY, ""),
+            )
+            resp.raise_for_status()
+            org_data = resp.json()
+            org_id: str = org_data["id"]
+
+            logger.info(
+                "FacturAPI org creada: org_id=%s tenant_id=%s rfc=%s",
+                org_id, tenant_id, rfc_clean,
+            )
+
+            # 2. Obtener las API keys de la organización (live key para producción)
+            keys_resp = await client.get(
+                f"{FacturapiAdapter.BASE_URL}/organizations/{org_id}/apikeys",
+                auth=(_FACTURAPI_USER_KEY, ""),
+            )
+            keys_resp.raise_for_status()
+            keys_data = keys_resp.json()
+            live_key: Optional[str] = keys_data.get("live")
+
+            if not live_key:
+                logger.error(
+                    "FacturAPI no devolvió live key para org_id=%s tenant_id=%s",
+                    org_id, tenant_id,
+                )
+                raise RuntimeError(f"FacturAPI no devolvió live key para org {org_id}")
+
+        # 3. Guardar org_id en cfdi_tenant_config_ext
+        await db_client.upsert_cfdi_config(
+            tenant_id=tenant_id,
+            data={"facturapi_org_id": org_id},
+        )
+
+        # 4. Guardar live key en Supabase Vault (NUNCA en logs ni BD en claro)
+        await db_client.save_vault_secret(
+            tenant_id=tenant_id,
+            key_name="facturapi_live_key",
+            value=live_key,
+        )
+
+        logger.info(
+            "FacturAPI org aprovisionada completa: tenant_id=%s org_id=%s",
+            tenant_id, org_id,
+        )
+
+        return {"org_id": org_id, "status": "provisioned"}
 
     @staticmethod
     def _sanitize_sku(sku: str) -> str:
