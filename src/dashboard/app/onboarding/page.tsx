@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { AutonomyLevel, UserRole } from "@/types";
@@ -9,7 +9,8 @@ import type { AutonomyLevel, UserRole } from "@/types";
 // ──────────────────────────────────────────────────────────────────────────────
 // Tipos locales
 // ──────────────────────────────────────────────────────────────────────────────
-type OnboardingStep = 1 | 2 | 3 | 4 | 5 | 6;
+type OnboardingStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
 
 interface AutonomyConfig {
   ecommerce: AutonomyLevel;
@@ -25,7 +26,7 @@ const AUTONOMY_OPTIONS: { value: AutonomyLevel; label: string; desc: string; col
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserSupabaseClient();
 
   const [loadingUser, setLoadingUser] = useState(true);
   const [role, setRole] = useState<UserRole | null>(null);
@@ -39,6 +40,11 @@ export default function OnboardingPage() {
 
   // Datos Paso 1: Bienvenida
   const [displayName, setDisplayName] = useState("");
+
+  // Datos Paso 2 (1.5): Multi-empresa
+  const [hasMultipleCompanies, setHasMultipleCompanies] = useState<boolean | null>(null);
+  const [companies, setCompanies] = useState<{ id: string; nombre: string; rfc: string; regimen: string; cp: string }[]>([]);
+
 
   // Datos Paso 2: Ecommerce Keys
   const [mlApiKey, setMlApiKey] = useState("");
@@ -137,25 +143,23 @@ export default function OnboardingPage() {
   const nextStep = async () => {
     setSaveError(null);
     if (step === 1) await saveStep1();
-    else if (step === 2) await saveStep2();
-    else if (step === 3) {
-      // saveStep3 retorna false si el RFC es inválido — bloquear avance
-      const ok = await saveStep3();
+    else if (step === 2) await saveStep2(); // Multi-empresa
+    else if (step === 3) await saveStep3(); // Ecommerce
+    else if (step === 4) {
+      const ok = await saveStep4(); // ERP/Fiscal
       if (!ok) return;
     }
-    else if (step === 4) await saveStep4();
-    else if (step === 5) await saveStep5();
+    else if (step === 5) await saveStep5(); // CRM
+    else if (step === 6) await saveStep6(); // Autonomía
 
-    if (step < 6) setStep(prev => (prev + 1) as OnboardingStep);
+    if (step < 7) setStep(prev => (prev + 1) as OnboardingStep);
   };
 
   const skipStep = () => {
     setSaveError(null);
-    if (step < 6) setStep(prev => (prev + 1) as OnboardingStep);
+    if (step < 7) setStep(prev => (prev + 1) as OnboardingStep);
   };
 
-  // Saltar todo — guarda el paso actual en modo best-effort antes de salir
-  // para que los datos ya ingresados no se pierdan
   const skipAll = async () => {
     try {
       if (step === 1 && displayName.trim()) await saveStep1();
@@ -163,9 +167,11 @@ export default function OnboardingPage() {
       else if (step === 3) await saveStep3();
       else if (step === 4) await saveStep4();
       else if (step === 5) await saveStep5();
-    } catch { /* best effort — el usuario está saliendo intencionalmente */ }
+      else if (step === 6) await saveStep6();
+    } catch { /* best effort */ }
     router.push("/");
   };
+
 
   // Guardados
   const saveStep1 = async () => {
@@ -176,6 +182,28 @@ export default function OnboardingPage() {
   };
 
   const saveStep2 = async () => {
+    // Si no tiene multiples empresas, el paso 4 (Fiscal) creará la principal.
+    // Si tiene múltiples, las guardamos aquí.
+    if (hasMultipleCompanies && companies.length > 0) {
+      setSaving(true);
+      for (const emp of companies) {
+        await fetch("/api/settings/companies", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre: emp.nombre,
+            rfc: emp.rfc,
+            regimen_fiscal: emp.regimen,
+            cp_expedicion: emp.cp,
+            es_principal: false // Se definirá después o la primera será principal
+          })
+        });
+      }
+      setSaving(false);
+    }
+  };
+
+  const saveStep3 = async () => {
     // E-commerce keys => Vault
     const keys: Record<string, string> = {};
     if (mlApiKey) keys.ml_access_token = mlApiKey;
@@ -193,12 +221,26 @@ export default function OnboardingPage() {
     }
   };
 
-  // Retorna true si todo guardó correctamente, false si hubo error de validación (ej. RFC inválido)
-  const saveStep3 = async (): Promise<boolean> => {
+  const saveStep4 = async (): Promise<boolean> => {
     setSaving(true);
     setSaveError(null);
     try {
-      // Perfil fiscal — verificar respuesta del servidor (RFC validado server-side)
+      // Guardar empresa principal (si no se agregaron múltiples antes)
+      if (!hasMultipleCompanies && rfc) {
+        await fetch("/api/settings/companies", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre: displayName + " Fiscal", // Nombre tentativo
+            rfc,
+            regimen_fiscal: taxRegime,
+            cp_expedicion: cp,
+            es_principal: true
+          })
+        });
+      }
+
+      // Datos fiscales perfil (redundante pero para compatibilidad)
       if (rfc || taxRegime || cp) {
         const res = await fetch("/api/settings/profile", {
           method: "PATCH",
@@ -207,41 +249,20 @@ export default function OnboardingPage() {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          setSaveError(err.error || "RFC o datos fiscales inválidos. Revisa el formato e intenta de nuevo.");
+          setSaveError(err.error || "RFC o datos fiscales inválidos.");
           return false;
         }
       }
-
-      // Aprovisionar organización FacturAPI en background — no bloquea el onboarding
-      // Atollom crea la org con FACTURAPI_USER_KEY y guarda la live key en vault
-      if (rfc && taxRegime) {
-        setFacturapiProvisionStatus("provisioning");
-        fetch("/api/onboarding/provision-facturapi", { method: "POST" })
-          .then(async r => {
-            const data = await r.json().catch(() => ({}));
-            if (r.ok && (data.status === "provisioned" || data.status === "already_provisioned")) {
-              setFacturapiProvisionStatus("done");
-            } else if (data.status === "skipped") {
-              // Sin FACTURAPI_USER_KEY en env — se aprovisiona después manualmente
-              setFacturapiProvisionStatus("done");
-            } else {
-              setFacturapiProvisionStatus("error");
-            }
-          })
-          .catch(() => setFacturapiProvisionStatus("error"));
-      }
-
       return true;
     } finally {
       setSaving(false);
     }
   };
 
-  const saveStep4 = async () => {
-    // CRM keys => Vault
+  const saveStep5 = async () => {
     const keys: Record<string, string> = {};
     if (metaAccessToken) keys.meta_access_token = metaAccessToken;
-    if (wabaId) keys.whatsapp_business_id = wabaId; // asumiendo waba fallback
+    if (wabaId) keys.whatsapp_business_id = wabaId;
     if (phoneId) keys.whatsapp_phone_id = phoneId;
 
     if (Object.keys(keys).length > 0) {
@@ -255,7 +276,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const saveStep5 = async () => {
+  const saveStep6 = async () => {
     setSaving(true);
     await fetch("/api/settings/autonomy", {
       method: "PATCH",
@@ -279,7 +300,7 @@ export default function OnboardingPage() {
       <div className="h-1 w-full bg-white/[0.04]">
         <div 
           className="h-full bg-[#A8E63D] transition-all duration-500 ease-out"
-          style={{ width: `${(step / 6) * 100}%` }}
+          style={{ width: `${(step / 7) * 100}%` }}
         />
       </div>
 
@@ -295,9 +316,10 @@ export default function OnboardingPage() {
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-widest text-[#8DA4C4] font-bold">Onboarding</p>
-              <h2 className="text-xl font-headline font-bold">Paso {step} de 6</h2>
+              <h2 className="text-xl font-headline font-bold">Paso {step} de 7</h2>
             </div>
           </div>
+
           <button
             onClick={skipAll}
             className="text-[11px] font-bold uppercase tracking-wider text-[#8DA4C4] hover:text-[#EF4444] border border-transparent hover:border-[#EF4444]/20 hover:bg-[#EF4444]/10 px-4 py-2 rounded-xl transition-all"
@@ -340,6 +362,63 @@ export default function OnboardingPage() {
           )}
 
           {step === 2 && (
+            <div className="max-w-xl animate-in slide-in-from-right-4 duration-300">
+              <h1 className="text-3xl font-headline font-bold mb-4">Estructura de Empresas</h1>
+              <p className="text-[#8DA4C4] text-[14px] leading-relaxed mb-8">
+                ¿Operas bajo una sola razón social o tienes múltiples empresas que deseas integrar en Kinexis?
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <button 
+                  onClick={() => setHasMultipleCompanies(false)}
+                  className={`p-6 rounded-2xl border transition-all text-left ${hasMultipleCompanies === false ? "bg-[#A8E63D]/10 border-[#A8E63D]" : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"}`}
+                >
+                  <span className="material-symbols-outlined text-3xl mb-3 text-[#A8E63D]">business</span>
+                  <h3 className="font-bold text-sm">Empresa Única</h3>
+                  <p className="text-[10px] text-[#8DA4C4] mt-1">Una sola razón social y RFC.</p>
+                </button>
+                <button 
+                  onClick={() => setHasMultipleCompanies(true)}
+                  className={`p-6 rounded-2xl border transition-all text-left ${hasMultipleCompanies === true ? "bg-[#A8E63D]/10 border-[#A8E63D]" : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"}`}
+                >
+                  <span className="material-symbols-outlined text-3xl mb-3 text-[#3B82F6]">domain</span>
+                  <h3 className="font-bold text-sm">Multi-empresa</h3>
+                  <p className="text-[10px] text-[#8DA4C4] mt-1">Varias razones sociales o sucursales.</p>
+                </button>
+              </div>
+
+              {hasMultipleCompanies && (
+                <div className="space-y-4">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#8DA4C4]">Agregar empresas adicionales</p>
+                  {companies.map((emp, idx) => (
+                    <div key={emp.id} className="bg-white/[0.04] p-4 rounded-xl flex items-center justify-between border border-white/[0.08]">
+                      <div>
+                        <p className="text-sm font-bold">{emp.nombre}</p>
+                        <p className="text-[10px] text-[#8DA4C4]">{emp.rfc}</p>
+                      </div>
+                      <button onClick={() => setCompanies(c => c.filter(x => x.id !== emp.id))} className="text-red-400 hover:text-red-300">
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                      </button>
+                    </div>
+                  ))}
+                  <button 
+                    onClick={() => {
+                      const nombre = prompt("Nombre de la empresa:");
+                      const rfcVal = prompt("RFC:");
+                      if (nombre && rfcVal) {
+                        setCompanies([...companies, { id: Math.random().toString(), nombre, rfc: rfcVal, regimen: "601", cp: "00000" }]);
+                      }
+                    }}
+                    className="w-full py-3 rounded-xl border border-dashed border-white/[0.2] text-[11px] text-[#8DA4C4] hover:border-[#A8E63D] hover:text-[#A8E63D] transition-all"
+                  >
+                    + Agregar otra empresa
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === 3 && (
             <div className="max-w-2xl">
               <h1 className="text-3xl font-headline font-bold mb-2">Conexión Ecommerce</h1>
               <p className="text-[#8DA4C4] text-[13px] mb-8">
@@ -363,7 +442,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="max-w-2xl">
               <h1 className="text-3xl font-headline font-bold mb-2">Datos Fiscales & ERP</h1>
               <p className="text-[#8DA4C4] text-[13px] mb-8">
@@ -454,12 +533,13 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="max-w-2xl">
               <h1 className="text-3xl font-headline font-bold mb-2">Conexión Meta (CRM)</h1>
               <p className="text-[#8DA4C4] text-[13px] mb-8">
                 Habilita el envío y recepción de mensajes de WhatsApp e Instagram integrando tu cuenta de Meta for Developers.
               </p>
+
 
               <div className="space-y-4">
                 <IntegrationInput 
@@ -480,12 +560,13 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <div className="max-w-3xl">
               <h1 className="text-3xl font-headline font-bold mb-2">Autonomía de Agentes</h1>
               <p className="text-[#8DA4C4] text-[13px] mb-8">
                 Define qué tanta libertad de acción tienen mis agentes en cada área de tu negocio. Puedes cambiar esto más tarde en la configuración.
               </p>
+
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {(["ecommerce", "erp", "crm"] as const).map(mod => (
@@ -523,15 +604,15 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {step === 6 && (
+          {step === 7 && (
             <div className="max-w-xl mx-auto text-center py-8">
               <div className="w-24 h-24 mx-auto rounded-full bg-[#A8E63D]/10 flex items-center justify-center mb-6 shadow-[0_0_40px_#A8E63D40]">
-                <span className="material-symbols-outlined text-5xl text-[#A8E63D]">rocket_launch</span>
+                <span className="material-symbols-outlined text-5xl text-[#A8E63D]"> rocket_launch</span>
               </div>
               <h1 className="text-3xl font-headline font-bold mb-4">¡Todo listo, {displayName || "owner"}!</h1>
               <p className="text-[#8DA4C4] text-[14px] leading-relaxed mb-8">
                 He guardado tus configuraciones de forma segura. A partir de ahora estaré monitoreando tu ecosistema.
-                Si en algún momento necesitas ajustar tus reglas de negocio o llaves, dirígete a la sección de Configuración.
+                Si en algún momento necesitas ajustar tus reglas de negocio o empresas, dirígete a la sección de Configuración.
               </p>
               
               <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-left flex gap-4 items-center max-w-sm mx-auto mb-10">
@@ -545,6 +626,7 @@ export default function OnboardingPage() {
               </div>
             </div>
           )}
+
 
         </div>
 
@@ -589,6 +671,7 @@ export default function OnboardingPage() {
                 <span className="material-symbols-outlined text-lg">dashboard</span>
               </button>
             )}
+
           </div>
         </div>
 

@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import { subscribeToNotificationSources } from "@/lib/realtime";
 import type { Notification } from "@/types";
 
@@ -101,7 +101,7 @@ const fetcher = (url: string) =>
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useNotifications() {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserSupabaseClient();
 
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());

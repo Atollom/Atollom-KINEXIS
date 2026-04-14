@@ -2,7 +2,7 @@
 // Realtime subscriptions — channels MUST be scoped to tenant_id
 // to prevent cross-tenant event leakage.
 
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 export type RealtimePayload = {
@@ -29,7 +29,7 @@ export function subscribeToTable(
   callback: RealtimeCallback,
   onStatusChange?: (status: string) => void
 ): () => void {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserSupabaseClient();
   const channelName = `kinexis-${tenantId}-${table}`;
 
   let channel: RealtimeChannel | null = null;

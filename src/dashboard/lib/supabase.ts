@@ -1,7 +1,29 @@
 // src/dashboard/lib/supabase.ts
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+// Server-side client (Route Handlers, Server Components, Middleware).
+// Do NOT import this in Client Components — use supabase-browser.ts instead.
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 export const createClient = () => {
-  return createRouteHandlerClient({ cookies });
+  const cookieStore = cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Route handlers may not be able to set cookies (e.g. read-only context)
+          }
+        },
+      },
+    }
+  );
 };

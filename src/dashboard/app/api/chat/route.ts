@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
       {
         name: "get_today_sales",
         description: "Consulta las ventas del día de hoy del dashboard KPI. Úsalo cuando pregunten por 'ventas de hoy' o resumen de ventas reciente.",
-        parameters: { type: SchemaType.OBJECT, properties: {} }
+        parameters: { type: SchemaType.OBJECT, properties: {} as Record<string, never> }
       },
       {
         name: "get_order_status",
@@ -112,12 +112,12 @@ export async function POST(req: NextRequest) {
       {
         name: "get_critical_inventory",
         description: "Consulta cuántos y cuáles SKUs están en estado crítico en el inventario actual.",
-        parameters: { type: SchemaType.OBJECT, properties: {} }
+        parameters: { type: SchemaType.OBJECT, properties: {} as Record<string, never> }
       },
       {
         name: "generate_weekly_report",
         description: "Inicia la generación del reporte analítico semanal para el cliente.",
-        parameters: { type: SchemaType.OBJECT, properties: {} }
+        parameters: { type: SchemaType.OBJECT, properties: {} as Record<string, never> }
       },
       {
         name: "escalate_to_human",
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
     let model = genAI.getGenerativeModel({
       model: PRIMARY_MODEL,
       systemInstruction: systemPrompt,
-      tools: [{ functionDeclarations }],
+      tools: [{ functionDeclarations }] as any,
     });
 
     const formattedHistory = history.map((m: any) => ({
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
         model = genAI.getGenerativeModel({
           model: FALLBACK_MODEL,
           systemInstruction: systemPrompt,
-          tools: [{ functionDeclarations }],
+          tools: [{ functionDeclarations }] as any,
         });
         const fallbackChat = model.startChat({ history: formattedHistory });
         response = await fallbackChat.sendMessage(message);

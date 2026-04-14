@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import type { AutonomyLevel, UserRole } from "@/types";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Tipos locales
 // ──────────────────────────────────────────────────────────────────────────────
-type TabId = "profile" | "modules" | "apikeys" | "rules" | "users" | "autonomy";
+type TabId = "profile" | "companies" | "modules" | "apikeys" | "rules" | "users" | "autonomy";
+
 
 interface TabDef {
   id: TabId;
@@ -23,6 +24,18 @@ interface BusinessProfile {
   postal_code: string;
   logo_url: string;
 }
+
+interface Company {
+  id: string;
+  nombre: string;
+  rfc: string;
+  regimen_fiscal: string;
+  cp_expedicion: string;
+  facturapi_org_id?: string;
+  es_principal: boolean;
+  activa: boolean;
+}
+
 
 interface BusinessRules {
   ml_margin: number;
@@ -53,8 +66,10 @@ interface AutonomyConfig {
 // ──────────────────────────────────────────────────────────────────────────────
 
 const TABS: TabDef[] = [
-  { id: "profile",  label: "Perfil",       icon: "business" },
-  { id: "modules",  label: "Módulos",      icon: "widgets",       ownerOnly: true },
+  { id: "profile",   label: "Perfil",       icon: "business" },
+  { id: "companies", label: "Mis empresas", icon: "domain" },
+  { id: "modules",   label: "Módulos",      icon: "widgets",       ownerOnly: true },
+
   { id: "apikeys",  label: "API Keys",     icon: "key" },
   { id: "rules",    label: "Reglas",       icon: "tune" },
   { id: "users",    label: "Usuarios",     icon: "group" },
@@ -179,7 +194,7 @@ export default function SettingsPage() {
   const [userRole, setUserRole] = useState<UserRole>("viewer");
 
   useEffect(() => {
-    const supabase = createClientComponentClient();
+    const supabase = createBrowserSupabaseClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
       supabase
@@ -197,6 +212,8 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
+
+  const visibleTabs = TABS.filter(t => !t.ownerOnly || userRole === "owner");
 
   // ── Estado: Perfil ────────────────────────────────────────────
   const [profile, setProfile] = useState<BusinessProfile>({
@@ -222,18 +239,25 @@ export default function SettingsPage() {
   });
   const [savingAutonomy, setSavingAutonomy] = useState(false);
 
+  // ── Estado: Empresas ──────────────────────────────────────────
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
+  const [savingCompany, setSavingCompany] = useState<string | null>(null);
+
+
   // ── Cargar todos los datos al montar ──────────────────────────
   useEffect(() => {
     async function loadAll() {
       setLoading(true);
       setError(null);
       try {
-        const [profileRes, vaultRes, rulesRes, usersRes, autonomyRes] = await Promise.allSettled([
+        const [profileRes, vaultRes, rulesRes, usersRes, autonomyRes, companiesRes] = await Promise.allSettled([
           fetch("/api/settings/profile").then(r => r.json()),
           fetch("/api/settings/vault").then(r => r.json()),
           fetch("/api/settings/business-rules").then(r => r.json()),
           fetch("/api/settings/users").then(r => r.json()),
           fetch("/api/settings/autonomy").then(r => r.json()),
+          fetch("/api/settings/companies").then(r => r.json()),
         ]);
 
         if (profileRes.status === "fulfilled") setProfile(profileRes.value);
@@ -241,6 +265,19 @@ export default function SettingsPage() {
         if (rulesRes.status === "fulfilled") setRules(rulesRes.value);
         if (usersRes.status === "fulfilled") setUsers(usersRes.value.users || []);
         if (autonomyRes.status === "fulfilled") setAutonomy(autonomyRes.value.autonomy || autonomy);
+        if (companiesRes.status === "fulfilled") {
+          const list = companiesRes.value.companies || [];
+          setCompanies(list);
+          // Cargar empresa activa de localStorage
+          const savedId = localStorage.getItem("active_company_id");
+          if (savedId && list.some((c: Company) => c.id === savedId)) {
+            setActiveCompanyId(savedId);
+          } else if (list.length > 0) {
+            const principal = list.find((c: Company) => c.es_principal);
+            setActiveCompanyId(principal ? principal.id : list[0].id);
+          }
+        }
+
       } catch {
         setError("Error cargando configuración");
       } finally {
@@ -353,8 +390,57 @@ export default function SettingsPage() {
     }
   }
 
-  // ── Filtrar tabs según rol ────────────────────────────────────
-  const visibleTabs = TABS.filter(t => !t.ownerOnly || userRole === "owner");
+  // ── Acciones Empresas ─────────────────────────────────────────
+  async function selectActiveCompany(id: string) {
+    localStorage.setItem("active_company_id", id);
+    setActiveCompanyId(id);
+    toast.show("Empresa activa para la sesión actualizada");
+  }
+
+  async function setPrincipalCompany(id: string) {
+    setSavingCompany(id);
+    try {
+      const res = await fetch("/api/settings/companies", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, es_principal: true }),
+      });
+      if (!res.ok) throw new Error("Error actualizando principal");
+      setCompanies(prev => prev.map(c => ({ ...c, es_principal: c.id === id })));
+      toast.show("Empresa principal actualizada");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error");
+    } finally {
+      setSavingCompany(null);
+    }
+  }
+
+  async function addCompany() {
+    const nombre = prompt("Nombre / Razón Social:");
+    const rfc = prompt("RFC:");
+    if (!nombre || !rfc) return;
+    
+    try {
+      const res = await fetch("/api/settings/companies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre,
+          rfc,
+          regimen_fiscal: "601",
+          cp_expedicion: "00000",
+          es_principal: companies.length === 0
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error agregando empresa");
+      setCompanies(prev => [...prev, data.company]);
+      toast.show("Empresa agregada");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error");
+    }
+  }
+
 
   // ── Loading skeleton ──────────────────────────────────────────
   if (loading) {
@@ -494,8 +580,82 @@ export default function SettingsPage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════
-          TAB 2: Módulos activos (solo owner)
+          TAB 2: Mis Empresas
           ═══════════════════════════════════════════════════════════ */}
+      {activeTab === "companies" && (
+        <section className="space-y-4 animate-in">
+          <SectionCard title="Gestión de Empresas / Razones Sociales" icon="domain" color="#3B82F6">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-[12px] text-[#8DA4C4]">
+                Registra tus razones sociales para facturación y reportes fiscales independientes.
+              </p>
+              {userRole === "owner" && (
+                <button 
+                  onClick={addCompany}
+                  className="px-4 py-2 bg-[#A8E63D]/10 border border-[#A8E63D]/20 text-[#A8E63D] rounded-xl text-[11px] font-bold uppercase tracking-wider hover:bg-[#A8E63D]/20 transition-all"
+                >
+                  + Nueva Empresa
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              {companies.map(emp => (
+                <div 
+                  key={emp.id}
+                  className={`flex items-center justify-between p-4 rounded-xl border transition-all ${activeCompanyId === emp.id ? "bg-[#3B82F6]/5 border-[#3B82F6]/30" : "bg-white/[0.03] border-white/[0.06]"}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${emp.es_principal ? "bg-[#A8E63D]/10 text-[#A8E63D]" : "bg-white/[0.05] text-[#8DA4C4]"}`}>
+                      <span className="material-symbols-outlined">{emp.es_principal ? "verified" : "business"}</span>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-[#E8EAF0]">{emp.nombre}</p>
+                        {emp.es_principal && <span className="bg-[#A8E63D]/10 text-[#A8E63D] text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Principal</span>}
+                        {activeCompanyId === emp.id && <span className="bg-[#3B82F6]/10 text-[#3B82F6] text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Activa en sesión</span>}
+                      </div>
+                      <p className="text-[11px] text-[#8DA4C4]">{emp.rfc} • CP {emp.cp_expedicion}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {activeCompanyId !== emp.id && (
+                      <button 
+                        onClick={() => selectActiveCompany(emp.id)}
+                        className="p-2 hover:bg-white/[0.05] rounded-lg text-[#8DA4C4] hover:text-[#3B82F6] transition-all"
+                        title="Seleccionar para esta sesión"
+                      >
+                        <span className="material-symbols-outlined text-lg">login</span>
+                      </button>
+                    )}
+                    {userRole === "owner" && !emp.es_principal && (
+                      <button 
+                        onClick={() => setPrincipalCompany(emp.id)}
+                        disabled={savingCompany === emp.id}
+                        className="p-2 hover:bg-white/[0.05] rounded-lg text-[#8DA4C4] hover:text-[#A8E63D] transition-all"
+                        title="Marcar como principal"
+                      >
+                        <span className="material-symbols-outlined text-lg">star</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {companies.length === 0 && (
+                <div className="text-center py-8 bg-white/[0.02] border border-dashed border-white/[0.06] rounded-xl">
+                  <p className="text-[#506584] text-[11px] uppercase tracking-widest font-bold">No hay empresas registradas</p>
+                </div>
+              )}
+            </div>
+          </SectionCard>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          TAB 3: Módulos activos (solo owner)
+          ═══════════════════════════════════════════════════════════ */}
+
       {activeTab === "modules" && userRole === "owner" && (
         <section className="space-y-4 animate-in">
           <SectionCard title="Módulos Contratados" icon="widgets" color="#A8E63D">

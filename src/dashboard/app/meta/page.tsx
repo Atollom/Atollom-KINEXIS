@@ -3,7 +3,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import { useConversations } from "@/hooks/useConversations";
 import Image from "next/image";
 import type { ConversationSummary, UserRole } from "@/types";
@@ -53,7 +53,7 @@ export default function MetaPage() {
   const [agentsLoading, setAgentsLoading] = useState(true);
   const [role, setRole] = useState<UserRole | null>(null);
 
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserSupabaseClient();
 
   // Cargar agentes Meta y rol del usuario
   useEffect(() => {

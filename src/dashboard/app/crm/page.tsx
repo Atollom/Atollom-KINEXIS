@@ -3,7 +3,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import { useLeads } from "@/hooks/useLeads";
 import type { Lead, LeadStage, UserRole } from "@/types";
 
@@ -73,7 +73,7 @@ export default function CRMPage() {
   const [loading, setLoading] = useState(true);
   const [approvingQuote, setApprovingQuote] = useState<string | null>(null);
 
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserSupabaseClient();
 
   // Cargar datos del usuario y módulos auxiliares
   useEffect(() => {

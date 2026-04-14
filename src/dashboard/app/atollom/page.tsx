@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Tipos locales
@@ -60,7 +60,7 @@ type PanelTab = "clients" | "metrics" | "support" | "logs" | "system";
 // Componente Principal
 // ──────────────────────────────────────────────────────────────────────────────
 export default function AtollomPanelPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserSupabaseClient();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<PanelTab>("clients");
   const [loading, setLoading] = useState(true);
