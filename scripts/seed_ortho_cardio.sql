@@ -52,9 +52,9 @@ DECLARE
     v_tenant_id UUID := 'd0e84000-e29b-41d4-a716-446655440002';
     v_owner_id  UUID := '550e8400-e29b-41d4-a716-446655440001';
     
-    -- ID FIJO para Atollom / Kap Tools
     v_atollom_tenant_id UUID := '40446806-0107-6201-9311-000000000001';
-    v_atollom_admin_id  UUID; -- Se buscará por email
+    v_atollom_admin_id  UUID;
+    v_real_instance_id  UUID;
     
     -- Variables auxiliares
     v_order_id     UUID;
@@ -64,6 +64,13 @@ DECLARE
     v_i            INTEGER;
 BEGIN
     RAISE NOTICE 'Iniciando Seed de Comercializadora Ortho Cardio...';
+
+    -- DETECTAR INSTANCE_ID REAL (Crucial para Supabase Cloud)
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'auth' AND table_name = 'instances') THEN
+        SELECT id INTO v_real_instance_id FROM auth.instances LIMIT 1;
+    ELSE
+        v_real_instance_id := '00000000-0000-0000-0000-000000000000';
+    END IF;
 
     -- ─────────────────────────────────────────────────────────────────────────
     -- 1. TENANT & PROFILES
@@ -98,7 +105,7 @@ BEGIN
             raw_app_meta_data, raw_user_meta_data, role, aud, confirmation_token
         ) VALUES (
             v_owner_id,
-            '00000000-0000-0000-0000-000000000000',
+            v_real_instance_id,
             'orthocardio@prueba.com',
             extensions.crypt('Atollom', extensions.gen_salt('bf')),
             now(),
@@ -125,7 +132,7 @@ BEGIN
             raw_app_meta_data, raw_user_meta_data, role, aud, confirmation_token
         ) VALUES (
             v_atollom_admin_id,
-            '00000000-0000-0000-0000-000000000000',
+            v_real_instance_id,
             'contacto@atollom.com',
             extensions.crypt('Atollom2026', extensions.gen_salt('bf')),
             now(),
