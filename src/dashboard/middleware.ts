@@ -174,6 +174,14 @@ export async function middleware(req: NextRequest) {
         return NextResponse.json({ error: 'Prohibido: Solo el propietario puede completar el onboarding' }, { status: 403 });
       }
     }
+
+    // /api/atollom/* → atollom_admin only
+    // These endpoints expose cross-tenant data — no regular tenant role may access them.
+    if (pathname.startsWith('/api/atollom')) {
+      if (role !== 'atollom_admin') {
+        return NextResponse.json({ error: 'Prohibido: Solo Atollom Admin' }, { status: 403 });
+      }
+    }
   }
 
   return res;
