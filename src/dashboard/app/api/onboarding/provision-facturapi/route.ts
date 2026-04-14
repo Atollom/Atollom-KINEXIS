@@ -8,6 +8,9 @@ import { getAuthenticatedTenant } from "@/lib/auth";
 
 const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 
+// RFC SAT CFDI 4.0 — same regex as profile/route.ts and facturapi_adapter.py
+const RFC_REGEX = /^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$/;
+
 /**
  * POST /api/onboarding/provision-facturapi
  * Flujo:
@@ -64,6 +67,15 @@ export async function POST(_req: NextRequest) {
       return NextResponse.json(
         { error: "RFC y razón social son requeridos para crear la organización FacturAPI" },
         { status: 422 }
+      );
+    }
+
+    // Defense-in-depth: validate RFC format before calling FacturAPI
+    // (profile PATCH already validates, but data may be stale or patched directly in DB)
+    if (!RFC_REGEX.test(profile.rfc.toUpperCase())) {
+      return NextResponse.json(
+        { error: "RFC con formato inválido — actualiza tus datos fiscales antes de continuar" },
+        { status: 400 }
       );
     }
 

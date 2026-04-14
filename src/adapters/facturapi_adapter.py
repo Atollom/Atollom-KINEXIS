@@ -109,6 +109,23 @@ class FacturapiAdapter:
         if not RFC_REGEX.match(rfc_clean):
             raise ValueError(f"RFC con formato inválido para crear organización: {rfc_clean}")
 
+        # Idempotency: if org already provisioned for this tenant, return without duplicating
+        try:
+            existing_config = await db_client.get_cfdi_config(tenant_id)
+            existing_org_id = existing_config.get("facturapi_org_id") if existing_config else None
+            if existing_org_id:
+                logger.info(
+                    "FacturAPI org ya existe — skipping creation: org_id=%s tenant_id=%s",
+                    existing_org_id, tenant_id,
+                )
+                return {"org_id": existing_org_id, "status": "already_provisioned"}
+        except Exception as e:
+            # Non-blocking: if DB check fails, proceed with creation attempt
+            logger.warning(
+                "No se pudo verificar org existente para tenant=%s: %s. Procediendo con creación.",
+                tenant_id, e,
+            )
+
         timeout = httpx.Timeout(30.0)
         async with httpx.AsyncClient(timeout=timeout) as client:
             # 1. Crear organización
