@@ -1,15 +1,6 @@
 // src/dashboard/types/index.ts
 
-export type UserRole =
-  | 'owner'
-  | 'admin'
-  | 'socia'        // dueñas del negocio — acceso total
-  | 'warehouse'    // operaciones de almacén
-  | 'almacenista'  // alias de warehouse
-  | 'contador'     // acceso fiscal/ERP
-  | 'agente'       // representantes de ventas — CRM only
-  | 'viewer'       // solo lectura, sin módulos
-  | 'atollom_admin';// super admin de atollom
+export type UserRole = 'owner' | 'admin' | 'warehouse' | 'contador' | 'viewer' | 'atollom_admin' | 'socia' | 'almacenista' | 'agente';
 
 export interface TenantUser {
   id: string;
@@ -141,5 +132,34 @@ export interface PurchaseOrder {
   total: number;
   status: POStatus;
   approval_expires_at: string;
+  created_at: string;
+}
+
+// ── WhatsApp Inbox ──────────────────────────────────────────────
+export interface WhatsAppSession {
+  id: string;
+  tenant_id: string;
+  from_number: string;
+  session_type: string;
+  samantha_active: boolean;
+  updated_at: string;
+  // Computed fields from API
+  last_message?: string;
+  last_message_at?: string;
+  last_message_direction?: 'inbound' | 'outbound';
+}
+
+export interface WhatsAppMessage {
+  id: string;
+  tenant_id: string;
+  from_number: string;
+  to_number: string;
+  direction: 'inbound' | 'outbound';
+  message_text: string | null;
+  message_type: 'text' | 'image' | 'audio' | 'document' | 'location';
+  media_url: string | null;
+  transcript: string | null;
+  intent: string | null;
+  processed: boolean;
   created_at: string;
 }

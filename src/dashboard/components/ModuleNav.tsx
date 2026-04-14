@@ -38,12 +38,12 @@ interface ModuleNavProps {
 const ROLE_VISIBLE_MODULES: Record<UserRole, string[] | "all"> = {
   owner:       "all",
   admin:       "all",
-  socia:       "all",                // dueñas: acceso total igual que owner
-  warehouse:   ["erp"],              // almacén: solo módulo ERP
-  almacenista: ["erp"],              // alias de warehouse
-  contador:    ["erp"],              // fiscal: solo ERP (inventory + CFDI + procurement)
-  agente:      ["crm"],              // ventas: solo CRM (leads, pipeline, whatsapp, instagram)
-  viewer:      [],                   // sin módulos visibles
+  socia:       "all",
+  warehouse:   ["erp"],
+  almacenista: ["erp"],
+  contador:    ["erp"],
+  agente:      ["crm"],
+  viewer:      [],
   atollom_admin: "all",
 };
 

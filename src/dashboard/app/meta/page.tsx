@@ -156,6 +156,14 @@ export default function MetaPage() {
             <p className="text-[9px] text-purple-400 uppercase tracking-wider">Instagram</p>
             <p className="text-lg font-headline font-bold text-purple-400">{instagramCount}</p>
           </div>
+
+          <a 
+            href="/meta/inbox" 
+            className="btn-volt flex items-center gap-2 px-5 py-3 ml-4"
+          >
+            <span className="material-symbols-outlined">forum</span>
+            BANDEJA UNIFICADA
+          </a>
         </div>
       </header>
 
