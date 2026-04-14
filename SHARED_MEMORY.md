@@ -346,3 +346,4 @@ CHECKPOINT_SAVE:
   agent: GEMINI (Type Stability & Data Seeding Phase)
   directors: Carlos Hernán Cortés Ayala, Hiram Alexis Valencia Duarte
   status: TYPES_FIXED ✅ | SEED_READY ✅ | UPLOADING_TO_PROD...
+  infrastructure: META_WEBHOOKS_ENABLED ✅
