@@ -312,43 +312,42 @@ async def meta_webhook_receive(request: Request):
     """
     Recibe eventos de Meta (WhatsApp, Instagram).
     Verifica la firma X-Hub-Signature-256 antes de procesar.
-    Despacha al agente correspondiente según el campo 'object'.
+    Durante fase de configuración, devuelve 200 OK aunque la firma falle (pero loguea error).
     """
     import hashlib
     import hmac as hmac_lib
-    from fastapi.responses import PlainTextResponse
+    from fastapi.responses import JSONResponse
 
     app_secret = os.getenv("META_APP_SECRET", "")
-    if not app_secret:
-        logger.error("META_APP_SECRET not configured — rejecting Meta event")
-        raise HTTPException(status_code=503, detail="Webhook not configured")
-
-    # 1. Verificar firma HMAC-SHA256 (PRIMERO, antes de leer el body)
     raw_body = await request.body()
     signature_header = request.headers.get("X-Hub-Signature-256", "")
 
-    if not signature_header:
-        logger.warning("Meta webhook POST missing X-Hub-Signature-256")
-        raise HTTPException(status_code=400, detail="Missing X-Hub-Signature-256")
+    # 1. Validación HMAC con Log de Diagnóstico
+    if not app_secret:
+        logger.error("❌ META_APP_SECRET no configurada. No se puede validar firma.")
+        # Devolvemos 200 para no bloquear a Meta durante el setup
+        return JSONResponse(content={"status": "ok", "warning": "no_secret"}, status_code=200)
 
     expected = "sha256=" + hmac_lib.new(
         app_secret.encode(), raw_body, hashlib.sha256
     ).hexdigest()
 
-    if not hmac_lib.compare_digest(expected.encode(), signature_header.encode()):
-        logger.warning("Meta webhook POST invalid HMAC signature")
-        raise HTTPException(status_code=403, detail="Invalid signature")
+    if not signature_header or not hmac_lib.compare_digest(expected.encode(), signature_header.encode()):
+        logger.warning("❌ Error de firma HMAC. Verifica META_APP_SECRET.")
+        logger.debug(f"Signature Header: {signature_header}")
+        # En fase de configuración, devolvemos 200 OK para permitir la suscripción
+        return JSONResponse(content={"status": "ok", "diagnostic": "hmac_mismatch"}, status_code=200)
 
     # 2. Parsear body JSON
     try:
         import json
         body = json.loads(raw_body)
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON body")
+        return JSONResponse(content={"status": "error", "message": "invalid_json"}, status_code=400)
 
     # 3. Despachar al agente según el objeto Meta
     object_type = body.get("object", "")
-    tenant_id   = os.getenv("DEFAULT_TENANT_ID", "")   # multi-tenant: extraer del número de teléfono o page_id
+    tenant_id   = os.getenv("DEFAULT_TENANT_ID", "")
     payload     = {"event": body, "raw": True}
 
     if object_type == "whatsapp_business_account":
@@ -357,7 +356,7 @@ async def meta_webhook_receive(request: Request):
         agent_id = "instagram_dm_handler"
     else:
         logger.info("Unhandled Meta object type: %s", object_type)
-        return PlainTextResponse(content="EVENT_RECEIVED", status_code=200)
+        return JSONResponse(content={"status": "ok", "message": "EVENT_RECEIVED"}, status_code=200)
 
     agent_class = AGENT_REGISTRY.get(agent_id)
     if agent_class and tenant_id:
@@ -375,11 +374,9 @@ async def meta_webhook_receive(request: Request):
             agent = agent_class(tenant_id=tenant_id, supabase_client=supabase_client)
             await agent.run(payload)
         except Exception:
-            # Never let agent errors break the 200 response — Meta reintenta si no recibe 200
             logger.error("Meta webhook agent dispatch error: agent=%s", agent_id, exc_info=True)
 
-    # Meta requiere 200 OK inmediato — siempre
-    return PlainTextResponse(content="EVENT_RECEIVED", status_code=200)
+    return JSONResponse(content={"status": "ok"}, status_code=200)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
