@@ -1,11 +1,11 @@
 agentes_implementados: 43/43
 agent_contracts_done: 43/43
 migraciones: 032/N
-tests_totales: 836 passing ✅  (769 previos + 67 Dashboard H1: Settings+Notifications+Pages+Onboarding)
+tests_totales: 92 passing ✅  (77 previos + 10 atollom-panel + 15 samantha-chat-tools)
 
 ESTADO: PRODUCTION_READY
 claude_approved_date: 2026-04-13
-hardening_sessions: BLOQUE1 + BLOQUE2 + BLOQUE3 + BLOQUE4 + BLOQUE5 + BLOQUE6 (completo)
+hardening_sessions: BLOQUE1 + BLOQUE2 + BLOQUE3 + BLOQUE4 + BLOQUE5 + BLOQUE6 + BLOQUE7 (completo)
 
 SECURITY_FIX — 2026-04-13:
   [HMAC] instagram_dm_handler_agent.py — payload_bytes sin signature ahora RECHAZADO (antes bypasseaba)
@@ -151,6 +151,55 @@ ONBOARDING H1 HARDENING — 2026-04-13:
   - 4 RFC inválidos → 400 server-side
   - RFC válido → !400
   - vault PATCH: config_change_log nunca contiene valor real ([REDACTED])
+
+ATOLLOM PANEL H1 HARDENING — 2026-04-13:
+  BUGS ENCONTRADOS Y CORREGIDOS:
+  [BUG-CRITICAL] middleware.ts — /api/atollom/* sin RBAC. Cualquier usuario autenticado podía llamar endpoints de superadmin. Fix: guard atollom_admin only en sección API RBAC
+  [BUG-CRITICAL] notifySuperadmin() — llamaba /api/meta/conversations (atollom_admin → 403). Fix: endpoint dedicado /api/atollom/notify que inserta en system_notifications queue
+  [BUG-HIGH]    escalateTicket() — enviaba WhatsApp para TODOS los tickets. Fix: solo priority === "critical" dispara notifySuperadmin
+  [BUG-HIGH]    config_change_log — vault.* campos se mostraban en claro en UI. Fix: l.field.startsWith("vault.") → "[REDACTED]" en ambas columnas
+  [BUG-MEDIUM]  atollom/page.tsx — sin guard client-side de rol. Fix: useEffect verifica user_profiles.role === "atollom_admin"; si no → pantalla "Acceso Prohibido"
+
+  NUEVO ENDPOINT:
+  [API] /api/atollom/notify (POST) — atollom_admin only, inserta en system_notifications con recipient_phone, channel, severity, status:"pending"
+
+  TESTS (vitest) 10/10:
+  - unauthenticated → 401
+  - owner/admin → 403
+  - atollom_admin → 200
+  - missing/empty message → 400
+  - invalid severity → 400
+  - default severity "info"
+  - correct DB payload (recipient, channel, status, sent_by)
+  - DB error → 500
+
+SAMANTHA CHAT H1 HARDENING — 2026-04-13:
+  BUGS ENCONTRADOS Y CORREGIDOS:
+  [BUG-CRITICAL] chat/route.ts — los 4 tools devolvían datos hardcodeados (mocks). Fix: real Supabase queries en lib/samantha-tools.ts
+  [BUG-CRITICAL] escalate_to_human — llamaba /api/meta/conversations con Bearer token server-to-server → 401 (middleware verifica cookies, no Bearer). Fix: supabase client directo para insert en support_tickets + system_notifications
+  [BUG-HIGH]    escalate_to_human — enviaba WhatsApp para todos los priorities. Fix: solo high/critical queuen system_notifications
+  [BUG-MEDIUM]  Memory inserts usaban .then() sin catch. Fix: .then(({ error }) => { if (error) console.error(...) })
+  [BUG-LOW]     Artificial 10ms delay en streaming (setTimeout). Fix: removido; chunks más grandes (80 chars)
+
+  NUEVO ARCHIVO:
+  [LIB] lib/samantha-tools.ts — handlers extraídos y testeables:
+    - getTodaySales: ordenes de hoy con CDMX timezone, top_platform aggregation
+    - getOrderStatus: tenant-scoped lookup por order ID
+    - getCriticalInventory: usa tenant_business_rules.stock_critical_days como umbral
+    - generateWeeklyReport: inserta report_requests para worker background
+    - escalateToHuman: ticket + WhatsApp solo para high/critical
+
+  [OBSERVABILITY] Langfuse tracing por request (graceful con keys faltantes):
+    - trace: samantha-chat con userId + tenant_id metadata
+    - generation: span por llamada Gemini con input/output
+    - tool spans: uno por tool call
+
+  TESTS (vitest) 15/15:
+  - getTodaySales: agrega, enforces tenant_id, maneja DB error
+  - getOrderStatus: retorna orden, retorna error si no encontrada
+  - getCriticalInventory: usa threshold correcto, maneja DB error
+  - generateWeeklyReport: inserta con tenant_id/user correcto, maneja error
+  - escalateToHuman: crea ticket con tenant_id, WhatsApp para critical/high, NO para low/medium, maneja error
 
 NEXT PHASE: Dashboard Session 3 — Analytics + Finance
   Prioridad: analytics_reports, finance_snapshots, NPS dashboard
