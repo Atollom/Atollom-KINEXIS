@@ -57,8 +57,8 @@ BEGIN
         ) VALUES (
             v_owner_id,
             '00000000-0000-0000-0000-000000000000',
-            'demo@orthocardio.mx',
-            extensions.crypt('OrthoDemo2026!', extensions.gen_salt('bf')),
+            'orthocardio@prueba.com',
+            extensions.crypt('Atollom', extensions.gen_salt('bf')),
             now(),
             '{"provider":"email","providers":["email"]}',
             '{"full_name":"Demo Owner OrthoCardio"}',
@@ -69,13 +69,32 @@ BEGIN
     END IF;
 
     INSERT INTO user_profiles (id, tenant_id, full_name, role, display_name, email)
-    VALUES (v_owner_id, v_tenant_id, 'Demo Owner OrthoCardio', 'owner', 'Ortho Admin', 'demo@orthocardio.mx')
+    VALUES (v_owner_id, v_tenant_id, 'Demo Owner OrthoCardio', 'owner', 'Ortho Admin', 'orthocardio@prueba.com')
     ON CONFLICT (id) DO NOTHING;
 
     -- contacto@atollom.com (Admin Global)
-    -- Asumimos que ya existe en auth.users, buscamos su ID.
+    -- Asumimos que ya existe en auth.users, pero si no, creamos uno con Atollom2026
     SELECT id INTO v_atollom_admin_id FROM auth.users WHERE email = 'contacto@atollom.com' LIMIT 1;
     
+    IF v_atollom_admin_id IS NULL AND EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') THEN
+        v_atollom_admin_id := '40446806-0107-6201-9311-000000000002';
+        INSERT INTO auth.users (
+            id, instance_id, email, encrypted_password, email_confirmed_at, 
+            raw_app_meta_data, raw_user_meta_data, role, aud, confirmation_token
+        ) VALUES (
+            v_atollom_admin_id,
+            '00000000-0000-0000-0000-000000000000',
+            'contacto@atollom.com',
+            extensions.crypt('Atollom2026', extensions.gen_salt('bf')),
+            now(),
+            '{"provider":"email","providers":["email"]}',
+            '{"full_name":"Atollom Admin"}',
+            'authenticated',
+            'authenticated',
+            'token'
+        ) ON CONFLICT (id) DO NOTHING;
+    END IF;
+
     IF v_atollom_admin_id IS NOT NULL THEN
         INSERT INTO user_profiles (id, tenant_id, full_name, role, display_name, email)
         VALUES (v_atollom_admin_id, v_atollom_tenant_id, 'Atollom Admin', 'atollom_admin', 'Atollom HQ', 'contacto@atollom.com')

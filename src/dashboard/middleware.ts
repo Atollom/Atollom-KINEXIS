@@ -4,13 +4,13 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Roles with warehouse/inventory access
-const WAREHOUSE_ROLES = ['warehouse', 'almacenista', 'admin', 'owner', 'socia'];
+const WAREHOUSE_ROLES = ['warehouse', 'almacenista', 'admin', 'owner', 'socia', 'atollom_admin'];
 // Roles with fiscal/accounting access
-const FISCAL_ROLES = ['contador', 'admin', 'owner', 'socia'];
+const FISCAL_ROLES = ['contador', 'admin', 'owner', 'socia', 'atollom_admin'];
 // Roles with CRM/sales access
-const CRM_ROLES = ['agente', 'admin', 'owner', 'socia'];
+const CRM_ROLES = ['agente', 'admin', 'owner', 'socia', 'atollom_admin'];
 // Roles with agent management access
-const AGENT_ROLES = ['admin', 'owner', 'socia'];
+const AGENT_ROLES = ['admin', 'owner', 'socia', 'atollom_admin'];
 
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req });

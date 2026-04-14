@@ -27,7 +27,24 @@ export function LoginForm() {
 
       if (authError) throw authError;
 
-      router.push('/dashboard');
+      // Fetch profile to determine redirect
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.role === 'atollom_admin') {
+          router.push('/atollom');
+        } else {
+          router.push('/');
+        }
+      } else {
+        router.push('/');
+      }
+      
       router.refresh(); // Asegura que el middleware vea el nuevo token
     } catch {
       // Never expose raw Supabase error details to the client
