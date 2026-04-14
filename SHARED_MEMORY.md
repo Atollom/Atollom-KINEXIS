@@ -201,6 +201,41 @@ SAMANTHA CHAT H1 HARDENING — 2026-04-13:
   - generateWeeklyReport: inserta con tenant_id/user correcto, maneja error
   - escalateToHuman: crea ticket con tenant_id, WhatsApp para critical/high, NO para low/medium, maneja error
 
+PROD DB VERIFICATION — 2026-04-13:
+  run_remaining_prod.sql ejecutado en Supabase prod.
+
+  TABLAS FALTANTES DETECTADAS Y CORREGIDAS (migration 033):
+  Las siguientes tablas estaban referenciadas en el código pero NO tenían migración:
+  1. tenant_profiles    — perfil empresa (business_name, rfc, plan, active_modules, onboarding_complete)
+  2. config_change_log  — auditoría de cambios de configuración (vault, profile, onboarding)
+  3. system_notifications — cola WhatsApp dispatch (recipient_phone, channel, severity, status:pending)
+  4. samantha_memory    — memoria conversacional Samantha por tenant
+  5. report_requests    — cola de generación de reportes PDF background
+  6. tenant_agent_autonomy — niveles de autonomía por módulo (ecommerce/erp/crm)
+  7. vault_secrets      — almacenamiento de API keys (encrypted_value NUNCA expuesta al cliente)
+  8. agent_status       — VIEW sobre tenant_agent_config (meta/page.tsx usa module filter)
+
+  PARCHES ADICIONALES:
+  - user_profiles: constraint role ampliado → owner, viewer, contador, atollom_admin añadidos
+  - user_profiles: columnas display_name, email, updated_at añadidas
+  - tenant_agent_config: columnas last_run_at, success_rate añadidas (para agent_status VIEW)
+
+  RLS STATUS POST-033:
+  ✅ tenant_profiles      — isolation + service_role + atollom_read_all
+  ✅ config_change_log    — isolation + service_role + atollom_read_all
+  ✅ system_notifications — service_role + atollom_only
+  ✅ samantha_memory      — isolation + service_role
+  ✅ report_requests      — isolation + service_role
+  ✅ tenant_agent_autonomy — isolation + service_role
+  ✅ vault_secrets        — service_role (SELECT isolation para check existencia)
+  ✅ agent_status         — view hereda RLS de tenant_agent_config
+
+  TABLAS REFERENCIADAS EN CÓDIGO — TODAS CUBIERTAS ✅
+
+  INSTRUCCIÓN PARA EJECUTAR:
+  SQL Editor Supabase → pegar contenido de migrations/033_missing_tables.sql → Run
+  Es idempotente (IF NOT EXISTS / ADD COLUMN IF NOT EXISTS) — seguro ejecutar múltiples veces.
+
 NEXT PHASE: Dashboard Session 3 — Analytics + Finance
   Prioridad: analytics_reports, finance_snapshots, NPS dashboard
   Estado: Session 2 completa ✅ — 4 módulos UI entregados
