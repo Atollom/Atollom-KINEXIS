@@ -29,5 +29,6 @@ export async function getAuthenticatedTenant(supabase: SupabaseClient): Promise<
     role: profile.role,
     name: profile.full_name || user.email?.split('@')[0] || 'User',
     email: user.email || '',
+    is_atollom_admin: profile.role === 'atollom_admin'
   } as TenantUser;
 }

@@ -106,17 +106,17 @@ export default function AtollomPanelPage() {
       const { data: tenantData } = await supabase.from("tenant_profiles").select("*");
       // Mapeamos a nuestro tipo con valores por defecto si no existen las columnas de facturación aún
       const loadedTenants: TenantProfile[] = (tenantData || []).map((t: any) => ({
-        tenant_id: t.tenant_id,
-        business_name: t.business_name || "Desconocido",
-        rfc: t.rfc || "N/A",
-        plan: t.plan || "Pro",
+        tenant_id: t?.tenant_id,
+        business_name: t?.business_name || "Desconocido",
+        rfc: t?.rfc || "N/A",
+        plan: t?.plan || "Pro",
         active_modules: ["ecommerce", "erp", "crm"],
         system_status: (Math.random() > 0.9 ? "yellow" : Math.random() > 0.95 ? "red" : "green") as any,
-        last_login: t.updated_at || t.created_at,
-        created_at: t.created_at,
-        mrr: t.plan === "Starter" ? 99 : t.plan === "Growth" ? 299 : 599,
+        last_login: t?.updated_at || t?.created_at,
+        created_at: t?.created_at,
+        mrr: t?.plan === "Starter" ? 99 : t?.plan === "Growth" ? 299 : 599,
       }));
-      setTenants(loadedTenants);
+      setTenants(loadedTenants || []);
 
       // Métricas globales
       const starterCount = loadedTenants.filter(t => t.plan === "Starter").length;
@@ -137,10 +137,10 @@ export default function AtollomPanelPage() {
         .select("*, tenant_profiles(business_name)")
         .order("created_at", { ascending: false });
 
-      if (ticketData) {
+      if (ticketData && Array.isArray(ticketData)) {
         setTickets(ticketData.map((t: any) => ({
           ...t,
-          business_name: t.tenant_profiles?.business_name || t.tenant_id.substring(0,8)
+          business_name: t.tenant_profiles?.business_name || t.tenant_id?.substring(0,8)
         })));
       }
 
@@ -151,10 +151,10 @@ export default function AtollomPanelPage() {
         .order("created_at", { ascending: false })
         .limit(100);
       
-      if (logData) {
+      if (logData && Array.isArray(logData)) {
         setLogs(logData.map((l: any) => ({
           ...l,
-          business_name: l.tenant_profiles?.business_name || l.tenant_id.substring(0,8)
+          business_name: l.tenant_profiles?.business_name || l.tenant_id?.substring(0,8)
         })));
       }
 
