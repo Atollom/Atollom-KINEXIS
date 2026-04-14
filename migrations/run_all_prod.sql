@@ -670,8 +670,10 @@ CREATE TABLE IF NOT EXISTS leads (
   name TEXT,
   phone TEXT,
   email TEXT,
+  company TEXT,
   source TEXT,
   score INTEGER DEFAULT 0,
+  deal_stage TEXT DEFAULT 'new',
   type TEXT DEFAULT 'unknown' CHECK (type IN ('b2b', 'b2c', 'unknown')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

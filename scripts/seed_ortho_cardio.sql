@@ -4,6 +4,48 @@
 -- Idempotente: ON CONFLICT DO NOTHING en todo
 -- ══════════════════════════════════════════════════════════════════════════════
 
+-- ASEGURAR ESQUEMA CORE (En caso de migraciones parciales)
+CREATE TABLE IF NOT EXISTS orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    external_id TEXT,
+    platform TEXT NOT NULL,
+    status TEXT DEFAULT 'DRAFT',
+    customer_name TEXT,
+    customer_rfc TEXT,
+    total DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    shipping_cost DECIMAL(12,2) DEFAULT 0.00,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    sku TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price DECIMAL(12,2) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    name TEXT,
+    phone TEXT,
+    email TEXT,
+    company TEXT,
+    source TEXT,
+    score INTEGER DEFAULT 0,
+    deal_stage TEXT DEFAULT 'new',
+    type TEXT DEFAULT 'unknown',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS days_remaining INTEGER DEFAULT 999;
+
 DO $$
 DECLARE
     -- IDs FIJOS para Ortho Cardio
