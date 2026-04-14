@@ -42,10 +42,15 @@ export interface Agent {
   agent_id: string;
   name: string;
   module: string;
-  status: AgentStatus;
+  agent_status: AgentStatus;
   autonomy: AutonomyLevel;
   last_run?: string;
   success_rate: number;
+}
+
+export interface ExtendedAgent extends Agent {
+  description?: string;
+  capabilities?: string[];
 }
 
 export type CFDIType = 'I' | 'E' | 'P';

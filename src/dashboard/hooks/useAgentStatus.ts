@@ -9,7 +9,7 @@ export function useAgentStatus() {
     refreshInterval: 15000, // 15 segundos
   });
 
-  const activeCount = data?.filter(a => a.status === 'active').length || 0;
+  const activeCount = data?.filter(a => a.agent_status === 'active').length || 0;
 
   return {
     agents: data || [],

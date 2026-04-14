@@ -15,7 +15,7 @@ interface MetaAgentStatus {
   id: string;
   name: string;
   channel: "whatsapp" | "instagram";
-  status: "active" | "idle" | "error" | "paused";
+  agent_status: "active" | "idle" | "error" | "paused";
   last_run?: string;
   success_rate: number;
 }
@@ -79,11 +79,11 @@ export default function MetaPage() {
           .in("module", ["whatsapp", "instagram"]);
 
         if (agentData) {
-          setAgents(agentData.map((a: { agent_id: string; name: string; module: string; status: string; last_run: string; success_rate: number }) => ({
+          setAgents(agentData.map((a: { agent_id: string; name: string; module: string; agent_status: string; last_run: string; success_rate: number }) => ({
             id: a.agent_id,
             name: a.name,
             channel: a.module as "whatsapp" | "instagram",
-            status: a.status as MetaAgentStatus["status"],
+            agent_status: a.agent_status as MetaAgentStatus["agent_status"],
             last_run: a.last_run,
             success_rate: a.success_rate,
           })));
@@ -356,7 +356,7 @@ export default function MetaPage() {
             <p className="text-[11px] text-[#506584]">Sin agentes Meta configurados</p>
           ) : (
             agents.map(agent => {
-              const sCfg = AGENT_STATUS_CONFIG[agent.status] || AGENT_STATUS_CONFIG.idle;
+              const sCfg = AGENT_STATUS_CONFIG[agent.agent_status] || AGENT_STATUS_CONFIG.idle;
               return (
                 <div
                   key={agent.id}

@@ -2,23 +2,23 @@ interface AgentStatus {
   id: string;
   name: string;
   task: string;
-  status: "active" | "syncing" | "idle" | "error";
+  agent_status: "active" | "syncing" | "idle" | "error";
   icon: string;
 }
 
 const AGENTS: AgentStatus[] = [
-  { id: "1",  name: "ML Fulfillment",      task: "Procesando 12 órdenes...",    status: "active",  icon: "local_shipping" },
-  { id: "2",  name: "Price Sync",           task: "Sincronizando 34 SKUs",       status: "syncing", icon: "price_change" },
-  { id: "3",  name: "Inventory Monitor",    task: "Stock check completado",      status: "active",  icon: "inventory_2" },
-  { id: "4",  name: "CFDI Billing",         task: "3 facturas en cola",          status: "active",  icon: "receipt_long" },
-  { id: "5",  name: "Instagram Publisher",  task: "Esperando aprobación...",     status: "syncing", icon: "photo_camera" },
-  { id: "6",  name: "Amazon FBA Manager",   task: "Monitor FBA activo",          status: "active",  icon: "deployed_code" },
-  { id: "7",  name: "WhatsApp Handler",     task: "2 conversaciones abiertas",   status: "active",  icon: "chat" },
-  { id: "8",  name: "Warehouse Coord.",     task: "Briefing AM enviado",         status: "active",  icon: "warehouse" },
-  { id: "9",  name: "NPS Satisfaction",     task: "En cooldown (89 días)",       status: "idle",    icon: "star" },
-  { id: "10", name: "Crisis Response",      task: "Modo standby",                status: "idle",    icon: "emergency" },
-  { id: "11", name: "Returns & Refunds",    task: "0 devoluciones activas",      status: "idle",    icon: "assignment_return" },
-  { id: "12", name: "Leads Pipeline",       task: "14 leads calificados hoy",    status: "active",  icon: "funnel" },
+  { id: "1",  name: "ML Fulfillment",      task: "Procesando 12 órdenes...",    agent_status: "active",  icon: "local_shipping" },
+  { id: "2",  name: "Price Sync",           task: "Sincronizando 34 SKUs",       agent_status: "syncing", icon: "price_change" },
+  { id: "3",  name: "Inventory Monitor",    task: "Stock check completado",      agent_status: "active",  icon: "inventory_2" },
+  { id: "4",  name: "CFDI Billing",         task: "3 facturas en cola",          agent_status: "active",  icon: "receipt_long" },
+  { id: "5",  name: "Instagram Publisher",  task: "Esperando aprobación...",     agent_status: "syncing", icon: "photo_camera" },
+  { id: "6",  name: "Amazon FBA Manager",   task: "Monitor FBA activo",          agent_status: "active",  icon: "deployed_code" },
+  { id: "7",  name: "WhatsApp Handler",     task: "2 conversaciones abiertas",   agent_status: "active",  icon: "chat" },
+  { id: "8",  name: "Warehouse Coord.",     task: "Briefing AM enviado",         agent_status: "active",  icon: "warehouse" },
+  { id: "9",  name: "NPS Satisfaction",     task: "En cooldown (89 días)",       agent_status: "idle",    icon: "star" },
+  { id: "10", name: "Crisis Response",      task: "Modo standby",                agent_status: "idle",    icon: "emergency" },
+  { id: "11", name: "Returns & Refunds",    task: "0 devoluciones activas",      agent_status: "idle",    icon: "assignment_return" },
+  { id: "12", name: "Leads Pipeline",       task: "14 leads calificados hoy",    agent_status: "active",  icon: "funnel" },
 ];
 
 const STATUS_DOT: Record<string, string> = {
@@ -43,7 +43,7 @@ const STATUS_TEXT: Record<string, string> = {
 };
 
 export function AgentsFeed() {
-  const activeCount = AGENTS.filter((a) => a.status === "active").length;
+  const activeCount = AGENTS.filter((a) => a.agent_status === "active").length;
 
   return (
     <section
@@ -83,8 +83,8 @@ export function AgentsFeed() {
                     absolute -bottom-0.5 -right-0.5
                     w-2 h-2 rounded-full
                     border border-surface-container-high
-                    ${STATUS_DOT[agent.status]}
-                    ${agent.status === "active" ? "animate-pulse" : ""}
+                    ${STATUS_DOT[agent.agent_status]}
+                    ${agent.agent_status === "active" ? "animate-pulse" : ""}
                   `}
                   aria-hidden="true"
                 />
@@ -102,10 +102,10 @@ export function AgentsFeed() {
                 bg-surface-container-lowest
                 border border-outline-variant/20
                 opacity-0 group-hover:opacity-100 transition-opacity
-                ${STATUS_TEXT[agent.status]}
+                ${STATUS_TEXT[agent.agent_status]}
               `}
             >
-              {STATUS_LABEL[agent.status]}
+              {STATUS_LABEL[agent.agent_status]}
             </span>
           </div>
         ))}

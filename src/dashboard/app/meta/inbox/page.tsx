@@ -87,7 +87,7 @@ export default function WhatsAppInbox() {
     // Listen for new messages
     const cleanupMessages = subscribeToTable(tenantId, "whatsapp_messages", (payload) => {
       if (payload.eventType === "INSERT") {
-        const newMsg = payload.new as WhatsAppMessage;
+        const newMsg = payload.new as unknown as WhatsAppMessage;
         
         // If it's for the currently open chat, update messages
         if (newMsg.from_number === selectedPhone) {
