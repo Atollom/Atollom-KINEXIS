@@ -8,7 +8,8 @@ export type UserRole =
   | 'almacenista'  // alias de warehouse
   | 'contador'     // acceso fiscal/ERP
   | 'agente'       // representantes de ventas — CRM only
-  | 'viewer';      // solo lectura, sin módulos
+  | 'viewer'       // solo lectura, sin módulos
+  | 'atollom_admin';// super admin de atollom
 
 export interface TenantUser {
   id: string;
