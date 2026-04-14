@@ -134,8 +134,11 @@ export async function POST(req: NextRequest) {
     ];
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
+    const PRIMARY_MODEL = 'gemini-2.5-flash-lite';
+    const FALLBACK_MODEL = 'gemini-2.0-flash';
+
+    let model = genAI.getGenerativeModel({
+      model: PRIMARY_MODEL,
       systemInstruction: systemPrompt,
       tools: [{ functionDeclarations }],
     });
@@ -149,13 +152,30 @@ export async function POST(req: NextRequest) {
 
     // Langfuse: log the generation span
     const generation = trace.generation({
-      name: 'gemini-2.0-flash',
-      model: 'gemini-2.0-flash',
+      name: 'samantha-generation',
+      model: PRIMARY_MODEL,
       input: message,
     });
 
     try {
-      const response = await chat.sendMessage(message);
+      let response;
+      try {
+        response = await chat.sendMessage(message);
+      } catch (primaryError) {
+        console.warn(`[Gemini API] Primary model ${PRIMARY_MODEL} failed, trying fallback ${FALLBACK_MODEL}:`, primaryError);
+        
+        // Re-initialize for fallback model
+        model = genAI.getGenerativeModel({
+          model: FALLBACK_MODEL,
+          systemInstruction: systemPrompt,
+          tools: [{ functionDeclarations }],
+        });
+        const fallbackChat = model.startChat({ history: formattedHistory });
+        response = await fallbackChat.sendMessage(message);
+        
+        generation.update({ model: FALLBACK_MODEL });
+      }
+      
       const functionCalls = response.response.functionCalls();
 
       if (functionCalls && functionCalls.length > 0) {
