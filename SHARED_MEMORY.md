@@ -1,7 +1,7 @@
 agentes_implementados: 43/43
 agent_contracts_done: 43/43
 migraciones: 032/N
-tests_totales: 92 passing ✅  (77 previos + 10 atollom-panel + 15 samantha-chat-tools)
+tests_totales: 104 passing ✅  (77 previos + 10 atollom-panel + 15 samantha-chat-tools + 12 facturapi-provision)
 
 ESTADO: PRODUCTION_READY
 claude_approved_date: 2026-04-13
@@ -200,6 +200,43 @@ SAMANTHA CHAT H1 HARDENING — 2026-04-13:
   - getCriticalInventory: usa threshold correcto, maneja DB error
   - generateWeeklyReport: inserta con tenant_id/user correcto, maneja error
   - escalateToHuman: crea ticket con tenant_id, WhatsApp para critical/high, NO para low/medium, maneja error
+
+FACTURAPI MULTI-ORG + H1 HARDENING — 2026-04-13:
+  ARQUITECTURA:
+  - Atollom tiene una cuenta FacturAPI (FACTURAPI_USER_KEY en env)
+  - Cada tenant recibe su propia organización FacturAPI — Atollom la crea, el cliente NUNCA toca FacturAPI
+  - live key por tenant guardada en vault_secrets["facturapi_live_key"], NUNCA en logs ni response body
+
+  ENDPOINT NUEVO:
+  [API] /api/onboarding/provision-facturapi (POST) — owner-only, idempotente
+    - Sin FACTURAPI_USER_KEY → { status: "skipped" } HTTP 200 (no bloquea onboarding)
+    - Tenant ya provisionado → { status: "already_provisioned", org_id } (idempotencia)
+    - RFC vacío → 422
+    - RFC formato inválido → 400 (FacturAPI NUNCA es llamada)
+    - FacturAPI error → 502 (no bloquea onboarding)
+    - Happy path → { status: "provisioned", org_id } — live_key NUNCA en response body
+    - Audita config_change_log: field "facturapi.org_provisioned", new_value = org_id (no la key)
+
+  BUGS H1 CORREGIDOS:
+  [BUG-CRITICAL] provision-facturapi/route.ts — RFC solo verificaba truthy, no formato. Fix: RFC_REGEX /^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$/ validado ANTES de llamar FacturAPI → 400
+  [BUG-HIGH]    facturapi_adapter.py create_organization() — sin check de idempotencia. Fix: try/except lee cfdi_config existente → already_provisioned si org_id existe; non-blocking si DB falla
+
+  CAMBIO UI ONBOARDING (step 3):
+  - Eliminado campo "FacturAPI API Key" del formulario
+  - Auto-provision en background: spinner → checkmark/warning
+  - Cliente nunca ve ni configura la live key
+
+  TESTS (vitest) 12/12:
+  - unauthenticated → 401, admin → 403, socia → 403
+  - FACTURAPI_USER_KEY ausente → 200 status:skipped (FacturAPI no llamada)
+  - Llamada doble → 200 status:already_provisioned con org_id (FacturAPI no llamada)
+  - RFC vacío → 422 (FacturAPI no llamada)
+  - RFC formato inválido → 400 (FacturAPI no llamada), error body contiene "RFC"
+  - FacturAPI 400 → 502, error body no contiene user key
+  - Happy path → 200 status:provisioned + org_id
+  - live_key NUNCA en response body ("live" / "sk_live" ausentes)
+  - live_key guardada en vault con tenant_id correcto (upsertSpy verificado)
+  - config_change_log: field=facturapi.org_provisioned, new_value=org_id (sin live_key)
 
 PROD DB VERIFICATION — 2026-04-13:
   run_remaining_prod.sql ejecutado en Supabase prod.
