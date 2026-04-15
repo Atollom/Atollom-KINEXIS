@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ModuleNav } from "./ModuleNav";
 import type { ModuleDefinition } from "./ModuleNav";
 import type { UserRole } from "@/types";
+import { SamanthaChat } from "./SamanthaChat";
 
 interface SidebarProps {
   modules: ModuleDefinition[];
@@ -13,9 +14,10 @@ interface SidebarProps {
   tenantName: string;
   onLogout: () => void;
   open: boolean;
+  planId?: string;
 }
 
-export function Sidebar({ modules, userRole, userName, tenantName, onLogout, open }: SidebarProps) {
+export function Sidebar({ modules, userRole, userName, tenantName, onLogout, open, planId }: SidebarProps) {
   const pathname = usePathname();
   const isAtollomAdmin = userRole === "atollom_admin";
 
@@ -24,7 +26,7 @@ export function Sidebar({ modules, userRole, userName, tenantName, onLogout, ope
       className={`
         fixed left-0 top-0 h-full z-50
         flex flex-col
-        w-[288px]
+        w-[320px]
         bg-surface/95 backdrop-blur-xl
         border-r border-outline-variant
         transition-all duration-500 ease-out
@@ -34,13 +36,13 @@ export function Sidebar({ modules, userRole, userName, tenantName, onLogout, ope
       aria-label="Main Navigation"
     >
       {/* Logo Area */}
-      <div className="px-8 pt-8 pb-6">
+      <div className="px-6 pt-6 pb-4">
         <Link href="/" className="flex items-center gap-4 group">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 ${isAtollomAdmin ? 'bg-primary shadow-primary/20' : 'bg-surface-bright border border-outline-variant'}`}>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 ${isAtollomAdmin ? 'bg-primary shadow-primary/20' : 'bg-surface-bright border border-outline-variant'}`}>
              {isAtollomAdmin ? (
-               <span className="material-symbols-outlined text-background text-2xl font-bold">offline_bolt</span>
+               <span className="material-symbols-outlined text-background text-xl font-bold">offline_bolt</span>
              ) : (
-               <span className="material-symbols-outlined text-primary text-2xl font-bold">medical_services</span>
+               <span className="material-symbols-outlined text-primary text-xl font-bold">medical_services</span>
              )}
           </div>
           <div className="min-w-0">
@@ -54,15 +56,18 @@ export function Sidebar({ modules, userRole, userName, tenantName, onLogout, ope
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-3 py-2 custom-scrollbar">
         <ModuleNav modules={modules} userRole={userRole} />
       </div>
 
+      {/* Samantha Chat Integration - Fixed Bottom */}
+      <SamanthaChat planId={planId} />
+
       {/* User & Status Footer */}
-      <div className="p-6 border-t border-outline-variant bg-surface-container/30">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-surface-bright flex items-center justify-center border border-outline-variant">
-            <span className="material-symbols-outlined text-[20px] text-primary">person</span>
+      <div className="p-4 border-t border-outline-variant bg-surface-container/30">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-9 h-9 rounded-lg bg-surface-bright flex items-center justify-center border border-outline-variant">
+            <span className="material-symbols-outlined text-[18px] text-primary">person</span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-on-surface truncate">{userName}</p>
@@ -75,7 +80,7 @@ export function Sidebar({ modules, userRole, userName, tenantName, onLogout, ope
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase text-on-surface-variant label-tracking">Latency / Status</span>
             <div className="flex items-center gap-1.5">

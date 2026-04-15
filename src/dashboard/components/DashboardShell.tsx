@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ModuleNav } from "./ModuleNav";
-import { SamanthaFAB } from "./SamanthaFAB";
 import { Header } from "./Header";
 import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
@@ -154,7 +153,8 @@ export function DashboardShell({
         userName={userName} 
         tenantName={tenantName}
         onLogout={handleLogout} 
-        open={sidebarOpen} 
+        open={sidebarOpen}
+        planId={planId}
       />
 
       {/* Header */}
@@ -163,19 +163,16 @@ export function DashboardShell({
       {/* Main content */}
       <main
         className="
-          md:ml-[288px]
-          pt-16
+          md:ml-[320px]
+          pt-28
           pb-24 md:pb-8
           min-h-screen
         "
       >
-        <div className="px-6 md:px-12 py-8 animate-luxe">
+        <div className="px-6 md:px-12 py-6 animate-luxe">
           {children}
         </div>
       </main>
-
-      {/* Samantha chat FAB */}
-      <SamanthaFAB planId={planId} />
     </div>
   );
 }
