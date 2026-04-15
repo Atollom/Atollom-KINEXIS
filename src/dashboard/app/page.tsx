@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import { KpiCard } from "@/components/KpiCard";
 import { AgentsFeed } from "@/components/AgentsFeed";
+import { SamanthaCounter } from "@/components/SamanthaCounter";
 import { useKPIs } from "@/hooks/useKPIs";
 import { useInventory } from "@/hooks/useInventory";
 import { useLeads } from "@/hooks/useLeads";
@@ -229,7 +230,7 @@ export default function HomePage() {
     <div className="px-4 md:px-8 py-6 max-w-screen-2xl mx-auto space-y-8">
 
       {/* ── Top KPI Row ──────────────────────────────────────────── */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4" aria-label="KPIs del día">
+      <section className="grid grid-cols-2 lg:grid-cols-5 gap-4" aria-label="KPIs del día">
         <KpiCard
           label="Órdenes del día"
           value={kpisLoading ? "…" : (kpis?.orders_today?.toLocaleString() ?? "—")}
@@ -261,6 +262,11 @@ export default function HomePage() {
           trendIcon="bolt"
           trendColor="primary"
           accent="outline"
+        />
+        <SamanthaCounter 
+          used={1240} 
+          total={2000} 
+          status={1240 >= 1900 ? "critical" : 1240 >= 1600 ? "warning" : "active"} 
         />
       </section>
 
