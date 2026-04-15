@@ -360,9 +360,9 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
             md:w-[380px] md:h-[520px]
             md:rounded-2xl
 
-            bg-[#0D1B3E]/98 md:bg-[#0A1628]/97
+            bg-background/98 md:bg-surface/97
             backdrop-blur-2xl
-            md:border md:border-white/[0.08]
+            md:border md:border-outline-variant
             md:shadow-2xl md:shadow-black/50
 
             flex flex-col

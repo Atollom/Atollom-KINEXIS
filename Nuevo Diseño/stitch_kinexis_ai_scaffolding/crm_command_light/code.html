@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#c4c9ac",
+                    "surface-container-lowest": "#ffffff",
+                    "on-background": "#191c1e",
+                    "on-error": "#ffffff",
+                    "surface-container-highest": "#e0e3e6",
+                    "on-tertiary-container": "#556a97",
+                    "surface-container-high": "#e6e8eb",
+                    "on-tertiary-fixed-variant": "#314671",
+                    "surface": "#f7f9fc",
+                    "secondary": "#5f5e5e",
+                    "tertiary": "#495e8a",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed-variant": "#474746",
+                    "inverse-surface": "#2d3133",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-surface-variant": "#444933",
+                    "surface-bright": "#f7f9fc",
+                    "on-primary-fixed": "#161e00",
+                    "tertiary-fixed": "#d8e2ff",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#506600",
+                    "primary-fixed": "#c3f400",
+                    "on-tertiary-fixed": "#001a42",
+                    "inverse-primary": "#abd600",
+                    "primary-fixed-dim": "#abd600",
+                    "on-primary-container": "#5b7300",
+                    "on-primary-fixed-variant": "#3c4d00",
+                    "surface-container": "#eceef1",
+                    "tertiary-container": "#e7ecff",
+                    "on-secondary": "#ffffff",
+                    "surface-dim": "#d8dadd",
+                    "on-error-container": "#93000a",
+                    "background": "#f7f9fc",
+                    "inverse-on-surface": "#eff1f4",
+                    "surface-container-low": "#f2f4f7",
+                    "secondary-container": "#e2dfde",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "surface-variant": "#e0e3e6",
+                    "primary-container": "#ccff00",
+                    "on-surface": "#191c1e",
+                    "outline": "#747a60",
+                    "on-secondary-container": "#636262",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed-dim": "#b1c6f9",
+                    "surface-tint": "#506600"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .ghost-border {
+            outline: 1px solid rgba(196, 201, 172, 0.15);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        .tight-tracking {
+            letter-spacing: -0.02em;
+        }
+        .label-tracking {
+            letter-spacing: 0.05em;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface antialiased pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-[0_20px_40px_rgba(25,28,30,0.04)] h-16 flex justify-between items-center px-6">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">menu</span>
+<h1 class="text-2xl font-black tracking-[-0.02em] text-slate-900">Kinexis</h1>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<span class="text-slate-900 font-bold cursor-pointer">Insight</span>
+<span class="text-slate-500 hover:opacity-80 transition-opacity cursor-pointer">Sales</span>
+<span class="text-slate-500 hover:opacity-80 transition-opacity cursor-pointer">Ops</span>
+<span class="text-slate-500 hover:opacity-80 transition-opacity cursor-pointer">Client</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden cursor-pointer">
+<img alt="User" data-alt="Close-up portrait of a professional executive with a clean, high-end editorial aesthetic against a soft bokeh background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdbAblwx4hLXTAvxhnzZK4fqiLSMr_C0REA21xn6BIQAe3LKOR5fciqMT3upIleKPi4mPu4GzW2UNOOU-Bx-oW4Kqc3bc-6O-v-ow1Ltc_FiDfX60NfDPtw-RNdEjNgeOPc_pro35DTlKySMEgG_XQ-1eUP7WYy6bK5QjM3-5H4rT6DHjclw_8YSJbpsAPs4J0AMvzVuV7gyHtQ-CIiUhPXuMP-_EVNYX68BWhNEm0t5WApqdU_wQtGC8r1bJvOPzSTMoAaMhNCgk"/>
+</div>
+</header>
+<main class="mt-24 px-6 max-w-7xl mx-auto">
+<!-- Hero Section: Neural Identity Sync -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+<div class="lg:col-span-8 flex flex-col justify-end min-h-[300px] relative overflow-hidden rounded-xl p-8 bg-surface-container-low group">
+<div class="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
+<img class="w-full h-full object-cover" data-alt="Complex neural network visualization with glowing nodes and ethereal connections in a clinical high-key lighting setup" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6ZRIwyJUoD2ExgnhqUmw_zl411kIS48hxrMqpnOpjTIwtcCWy55N2hiATZMPw3CB9ZFNiSUJybCerSPdii1aiZjUwN27DvhZOxFe7jvh0ehUBDuGxpkss5Zrl9ZLe0vU0AaW0lQSXz_6i5HFey4PSF7FkeiVXO3p-wP82I0AyGdqZg3V48uzxm90sl5tXSb2Mh0TWCLtpx1zqM6LnpmM3SggBygjsbtHdSOUZOHVaijOWSS3am2WXYbf7eBLdlzSsKiFyqq9N8Fs"/>
+</div>
+<div class="relative z-10">
+<div class="inline-flex items-center gap-2 bg-primary-container text-on-primary-container px-4 py-1 rounded-full text-xs font-bold label-tracking mb-4">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                        IDENTITY SYNC ACTIVE
+                    </div>
+<h2 class="text-5xl font-black tight-tracking text-on-surface mb-2">Neural Identity Command</h2>
+<p class="text-on-surface-variant max-w-md leading-relaxed">Cognitive alignment status: 98.4%. All neural endpoints are currently synchronized with core CRM protocols.</p>
+</div>
+</div>
+<div class="lg:col-span-4 glass-card ghost-border rounded-lg p-8 flex flex-col justify-between">
+<div>
+<p class="text-[0.75rem] font-medium uppercase label-tracking text-on-surface-variant mb-6">Sync Health Indicators</p>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between text-sm mb-2">
+<span class="font-medium">Database Cluster</span>
+<span class="text-primary font-bold">12ms</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[92%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-2">
+<span class="font-medium">API Latency</span>
+<span class="text-primary font-bold">45ms</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[78%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-2">
+<span class="font-medium">Neural Buffer</span>
+<span class="text-primary font-bold">Optimal</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[95%]"></div>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-8 w-full bg-primary-container text-on-primary-container font-bold py-4 rounded-full hover:shadow-lg transition-all active:scale-95">
+                    Trigger Manual Sync
+                </button>
+</div>
+</section>
+<!-- Bento Grid: Matrix & Logs -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+<!-- Sentiment Matrix -->
+<div class="lg:col-span-2 glass-card ghost-border rounded-lg p-8">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-xl font-bold tight-tracking">Sentiment Matrix</h3>
+<span class="text-xs uppercase font-bold label-tracking text-on-surface-variant">Real-time Analysis</span>
+</div>
+<div class="h-64 flex items-end gap-3 px-4">
+<div class="flex-1 bg-surface-container h-[40%] rounded-t-xl hover:bg-primary-container transition-colors relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-xs font-bold transition-opacity">MON</div>
+</div>
+<div class="flex-1 bg-surface-container h-[65%] rounded-t-xl hover:bg-primary-container transition-colors relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-xs font-bold transition-opacity">TUE</div>
+</div>
+<div class="flex-1 bg-primary-container h-[95%] rounded-t-xl relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-bold">WED</div>
+</div>
+<div class="flex-1 bg-surface-container h-[55%] rounded-t-xl hover:bg-primary-container transition-colors relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-xs font-bold transition-opacity">THU</div>
+</div>
+<div class="flex-1 bg-surface-container h-[75%] rounded-t-xl hover:bg-primary-container transition-colors relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-xs font-bold transition-opacity">FRI</div>
+</div>
+<div class="flex-1 bg-surface-container h-[85%] rounded-t-xl hover:bg-primary-container transition-colors relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-xs font-bold transition-opacity">SAT</div>
+</div>
+<div class="flex-1 bg-surface-container h-[60%] rounded-t-xl hover:bg-primary-container transition-colors relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-xs font-bold transition-opacity">SUN</div>
+</div>
+</div>
+</div>
+<!-- Neural Identity Logs -->
+<div class="glass-card ghost-border rounded-lg p-8 overflow-hidden flex flex-col">
+<h3 class="text-xl font-bold tight-tracking mb-6">Identity Logs</h3>
+<div class="space-y-4 flex-1 overflow-y-auto pr-2">
+<div class="flex gap-4 items-start p-3 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="text-sm font-bold">Handshake verified</p>
+<p class="text-xs text-on-surface-variant">09:42 AM · HK-Core</p>
+</div>
+</div>
+<div class="flex gap-4 items-start p-3 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">sync</span>
+<div>
+<p class="text-sm font-bold">Neural Map updated</p>
+<p class="text-xs text-on-surface-variant">08:15 AM · Client-7</p>
+</div>
+</div>
+<div class="flex gap-4 items-start p-3 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant">info</span>
+<div>
+<p class="text-sm font-bold">API Refresh</p>
+<p class="text-xs text-on-surface-variant">06:00 AM · System</p>
+</div>
+</div>
+<div class="flex gap-4 items-start p-3 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-error">warning</span>
+<div>
+<p class="text-sm font-bold">Protocol lag detected</p>
+<p class="text-xs text-on-surface-variant">04:22 AM · Node-B</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Compliance & Trust -->
+<section class="glass-card ghost-border rounded-lg p-10 mb-12 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-8 opacity-5">
+<span class="material-symbols-outlined text-[120px]">verified_user</span>
+</div>
+<div class="relative z-10 max-w-2xl">
+<h3 class="text-2xl font-black tight-tracking mb-4">Compliance &amp; Digital Sovereignty</h3>
+<p class="text-on-surface-variant leading-relaxed mb-8">
+                    Your data is architected with sovereign privacy protocols. We maintain strict adherence to GDPR, CCPA, and advanced Neural-Privacy directives. Every byte is encrypted at rest and in transit using post-quantum standards.
+                </p>
+<div class="flex flex-wrap gap-4">
+<div class="flex items-center gap-2 bg-surface-container-high px-5 py-2.5 rounded-full text-sm font-bold">
+<span class="material-symbols-outlined text-[18px]">gavel</span>
+                        GDPR COMPLIANT
+                    </div>
+<div class="flex items-center gap-2 bg-surface-container-high px-5 py-2.5 rounded-full text-sm font-bold">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+                        CCPA CERTIFIED
+                    </div>
+<div class="flex items-center gap-2 bg-surface-container-high px-5 py-2.5 rounded-full text-sm font-bold">
+<span class="material-symbols-outlined text-[18px]">shield_person</span>
+                        AES-256 ENCRYPTED
+                    </div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-white/70 backdrop-blur-xl shadow-[0_-10px_40px_rgba(25,28,30,0.04)] z-50 md:hidden">
+<div class="flex flex-col items-center justify-center bg-lime-400 text-lime-900 rounded-full px-5 py-2">
+<span class="material-symbols-outlined" data-icon="insights" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="text-[10px] uppercase tracking-[0.05em] font-medium mt-1">Insight</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 p-2 hover:bg-slate-100/50 rounded-full">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-[10px] uppercase tracking-[0.05em] font-medium mt-1">Sales</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 p-2 hover:bg-slate-100/50 rounded-full">
+<span class="material-symbols-outlined" data-icon="settings_gear">settings</span>
+<span class="text-[10px] uppercase tracking-[0.05em] font-medium mt-1">Ops</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 p-2 hover:bg-slate-100/50 rounded-full">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-[10px] uppercase tracking-[0.05em] font-medium mt-1">Client</span>
+</div>
+</nav>
+</body></html>

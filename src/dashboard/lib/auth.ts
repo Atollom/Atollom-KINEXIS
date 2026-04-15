@@ -15,7 +15,7 @@ export async function getAuthenticatedTenant(supabase: SupabaseClient): Promise<
 
   const { data: profile, error: profileError } = await supabase
     .from('user_profiles')
-    .select('tenant_id, role, full_name, id, tenants(plan_id)')
+    .select('tenant_id, role, full_name, id, tenants(plan_id, name)')
     .eq('id', user.id)
     .single();
 
@@ -30,6 +30,7 @@ export async function getAuthenticatedTenant(supabase: SupabaseClient): Promise<
     name: profile.full_name || user.email?.split('@')[0] || 'User',
     email: user.email || '',
     is_atollom_admin: profile.role === 'atollom_admin',
-    plan_id: (profile.tenants as any)?.plan_id
+    plan_id: (profile.tenants as any)?.plan_id,
+    tenant_name: (profile.tenants as any)?.name || 'Atollom HQ'
   } as TenantUser;
 }

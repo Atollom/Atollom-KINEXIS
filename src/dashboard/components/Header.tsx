@@ -48,6 +48,8 @@ function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
   }));
 }
 
+import { ThemeToggle } from "./ThemeToggle";
+
 export function Header({ onMenuToggle }: HeaderProps) {
   const pathname = usePathname();
   const [panelOpen, setPanelOpen] = useState(false);
@@ -62,143 +64,72 @@ export function Header({ onMenuToggle }: HeaderProps) {
   } = useNotifications();
 
   const breadcrumbs = getBreadcrumbs(pathname);
-  const pageTitle = breadcrumbs.length > 0
-    ? breadcrumbs[breadcrumbs.length - 1].label
-    : "Inicio";
 
   return (
     <header
       className="
-        fixed top-0 right-0 left-0 md:left-[272px] z-40
+        fixed top-0 right-0 left-0 md:left-[288px] z-40
         flex items-center justify-between
-        h-16 px-5 md:px-8
-        bg-[#0D1B3E]/80 backdrop-blur-xl
-        border-b border-white/[0.04]
+        h-16 px-6 md:px-12
+        bg-background/80 backdrop-blur-xl
+        border-b border-outline-variant
+        transition-colors duration-500
       "
-      aria-label="Barra de navegación superior"
+      aria-label="Top Navigation"
     >
-      {/* Left: hamburger + breadcrumbs */}
       <div className="flex items-center gap-4">
-        {/* Mobile menu toggle */}
         <button
           onClick={onMenuToggle}
-          className="md:hidden text-on-surface-variant hover:text-[#A8E63D] transition-colors"
-          aria-label="Abrir menú"
+          className="md:hidden text-on-surface-variant hover:text-primary transition-colors"
         >
           <span className="material-symbols-outlined">menu</span>
         </button>
 
-        {/* Breadcrumbs */}
-        <nav className="hidden sm:flex items-center gap-1.5 text-[12px]" aria-label="Ubicación">
-          <Link
-            href="/"
-            className="text-on-surface-variant hover:text-on-surface transition-colors"
-          >
-            Inicio
-          </Link>
+        <nav className="hidden sm:flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+          <Link href="/" className="hover:text-on-surface transition-colors">Inicio</Link>
           {breadcrumbs.map((crumb, i) => (
-            <span key={crumb.href} className="flex items-center gap-1.5">
-              <span className="text-outline">/</span>
-              {i === breadcrumbs.length - 1 ? (
-                <span className="text-on-surface font-medium">{crumb.label}</span>
-              ) : (
-                <Link
-                  href={crumb.href}
-                  className="text-on-surface-variant hover:text-on-surface transition-colors"
-                >
-                  {crumb.label}
-                </Link>
-              )}
-            </span>
+            <div key={crumb.href} className="flex items-center gap-2">
+              <span className="text-outline opacity-30">/</span>
+              <Link
+                href={crumb.href}
+                className={i === breadcrumbs.length - 1 ? "text-on-surface" : "hover:text-on-surface transition-colors"}
+              >
+                {crumb.label}
+              </Link>
+            </div>
           ))}
         </nav>
-
-        {/* Mobile title */}
-        <h1 className="sm:hidden font-headline font-bold text-sm text-on-surface">
-          {pageTitle}
-        </h1>
       </div>
 
-      {/* Right: status + actions */}
-      <div className="flex items-center gap-4 md:gap-6">
-        {/* Agents online pill */}
-        <div
-          className="hidden lg:flex items-center gap-2 bg-white/[0.04] rounded-full px-3 py-1.5"
-          aria-label="Agentes en línea"
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-[#A8E63D] opacity-40 animate-ping" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#A8E63D]" />
-          </span>
-          <span className="text-[11px] font-bold text-[#A8E63D] tracking-wider uppercase">
-            43 Agentes
-          </span>
+      <div className="flex items-center gap-4">
+        <ThemeToggle />
+        
+        <div className="relative">
+          <button
+            onClick={() => setPanelOpen((o) => !o)}
+            className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/[0.03] border border-white/[0.05] text-on-surface-variant hover:text-primary transition-all"
+          >
+            <span className="material-symbols-outlined text-[20px]">
+              {criticalCount > 0 ? "notifications_active" : "notifications"}
+            </span>
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-error animate-pulse shadow-[0_0_8px_var(--error)]" />
+            )}
+          </button>
+          {panelOpen && (
+            <NotificationPanel
+              notifications={notifications}
+              isLoading={isLoading}
+              readIds={readIds}
+              onClose={() => setPanelOpen(false)}
+              onMarkRead={markRead}
+              onMarkAllRead={markAllAsRead}
+            />
+          )}
         </div>
 
-        {/* Action icons */}
-        <div className="flex items-center gap-2">
-          {/* Notifications bell */}
-          <div className="relative">
-            <button
-              onClick={() => setPanelOpen((o) => !o)}
-              className="
-                relative p-2 rounded-xl
-                text-on-surface-variant hover:text-[#A8E63D]
-                hover:bg-white/[0.04]
-                transition-all duration-200
-              "
-              aria-label={`Notificaciones${unreadCount > 0 ? ` — ${unreadCount} sin leer` : ""}`}
-              aria-expanded={panelOpen}
-            >
-              <span className="material-symbols-outlined text-xl">
-                {criticalCount > 0 ? "notifications_active" : "notifications"}
-              </span>
-
-              {/* Unread badge — shows total unread, pulses when there are critical */}
-              {unreadCount > 0 && (
-                <span
-                  className={`
-                    absolute top-1 right-1
-                    w-4 h-4 rounded-full
-                    bg-red-500 text-white
-                    text-[9px] font-bold
-                    flex items-center justify-center
-                    leading-none
-                    ${criticalCount > 0 ? "animate-pulse" : ""}
-                  `}
-                  aria-hidden="true"
-                >
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Slide-over panel */}
-            {panelOpen && (
-              <NotificationPanel
-                notifications={notifications}
-                isLoading={isLoading}
-                readIds={readIds}
-                onClose={() => setPanelOpen(false)}
-                onMarkRead={markRead}
-                onMarkAllRead={markAllAsRead}
-              />
-            )}
-          </div>
-
-          {/* Settings link */}
-          <Link
-            href="/settings"
-            className="
-              p-2 rounded-xl
-              text-on-surface-variant hover:text-[#A8E63D]
-              hover:bg-white/[0.04]
-              transition-all duration-200
-            "
-            aria-label="Configuración"
-          >
-            <span className="material-symbols-outlined text-xl">settings</span>
-          </Link>
+        <div className="w-9 h-9 rounded-full bg-surface-container overflow-hidden border border-outline-variant">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBn5Uj3mHl2Sq6nPUH3ztTR4KLUd0A7oDpetDUm6wilrk7IsPSALTpFOgUFnPtZpSb__tmhkziqKHgd7UVVWIEmcolFHEdVtTIlgjP4HVioontd8QP9feXcmwiSCs_7aJX0RgALEgbKKhzNJTw4W_Fj5Cem79nCMnOxZ27h6osYd80RQuGaEKGDv3qz-lERwCtkXrXpasGksTCNkTEL7YCJwggiVzgFIjlVBdSbOAFqJUQE0YsVlZCSh8ud741B7mUcFwl5XhKd7S0" alt="Profile" className="w-full h-full object-cover" />
         </div>
       </div>
     </header>

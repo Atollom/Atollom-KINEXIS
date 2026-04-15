@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #040f1b;
+            color: #dde9fb;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .tight-tracking {
+            letter-spacing: -0.02em;
+        }
+        .label-tracking {
+            letter-spacing: 0.05em;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface": "#040f1b",
+                      "error": "#ff7351",
+                      "inverse-surface": "#f8f9ff",
+                      "surface-bright": "#1b2d41",
+                      "primary-container": "#cafd00",
+                      "primary": "#f3ffca",
+                      "on-background": "#dde9fb",
+                      "surface-container-lowest": "#000000",
+                      "secondary-container": "#636100",
+                      "surface-tint": "#f3ffca",
+                      "on-surface": "#dde9fb",
+                      "tertiary-container": "#fce047",
+                      "primary-dim": "#beee00",
+                      "surface-container": "#0b1b2a",
+                      "background": "#040f1b",
+                      "tertiary-dim": "#edd13a",
+                      "surface-container-high": "#102131",
+                      "on-secondary-container": "#fffca4",
+                      "on-secondary-fixed": "#434100",
+                      "on-primary-fixed": "#3a4a00",
+                      "primary-fixed": "#cafd00",
+                      "on-primary-fixed-variant": "#526900",
+                      "outline": "#6a7686",
+                      "secondary-fixed": "#ece856",
+                      "tertiary-fixed-dim": "#edd13a",
+                      "secondary-fixed-dim": "#ddda49",
+                      "on-surface-variant": "#a0acbd",
+                      "error-dim": "#d53d18",
+                      "inverse-primary": "#516700",
+                      "surface-dim": "#040f1b",
+                      "outline-variant": "#3d4957",
+                      "on-tertiary": "#665800",
+                      "surface-container-low": "#061422",
+                      "on-error-container": "#ffd2c8",
+                      "primary-fixed-dim": "#beee00",
+                      "on-tertiary-fixed": "#483d00",
+                      "on-primary-container": "#4a5e00",
+                      "tertiary": "#ffeea5",
+                      "on-secondary": "#565400",
+                      "inverse-on-surface": "#4a5665",
+                      "secondary": "#ece856",
+                      "surface-container-highest": "#152739",
+                      "secondary-dim": "#ddda49",
+                      "on-secondary-fixed-variant": "#605e00",
+                      "on-primary": "#516700",
+                      "error-container": "#b92902",
+                      "on-error": "#450900",
+                      "on-tertiary-fixed-variant": "#685900",
+                      "surface-variant": "#152739",
+                      "tertiary-fixed": "#fce047",
+                      "on-tertiary-container": "#5d5000"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Inter"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface selection:bg-primary-container selection:text-on-primary-container min-h-screen">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#040f1b]/80 backdrop-blur-xl flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#f3ffca] cursor-pointer hover:opacity-70 transition-opacity" data-icon="menu">menu</span>
+<span class="text-xl font-black tracking-tighter text-[#ccff00]">KINEXIS</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center gap-8 text-[#f3ffca] font-inter tracking-[-0.02em] font-bold text-lg">
+<a class="hover:opacity-70 transition-opacity" href="#">Insight</a>
+<a class="text-slate-400 hover:opacity-70 transition-opacity" href="#">Sales</a>
+<a class="text-slate-400 hover:opacity-70 transition-opacity" href="#">Ops</a>
+<a class="text-slate-400 hover:opacity-70 transition-opacity" href="#">Client</a>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Close up portrait of a professional man with clean grooming, soft studio lighting on dark background, high-end editorial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBRutGiB-txYNuoAzPYZuwO5afCTbSc31RhHUXruJYlavqyl6HB57BH-PGrj6f4Bw88qekJGeV8ZHdbilyaqEhxQPc6NkSc8EEChvYu5zh7mtm9iWhJcOLAMCjcOSgBhPZY-BWXAOD0lxwtdRTznCfH-Uu_l2KXAfMaqn9eAn9QxDZX7Ewx1cBU7hMzOcIGR7SuSbu3B6Hu9OeCMn8cMN-dhi3r_5EaYRXK7taYluNgoEoPQlgYcLrt0YA8e9tvYuDPnF3TbxRbZY"/>
+</div>
+</div>
+</nav>
+<main class="pt-24 pb-32 px-6 md:px-12 max-w-7xl mx-auto">
+<!-- Dashboard Header -->
+<header class="mb-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<p class="text-xs font-bold uppercase label-tracking text-primary-dim mb-2">System Overview</p>
+<h1 class="text-4xl md:text-5xl font-bold tight-tracking text-on-surface">Operations Dashboard</h1>
+</div>
+<div class="flex items-center gap-3">
+<span class="flex h-2 w-2 rounded-full bg-primary-container animate-pulse"></span>
+<p class="text-sm font-medium text-on-surface-variant">Live System Health: Nominal</p>
+</div>
+</div>
+</header>
+<!-- KPI Grid: The 4 Ultra-KPIs -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+<!-- Throughput -->
+<div class="glass-card rounded-lg p-8 border border-white/5 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-bright/20 group">
+<div class="flex justify-between items-start">
+<div class="p-3 rounded-full bg-white/5">
+<span class="material-symbols-outlined text-[#ccff00] text-2xl" data-icon="speed">speed</span>
+</div>
+<span class="text-primary text-xs font-bold label-tracking">+12.4%</span>
+</div>
+<div>
+<h3 class="text-on-surface-variant text-sm font-medium mb-1">Throughput</h3>
+<p class="text-4xl font-bold tight-tracking text-on-surface group-hover:text-primary transition-colors">1.2 GB/s</p>
+</div>
+</div>
+<!-- Health -->
+<div class="glass-card rounded-lg p-8 border border-white/5 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-bright/20 group">
+<div class="flex justify-between items-start">
+<div class="p-3 rounded-full bg-white/5">
+<span class="material-symbols-outlined text-[#ccff00] text-2xl" data-icon="favorite">favorite</span>
+</div>
+<span class="text-primary text-xs font-bold label-tracking">99.9%</span>
+</div>
+<div>
+<h3 class="text-on-surface-variant text-sm font-medium mb-1">System Health</h3>
+<p class="text-4xl font-bold tight-tracking text-on-surface group-hover:text-primary transition-colors">Optimal</p>
+</div>
+</div>
+<!-- Latency -->
+<div class="glass-card rounded-lg p-8 border border-white/5 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-bright/20 group">
+<div class="flex justify-between items-start">
+<div class="p-3 rounded-full bg-white/5">
+<span class="material-symbols-outlined text-[#ccff00] text-2xl" data-icon="timer">timer</span>
+</div>
+<span class="text-primary text-xs font-bold label-tracking">-2ms</span>
+</div>
+<div>
+<h3 class="text-on-surface-variant text-sm font-medium mb-1">Avg Latency</h3>
+<p class="text-4xl font-bold tight-tracking text-on-surface group-hover:text-primary transition-colors">14ms</p>
+</div>
+</div>
+<!-- Active Agents -->
+<div class="glass-card rounded-lg p-8 border border-white/5 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-bright/20 group">
+<div class="flex justify-between items-start">
+<div class="p-3 rounded-full bg-white/5">
+<span class="material-symbols-outlined text-[#ccff00] text-2xl" data-icon="robot_2">robot_2</span>
+</div>
+<span class="text-primary text-xs font-bold label-tracking">Active</span>
+</div>
+<div>
+<h3 class="text-on-surface-variant text-sm font-medium mb-1">Active Agents</h3>
+<p class="text-4xl font-bold tight-tracking text-on-surface group-hover:text-primary transition-colors">842</p>
+</div>
+</div>
+</section>
+<!-- Bento Grid Section -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Data Visualization Area -->
+<div class="lg:col-span-2 glass-card rounded-lg p-8 border border-white/5 relative overflow-hidden group">
+<div class="relative z-10">
+<div class="flex justify-between items-center mb-8">
+<h2 class="text-xl font-bold tight-tracking">Network Propagation</h2>
+<div class="flex gap-2">
+<button class="px-4 py-1.5 rounded-full text-xs font-bold bg-white/10 text-on-surface">Real-time</button>
+<button class="px-4 py-1.5 rounded-full text-xs font-bold text-on-surface-variant hover:bg-white/5 transition-colors">History</button>
+</div>
+</div>
+<div class="aspect-[16/7] w-full bg-surface-container-low/50 rounded-xl relative overflow-hidden flex items-end px-4 gap-2">
+<!-- Abstract Waveform Visualization -->
+<div class="w-full h-32 bg-gradient-to-t from-primary-container/10 to-transparent absolute bottom-0 left-0"></div>
+<div class="flex-1 bg-primary/20 h-[40%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/30 h-[65%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[50%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-[80%] rounded-t-sm"></div>
+<div class="flex-1 bg-[#ccff00] h-[95%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-[70%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[55%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/30 h-[85%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/20 h-[45%] rounded-t-sm"></div>
+</div>
+</div>
+<!-- Background decoration -->
+<div class="absolute -right-20 -top-20 w-64 h-64 bg-[#ccff00]/5 blur-[100px] rounded-full"></div>
+</div>
+<!-- Side Bento Column -->
+<div class="flex flex-col gap-8">
+<!-- Mini Card 1 -->
+<div class="glass-card rounded-lg p-8 border border-white/5 flex-1 hover:border-[#ccff00]/20 transition-colors">
+<h3 class="text-xs font-bold uppercase label-tracking text-primary-dim mb-4">Priority Alerts</h3>
+<div class="space-y-4">
+<div class="flex gap-4 items-start">
+<span class="mt-1 w-2 h-2 rounded-full bg-error"></span>
+<div>
+<p class="text-sm font-bold tight-tracking">Node 482 Timeout</p>
+<p class="text-xs text-on-surface-variant">Singapore Region • 2m ago</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<span class="mt-1 w-2 h-2 rounded-full bg-[#ccff00]"></span>
+<div>
+<p class="text-sm font-bold tight-tracking">Agent Training Complete</p>
+<p class="text-xs text-on-surface-variant">Cluster B • 15m ago</p>
+</div>
+</div>
+</div>
+</div>
+<!-- CTA Card -->
+<div class="bg-primary-container rounded-lg p-8 flex flex-col justify-between items-start transition-transform active:scale-95 duration-200 cursor-pointer overflow-hidden relative">
+<div class="relative z-10">
+<h3 class="text-on-primary-container font-black text-2xl tight-tracking mb-2">Deploy New<br/>Neural Edge</h3>
+<p class="text-on-primary-container/70 text-sm font-medium mb-6">Initialize high-throughput nodes in milliseconds.</p>
+<button class="bg-[#040f1b] text-white px-6 py-3 rounded-full text-xs font-bold uppercase label-tracking flex items-center gap-2">
+                            Initialize <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="absolute -bottom-10 -right-10 opacity-10">
+<span class="material-symbols-outlined text-[120px] font-thin" data-icon="bolt">bolt</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-white/5 backdrop-blur-md z-50 rounded-t-[32px] shadow-[0_-20px_60px_rgba(0,8,20,0.4)] border-t border-white/10">
+<div class="flex flex-col items-center justify-center text-[#ccff00] bg-white/5 rounded-full p-3 transition-transform active:scale-90 duration-300">
+<span class="material-symbols-outlined" data-icon="insert_chart">insert_chart</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium mt-1">Insight</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-[#f3ffca] transition-colors">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium mt-1">Sales</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-[#f3ffca] transition-colors">
+<span class="material-symbols-outlined" data-icon="settings_applications">settings_applications</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium mt-1">Ops</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-[#f3ffca] transition-colors">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium mt-1">Client</span>
+</div>
+</nav>
+<!-- Floating Action Button (Only on Home/Dashboard context) -->
+<button class="fixed bottom-8 right-8 w-16 h-16 bg-[#ccff00] rounded-full shadow-2xl flex items-center justify-center text-[#040f1b] transition-transform active:scale-90 duration-300 z-40 md:flex hidden">
+<span class="material-symbols-outlined text-3xl font-bold" data-icon="add">add</span>
+</button>
+</body></html>

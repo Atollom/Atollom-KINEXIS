@@ -10,6 +10,7 @@ export interface TenantUser {
   email: string;
   is_atollom_admin?: boolean;
   plan_id?: string;
+  tenant_name?: string;
 }
 
 export type Platform = 'ml' | 'amazon' | 'shopify' | 'b2b';
@@ -75,7 +76,9 @@ export interface DashboardKPIs {
   active_agents: number;
   revenue_today: number;
   cfdi_pending: number;
+  returns_count?: number;
   display_name?: string;
+  plan_id?: string;
 }
 
 export interface ChatMessage {

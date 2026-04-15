@@ -2,130 +2,89 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ModuleNav } from "./ModuleNav";
+import type { ModuleDefinition } from "./ModuleNav";
+import type { UserRole } from "@/types";
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: string;
+interface SidebarProps {
+  modules: ModuleDefinition[];
+  userRole: UserRole;
+  userName: string;
+  tenantName: string;
+  onLogout: () => void;
+  open: boolean;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { href: "/ecommerce", label: "Ecommerce", icon: "shopping_cart" },
-  { href: "/meta",      label: "Meta",      icon: "language" },
-  { href: "/erp",       label: "ERP",       icon: "account_tree" },
-  { href: "/crm",       label: "CRM",       icon: "contact_page" },
-];
-
-export function Sidebar() {
+export function Sidebar({ modules, userRole, userName, tenantName, onLogout, open }: SidebarProps) {
   const pathname = usePathname();
+  const isAtollomAdmin = userRole === "atollom_admin";
 
   return (
     <aside
-      aria-label="Navegación principal"
-      className="
-        hidden md:flex
+      className={`
         fixed left-0 top-0 h-full z-50
-        flex-col
-        w-64
-        bg-surface-container-low
-        shadow-volt
-      "
+        flex flex-col
+        w-[288px]
+        bg-surface/95 backdrop-blur-xl
+        border-r border-outline-variant
+        transition-all duration-500 ease-out
+        rounded-r-xl md:rounded-r-xl
+        ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+      `}
+      aria-label="Main Navigation"
     >
-      {/* Logo */}
-      <div className="px-8 pt-8 pb-2">
-        <Link
-          href="/"
-          className="
-            block text-2xl font-bold tracking-tight
-            text-primary font-headline
-            hover:text-primary-container transition-colors
-          "
-        >
-          KINEXIS
+      {/* Logo Area */}
+      <div className="px-8 pt-8 pb-6">
+        <Link href="/" className="flex items-center gap-4 group">
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 ${isAtollomAdmin ? 'bg-primary shadow-primary/20' : 'bg-surface-bright border border-outline-variant'}`}>
+             {isAtollomAdmin ? (
+               <span className="material-symbols-outlined text-background text-2xl font-bold">offline_bolt</span>
+             ) : (
+               <span className="material-symbols-outlined text-primary text-2xl font-bold">medical_services</span>
+             )}
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-sm font-black tight-tracking text-on-surface truncate uppercase tracking-widest">
+              {isAtollomAdmin ? "Atollom HQ" : tenantName}
+            </h1>
+            <p className="text-[9px] label-tracking uppercase text-primary font-black opacity-70">
+              {isAtollomAdmin ? "System Master" : "Active Instance"}
+            </p>
+          </div>
         </Link>
       </div>
 
-      {/* User card */}
-      <div className="px-8 py-6">
-        <div className="flex items-center gap-3">
-          <div
-            className="
-              w-10 h-10 rounded-full flex-shrink-0
-              bg-surface-container-highest
-              flex items-center justify-center
-              border border-outline-variant
-              text-on-surface-variant
-            "
-            aria-hidden="true"
-          >
-            <span className="material-symbols-outlined text-base">person</span>
-          </div>
-          <div className="min-w-0">
-            <div className="text-sm font-bold font-headline text-on-surface truncate">
-              Neural Commander
-            </div>
-            <div className="label-sm text-on-surface-variant mt-0.5">
-              Socias Role
-            </div>
-          </div>
-        </div>
+      <div className="flex-1 overflow-y-auto px-4 py-4 custom-scrollbar">
+        <ModuleNav modules={modules} userRole={userRole} />
       </div>
 
-      {/* Navigation */}
-      <nav className="flex flex-col px-4 gap-1 flex-1" aria-label="Módulos">
-        <p className="label-sm text-on-surface-variant px-4 mb-3">ROUTERS</p>
-        {NAV_ITEMS.map(({ href, label, icon }) => {
-          // Match root "/" to ecommerce for default highlight
-          const isActive =
-            pathname === href ||
-            (pathname === "/" && href === "/ecommerce");
-
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={isActive ? "page" : undefined}
-              className={`
-                flex items-center gap-3 px-4 py-3 rounded-lg
-                font-headline font-bold text-sm tracking-tight
-                transition-all duration-200
-                ${
-                  isActive
-                    ? "bg-surface-container-high text-primary-container border-r-2 border-primary-container"
-                    : "text-on-surface-variant hover:text-primary hover:bg-surface-bright"
-                }
-              `}
-            >
-              <span className="material-symbols-outlined text-xl" aria-hidden="true">
-                {icon}
-              </span>
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* System status footer */}
-      <div className="px-8 py-6">
-        <p className="label-sm text-outline mb-3">SYSTEM STATUS</p>
-        <div className="flex items-center gap-2">
-          <div
-            className="relative w-2 h-2 rounded-full bg-primary-container"
-            aria-label="Sistema activo"
-          >
-            <div className="absolute inset-0 rounded-full bg-primary-container animate-ping opacity-60" />
+      {/* User & Status Footer */}
+      <div className="p-6 border-t border-outline-variant bg-surface-container/30">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-surface-bright flex items-center justify-center border border-outline-variant">
+            <span className="material-symbols-outlined text-[20px] text-primary">person</span>
           </div>
-          <span className="text-xs font-bold text-primary-container">
-            Active Session
-          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-on-surface truncate">{userName}</p>
+            <button 
+              onClick={onLogout}
+              className="text-[10px] font-black uppercase text-primary hover:underline transition-all"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
-        <div className="mt-4 bg-surface-container-high p-3 rounded-xl">
-          <p className="label-sm text-on-surface-variant mb-2">NEURAL LOAD</p>
-          <div className="h-1 w-full bg-surface-container-lowest rounded-full overflow-hidden">
-            <div
-              className="h-full w-2/3 bg-primary-container"
-              style={{ boxShadow: "0 0 5px #cafd00" }}
-            />
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase text-on-surface-variant label-tracking">Latency / Status</span>
+            <div className="flex items-center gap-1.5">
+               <span className={`w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]`} />
+               <span className="text-[10px] font-black text-primary uppercase">Optimized</span>
+            </div>
+          </div>
+          <div className="h-1.5 w-full bg-surface-bright rounded-full overflow-hidden">
+            <div className="h-full bg-primary w-[85%] shadow-[0_0_10px_var(--primary)]" />
           </div>
         </div>
       </div>

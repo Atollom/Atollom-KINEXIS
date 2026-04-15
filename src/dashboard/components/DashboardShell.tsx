@@ -99,14 +99,19 @@ interface DashboardShellProps {
   userName?: string;
   /** Subscription plan ID from tenants table */
   planId?: string;
+  /** Tenant company name from tenants table */
+  tenantName?: string;
 }
+
+import { Sidebar } from "./Sidebar";
 
 export function DashboardShell({
   children,
   unlockedModules,
-  userRole = "viewer",   // safe default: no modules visible
+  userRole = "viewer",
   userName = "",
-  planId = "enterprise", // default to full for now if not set
+  planId = "enterprise",
+  tenantName = "Atollom HQ",
 }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
@@ -118,15 +123,12 @@ export function DashboardShell({
     router.push("/auth/login");
   };
 
-
-  // Determine unlocked modules if not provided, based on planId
   const effectiveUnlocked = unlockedModules || (
     planId === "growth" ? ["ecommerce"] :
     planId === "pro" ? ["ecommerce", "erp"] :
-    ["ecommerce", "erp", "crm"] // enterprise or default
+    ["ecommerce", "erp", "crm"]
   );
 
-  // Apply lock state based on unlockedModules prop
   const modules: ModuleDefinition[] = [
     ...(userRole === "atollom_admin" ? ADMIN_MODULES : []),
     ...DEFAULT_MODULES.map((mod) => ({
@@ -136,134 +138,44 @@ export function DashboardShell({
   ];
 
   return (
-    <>
-      {/* ── Mobile overlay ─────────────────────────────────────── */}
+    <div className="min-h-screen bg-background text-on-surface transition-colors duration-500">
+      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
         />
       )}
 
-      {/* ── Sidebar ────────────────────────────────────────────── */}
-       <aside
-         className={`
-           fixed left-0 top-0 h-full z-50
-           flex flex-col
-           w-[288px]
-           bg-[#0A1628]/98 backdrop-blur-2xl
-           border-r border-white/[0.07]
-           transition-transform duration-300 ease-out
-           ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-         `}
-         aria-label="Navegación principal"
-       >
-         {/* Logo */}
-         <div className="px-5 pt-6 pb-5">
-           <Link href="/" className="flex items-center gap-3 group" aria-label="Ir al inicio">
-             {/* Logo Oficial KINEXIS */}
-             <img 
-               src="/kinexis-logo.png" 
-               alt="KINEXIS by Atollom AI" 
-               className="w-11 h-11 flex-shrink-0 rounded-xl"
-             />
+      {/* Sidebar */}
+      <Sidebar 
+        modules={modules} 
+        userRole={userRole} 
+        userName={userName} 
+        tenantName={tenantName}
+        onLogout={handleLogout} 
+        open={sidebarOpen} 
+      />
 
-             {/* Wordmark */}
-             <div>
-               <h1 className="text-xl font-headline font-bold tracking-tight text-white group-hover:text-[#A8E63D] transition-colors">
-                 KINEXIS
-               </h1>
-               <p className="text-[10px] text-on-surface-variant tracking-[0.15em] uppercase -mt-0.5">
-                 Atollom Neural Platform
-               </p>
-             </div>
-           </Link>
-         </div>
-
-        {/* Divider */}
-        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-          {/* User card / Apple Menu */}
-          <div className="px-5 py-5 group/user">
-            <div className="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 hover:bg-white/[0.04]">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#CCFF00]/20 to-[#CCFF00]/5 border border-[#CCFF00]/20 flex items-center justify-center flex-shrink-0 animate-pulse">
-                <span className="material-symbols-outlined text-[#CCFF00] text-base">person</span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-headline font-bold text-on-surface truncate">
-                  {userName || "Usuario"}
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">
-                    {userRole}
-                  </p>
-                  <button 
-                    onClick={handleLogout}
-                    className="text-[9px] text-[#CCFF00] font-bold uppercase tracking-widest hover:underline opacity-0 group-hover/user:opacity-100 transition-opacity"
-                  >
-                    Log Out
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        {/* Divider */}
-        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-3" />
-
-        {/* Module Navigation */}
-        <ModuleNav modules={modules} userRole={userRole} />
-
-        {/* System status footer */}
-        <div className="px-5 py-5 border-t border-white/[0.06]">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] text-outline uppercase tracking-[0.1em] font-bold">
-              Sistema
-            </span>
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-[#A8E63D] opacity-40 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#A8E63D]" />
-              </span>
-              <span className="text-[10px] font-bold text-[#A8E63D]">Activo</span>
-            </div>
-          </div>
-
-          {/* Agent load bar */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between">
-              <span className="text-[10px] text-on-surface-variant">Agentes</span>
-              <span className="text-[10px] text-on-surface font-bold">43/43</span>
-            </div>
-            <div className="h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#A8E63D] to-[#6BBF00]"
-                style={{ width: "100%", boxShadow: "0 0 8px #A8E63D60" }}
-              />
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* ── Header ─────────────────────────────────────────────── */}
+      {/* Header */}
       <Header onMenuToggle={() => setSidebarOpen((o) => !o)} />
 
-      {/* ── Main content ────────────────────────────────────────── */}
+      {/* Main content */}
       <main
         className="
-          md:ml-[272px]
+          md:ml-[288px]
           pt-16
           pb-24 md:pb-8
           min-h-screen
-          bg-[#000103]
         "
       >
-        {children}
+        <div className="px-6 md:px-12 py-8 animate-luxe">
+          {children}
+        </div>
       </main>
 
-      {/* ── Samantha chat FAB ───────────────────────────────────── */}
+      {/* Samantha chat FAB */}
       <SamanthaFAB planId={planId} />
-    </>
+    </div>
   );
 }

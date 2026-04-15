@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KINEXIS | Ecommerce Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#040f1b",
+                        "error": "#ff7351",
+                        "inverse-surface": "#f8f9ff",
+                        "surface-bright": "#1b2d41",
+                        "primary-container": "#cafd00",
+                        "primary": "#f3ffca",
+                        "on-background": "#dde9fb",
+                        "surface-container-lowest": "#000000",
+                        "secondary-container": "#636100",
+                        "surface-tint": "#f3ffca",
+                        "on-surface": "#dde9fb",
+                        "tertiary-container": "#fce047",
+                        "primary-dim": "#beee00",
+                        "surface-container": "#0b1b2a",
+                        "background": "#040f1b",
+                        "tertiary-dim": "#edd13a",
+                        "surface-container-high": "#102131",
+                        "on-secondary-container": "#fffca4",
+                        "on-secondary-fixed": "#434100",
+                        "on-primary-fixed": "#3a4a00",
+                        "primary-fixed": "#cafd00",
+                        "on-primary-fixed-variant": "#526900",
+                        "outline": "#6a7686",
+                        "secondary-fixed": "#ece856",
+                        "tertiary-fixed-dim": "#edd13a",
+                        "secondary-fixed-dim": "#ddda49",
+                        "on-surface-variant": "#a0acbd",
+                        "error-dim": "#d53d18",
+                        "inverse-primary": "#516700",
+                        "surface-dim": "#040f1b",
+                        "outline-variant": "#3d4957",
+                        "on-tertiary": "#665800",
+                        "surface-container-low": "#061422",
+                        "on-error-container": "#ffd2c8",
+                        "primary-fixed-dim": "#beee00",
+                        "on-tertiary-fixed": "#483d00",
+                        "on-primary-container": "#4a5e00",
+                        "tertiary": "#ffeea5",
+                        "on-secondary": "#565400",
+                        "inverse-on-surface": "#4a5665",
+                        "secondary": "#ece856",
+                        "surface-container-highest": "#152739",
+                        "secondary-dim": "#ddda49",
+                        "on-secondary-fixed-variant": "#605e00",
+                        "on-primary": "#516700",
+                        "error-container": "#b92902",
+                        "on-error": "#450900",
+                        "on-tertiary-fixed-variant": "#685900",
+                        "surface-variant": "#152739",
+                        "tertiary-fixed": "#fce047",
+                        "on-tertiary-container": "#5d5000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .tight-tracking { letter-spacing: -0.02em; }
+        .label-tracking { letter-spacing: 0.05em; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#040f1b]/80 backdrop-blur-xl flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#f3ffca] cursor-pointer hover:opacity-70 transition-opacity">menu</span>
+<span class="text-xl font-black tracking-tighter text-[#ccff00]">KINEXIS</span>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8">
+<a class="text-[#f3ffca] font-bold text-sm tracking-tight transition-opacity" href="#">Ecommerce</a>
+<a class="text-slate-400 hover:opacity-70 font-normal text-sm tracking-tight transition-opacity" href="#">ERP</a>
+<a class="text-slate-400 hover:opacity-70 font-normal text-sm tracking-tight transition-opacity" href="#">CRM</a>
+</nav>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-white/10">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a professional male executive with a minimalist aesthetic and soft cinematic studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvh8MgFFTSNa_nssqosXlw4FhiS_6f0wmvAPRtZ1ORRPR7TYXCJAHa2P8psPIzPHtYxNu1QA_ayuxRdizjh0gIFVsirorlcKdjgxzgcJXpf6mZNiHh8vKRY8n1LvFM83bsS2hTQ6VMbdvLbkYnjvd4anx1lPoZv6ms7V_fwbmDiw02fGcTUC6l9DfzaZlu7kCtJ0PKXtFto8XkUGMamX5GSaQJpfo3Yfpv6JDTxJrosnEysotsl3fMBk-6YYN3KFrqwGA2oXnHIO4"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 md:px-12 max-w-7xl mx-auto">
+<!-- Hero Section: Editorial Header -->
+<section class="mb-16">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+<div class="max-w-2xl">
+<span class="text-[10px] uppercase label-tracking font-bold text-primary-container mb-4 block">Executive Dashboard</span>
+<h1 class="text-5xl md:text-7xl font-bold tight-tracking text-on-surface leading-none">Command <br/><span class="text-primary/40">Center.</span></h1>
+</div>
+<div class="flex gap-4">
+<div class="glass-card px-6 py-4 rounded-lg flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase font-medium">Daily Velocity</span>
+<span class="text-2xl font-bold text-primary tight-tracking">+18.4%</span>
+</div>
+<div class="glass-card px-6 py-4 rounded-lg flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase font-medium">System Health</span>
+<span class="text-2xl font-bold text-primary tight-tracking">Optimal</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Margin Analysis -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+<!-- ML Margin -->
+<div class="glass-card p-8 rounded-lg relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4">
+<span class="material-symbols-outlined text-primary/20 text-4xl">neurology</span>
+</div>
+<h3 class="text-sm font-medium text-on-surface-variant mb-1">ML Prediction</h3>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-4xl font-bold tight-tracking text-on-surface">20%</span>
+<span class="text-xs text-primary-container font-bold">+2.4%</span>
+</div>
+<div class="h-16 flex items-end gap-1">
+<div class="w-full bg-primary/10 h-1/2 rounded-t-sm"></div>
+<div class="w-full bg-primary/10 h-3/4 rounded-t-sm"></div>
+<div class="w-full bg-primary/20 h-2/3 rounded-t-sm"></div>
+<div class="w-full bg-primary/40 h-full rounded-t-sm"></div>
+<div class="w-full bg-primary-container h-4/5 rounded-t-sm"></div>
+</div>
+<div class="mt-4 text-[10px] uppercase label-tracking text-on-surface-variant">Target Optimized</div>
+</div>
+<!-- Amazon Margin -->
+<div class="glass-card p-8 rounded-lg relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4">
+<span class="material-symbols-outlined text-primary/20 text-4xl">shopping_cart</span>
+</div>
+<h3 class="text-sm font-medium text-on-surface-variant mb-1">Amazon FBA</h3>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-4xl font-bold tight-tracking text-on-surface">25%</span>
+<span class="text-xs text-primary-container font-bold">+1.8%</span>
+</div>
+<div class="h-16 flex items-end gap-1">
+<div class="w-full bg-primary/10 h-1/3 rounded-t-sm"></div>
+<div class="w-full bg-primary/20 h-1/2 rounded-t-sm"></div>
+<div class="w-full bg-primary/10 h-2/3 rounded-t-sm"></div>
+<div class="w-full bg-primary-container h-full rounded-t-sm"></div>
+<div class="w-full bg-primary/40 h-5/6 rounded-t-sm"></div>
+</div>
+<div class="mt-4 text-[10px] uppercase label-tracking text-on-surface-variant">Global Logistics</div>
+</div>
+<!-- Shopify Margin -->
+<div class="glass-card p-8 rounded-lg relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4">
+<span class="material-symbols-outlined text-primary/20 text-4xl">storefront</span>
+</div>
+<h3 class="text-sm font-medium text-on-surface-variant mb-1">Direct Shopify</h3>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-4xl font-bold tight-tracking text-on-surface">30%</span>
+<span class="text-xs text-primary-container font-bold">+5.2%</span>
+</div>
+<div class="h-16 flex items-end gap-1">
+<div class="w-full bg-primary/40 h-2/3 rounded-t-sm"></div>
+<div class="w-full bg-primary/10 h-full rounded-t-sm"></div>
+<div class="w-full bg-primary-container h-5/6 rounded-t-sm"></div>
+<div class="w-full bg-primary/20 h-4/5 rounded-t-sm"></div>
+<div class="w-full bg-primary/10 h-2/3 rounded-t-sm"></div>
+</div>
+<div class="mt-4 text-[10px] uppercase label-tracking text-on-surface-variant">DTC Peak</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Approval Queue -->
+<div class="lg:col-span-7">
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-2xl font-bold tight-tracking">Approval Queue</h2>
+<span class="text-xs bg-surface-container px-3 py-1 rounded-full text-primary-container border border-primary-container/20">4 Pending</span>
+</div>
+<div class="space-y-4">
+<!-- PO Item 1 -->
+<div class="glass-card p-6 rounded-lg transition-all hover:bg-white/5 group">
+<div class="flex items-start justify-between">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="professional corporate headshot of a woman named Pamela with warm lighting and a soft dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEIViWoPFXqUCfUb8LaUaDx7DNigVROmQJX2fx7OWzcv0c4WzOe9rY2H6nYCoHbKGljfQ5o8Oy0bAradOwziR5B_KI065tYXp9q0uc8uVZDOe82FSnoI_lKPMmtCGbPRoVqXBq10N9WJACXJg7NyFAr3k_aD95kLajth6Qq8IWKIQMc1oJi3XDMT8LyC4MouBXMPLKnyaZZoYXsnGxHFO8Qo6g-I1QhmUoflire2PodZu6tDoE1TjYt0Uy195NWA7q5dfcdZzvmWU"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Pamela Vance</h4>
+<p class="text-xs text-on-surface-variant">PO #8829 — Tech Components</p>
+<div class="mt-4 flex items-center gap-4">
+<span class="text-lg font-bold text-primary">$42,850.00</span>
+<span class="text-[10px] uppercase bg-white/10 px-2 py-0.5 rounded text-on-surface-variant">Urgent</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white transition-all">
+<span class="material-symbols-outlined">check</span>
+</button>
+<button class="px-4 h-10 rounded-full flex items-center gap-2 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white transition-all text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">chat</span>
+                                    Trigger
+                                </button>
+</div>
+</div>
+</div>
+<!-- PO Item 2 -->
+<div class="glass-card p-6 rounded-lg transition-all hover:bg-white/5 group">
+<div class="flex items-start justify-between">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="minimalist studio portrait of a woman named Karla with soft professional lighting and neutral tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCo93GS6yMbgioHqHIxNdMythr6TtbghyntupSK-UV7ZUXwexi1spTswNt044jrzrohXbzLwKF8VnG8CSt2XcP5If6GPXExMXKY9xGATg60zVlHFwIPHte7Z5kYCxGkri9g1WfMmNQZKjIh00_R7FydzPvRT0-cvao5nDNQI-Sp4jerv27Rn4GldWJvB5ILkZp1HEeq-UGmi3VMGdTTlu6oVbG8z7xyTfCRSh0Xja3DDqYPaq2teONUWoJg08E4WzIu43EQOb73dA4"/>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Karla Mendoza</h4>
+<p class="text-xs text-on-surface-variant">PO #8831 — Inventory Restock</p>
+<div class="mt-4 flex items-center gap-4">
+<span class="text-lg font-bold text-primary">$12,400.00</span>
+<span class="text-[10px] uppercase bg-white/10 px-2 py-0.5 rounded text-on-surface-variant">Standard</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white transition-all">
+<span class="material-symbols-outlined">check</span>
+</button>
+<button class="px-4 h-10 rounded-full flex items-center gap-2 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white transition-all text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">chat</span>
+                                    Trigger
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Transaction Feed -->
+<div class="lg:col-span-5">
+<h2 class="text-2xl font-bold tight-tracking mb-8">Live Feed</h2>
+<div class="glass-card rounded-lg overflow-hidden">
+<div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+<span class="text-[10px] uppercase label-tracking font-bold">Recent Sales</span>
+<span class="text-[10px] text-primary-container">Real-time</span>
+</div>
+<div class="divide-y divide-white/5">
+<div class="p-6 flex justify-between items-center hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_10px_#cafd00]"></div>
+<div>
+<p class="text-sm font-medium">Kinetic Watch Pro</p>
+<p class="text-[10px] text-on-surface-variant">12s ago via Shopify</p>
+</div>
+</div>
+<span class="font-bold text-on-surface">$299.00</span>
+</div>
+<div class="p-6 flex justify-between items-center hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_10px_#cafd00]"></div>
+<div>
+<p class="text-sm font-medium">Obsidian Desk Mat</p>
+<p class="text-[10px] text-on-surface-variant">2m ago via Amazon</p>
+</div>
+</div>
+<span class="font-bold text-on-surface">$89.50</span>
+</div>
+<div class="p-6 flex justify-between items-center hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_10px_#cafd00]"></div>
+<div>
+<p class="text-sm font-medium">Ether Headphones</p>
+<p class="text-[10px] text-on-surface-variant">5m ago via Shopify</p>
+</div>
+</div>
+<span class="font-bold text-on-surface">$450.00</span>
+</div>
+<div class="p-6 flex justify-between items-center hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-primary/20"></div>
+<div>
+<p class="text-sm font-medium">Luminescent Cable Kit</p>
+<p class="text-[10px] text-on-surface-variant">8m ago via ML Prediction</p>
+</div>
+</div>
+<span class="font-bold text-on-surface">$34.00</span>
+</div>
+</div>
+<div class="p-4 bg-surface-container-high flex justify-center">
+<button class="text-[10px] uppercase font-bold text-primary-container hover:opacity-70 transition-opacity">View Full Ledger</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-white/5 backdrop-blur-md z-50 rounded-t-[32px] border-t border-white/10 shadow-[0_-20px_60px_rgba(0,8,20,0.4)]">
+<a class="flex flex-col items-center justify-center text-[#ccff00] bg-white/5 rounded-full p-3 scale-90 duration-300" href="#">
+<span class="material-symbols-outlined">insert_chart</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium">Insight</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 hover:text-[#f3ffca] transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium">Sales</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 hover:text-[#f3ffca] transition-colors" href="#">
+<span class="material-symbols-outlined">settings_applications</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium">Ops</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 hover:text-[#f3ffca] transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium">Client</span>
+</a>
+</nav>
+</body></html>

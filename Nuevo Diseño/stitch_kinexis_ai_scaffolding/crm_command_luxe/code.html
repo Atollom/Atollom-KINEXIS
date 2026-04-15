@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KINEXIS | CRM &amp; Identity Command</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface": "#040f1b",
+                      "error": "#ff7351",
+                      "inverse-surface": "#f8f9ff",
+                      "surface-bright": "#1b2d41",
+                      "primary-container": "#cafd00",
+                      "primary": "#f3ffca",
+                      "on-background": "#dde9fb",
+                      "surface-container-lowest": "#000000",
+                      "secondary-container": "#636100",
+                      "surface-tint": "#f3ffca",
+                      "on-surface": "#dde9fb",
+                      "tertiary-container": "#fce047",
+                      "primary-dim": "#beee00",
+                      "surface-container": "#0b1b2a",
+                      "background": "#040f1b",
+                      "tertiary-dim": "#edd13a",
+                      "surface-container-high": "#102131",
+                      "on-secondary-container": "#fffca4",
+                      "on-secondary-fixed": "#434100",
+                      "on-primary-fixed": "#3a4a00",
+                      "primary-fixed": "#cafd00",
+                      "on-primary-fixed-variant": "#526900",
+                      "outline": "#6a7686",
+                      "secondary-fixed": "#ece856",
+                      "tertiary-fixed-dim": "#edd13a",
+                      "secondary-fixed-dim": "#ddda49",
+                      "on-surface-variant": "#a0acbd",
+                      "error-dim": "#d53d18",
+                      "inverse-primary": "#516700",
+                      "surface-dim": "#040f1b",
+                      "outline-variant": "#3d4957",
+                      "on-tertiary": "#665800",
+                      "surface-container-low": "#061422",
+                      "on-error-container": "#ffd2c8",
+                      "primary-fixed-dim": "#beee00",
+                      "on-tertiary-fixed": "#483d00",
+                      "on-primary-container": "#4a5e00",
+                      "tertiary": "#ffeea5",
+                      "on-secondary": "#565400",
+                      "inverse-on-surface": "#4a5665",
+                      "secondary": "#ece856",
+                      "surface-container-highest": "#152739",
+                      "secondary-dim": "#ddda49",
+                      "on-secondary-fixed-variant": "#605e00",
+                      "on-primary": "#516700",
+                      "error-container": "#b92902",
+                      "on-error": "#450900",
+                      "on-tertiary-fixed-variant": "#685900",
+                      "surface-variant": "#152739",
+                      "tertiary-fixed": "#fce047",
+                      "on-tertiary-container": "#5d5000"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Inter"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #040f1b; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#040f1b]/80 backdrop-blur-xl flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#f3ffca] hover:opacity-70 transition-opacity cursor-pointer active:scale-95 duration-200">menu</span>
+<span class="text-xl font-black tracking-tighter text-[#ccff00]">KINEXIS</span>
+</div>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-[10px] uppercase tracking-widest font-medium text-slate-400 hover:text-[#f3ffca] transition-colors" href="#">Ecommerce</a>
+<a class="text-[10px] uppercase tracking-widest font-medium text-slate-400 hover:text-[#f3ffca] transition-colors" href="#">ERP</a>
+<a class="text-[10px] uppercase tracking-widest font-medium text-[#f3ffca]" href="#">CRM</a>
+</div>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-white/10">
+<img class="w-full h-full object-cover" data-alt="professional portrait of a technology executive with clean lighting and minimal blue background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9BdWrsx-8Za2zSC2IpqdAwjAUIAZk8eHT7VwqqXQ0fYS7b503YUv-kgd6oeoaVeuuyTkZAvYpdPrbjOvdhi5Zs9RZfZ-sx185WQhKGqksgBs-_0bcbrYnK4bQFOtMQh--Q8-pRCMQyAhzdZhamFF28GMZNhrVOE-kwhBjnzw0RQ4trD9wqVlN83nnTS5mbMNz4FWvoWdD1B6xfxnPuBpmHLjuBb2sz3U_P9ejih6VpVAnQkHXlYU5BLQVux2YTfZ4FIIJnN53Dus"/>
+</div>
+</nav>
+<main class="pt-24 pb-32 px-6 max-w-7xl mx-auto space-y-12">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-2">
+<p class="text-primary text-xs font-medium tracking-[0.2em] uppercase">Identity System v4.0</p>
+<h1 class="text-4xl md:text-5xl font-bold tracking-[-0.02em] text-on-surface">CRM Command</h1>
+</div>
+<div class="flex items-center gap-3 glass-card px-6 py-3 rounded-full">
+<div class="w-2 h-2 bg-primary-container rounded-full animate-pulse"></div>
+<span class="text-sm font-medium tracking-tight text-on-surface-variant">Neural Identity Sync: <span class="text-primary">Operational</span></span>
+</div>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Sentiment Matrix (Large Glass Card) -->
+<div class="md:col-span-8 glass-card rounded-lg p-8 space-y-8 min-h-[400px]">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<h2 class="text-xl font-bold tracking-tight">Sentiment Matrix</h2>
+<p class="text-on-surface-variant text-sm">Real-time aggregate emotional resonance across user touchpoints.</p>
+</div>
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<div class="relative h-64 w-full flex items-end justify-between gap-2 pt-12">
+<!-- Visualization Placeholder -->
+<div class="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent rounded-lg"></div>
+<div class="w-full h-[60%] bg-primary-container/20 rounded-t-md hover:bg-primary-container/40 transition-all"></div>
+<div class="w-full h-[85%] bg-primary-container/40 rounded-t-md hover:bg-primary-container/60 transition-all"></div>
+<div class="w-full h-[45%] bg-primary-container/20 rounded-t-md hover:bg-primary-container/40 transition-all"></div>
+<div class="w-full h-[95%] bg-primary-container/60 rounded-t-md hover:bg-primary-container/80 transition-all shadow-[0_0_20px_rgba(202,253,0,0.2)]"></div>
+<div class="w-full h-[70%] bg-primary-container/40 rounded-t-md hover:bg-primary-container/60 transition-all"></div>
+<div class="w-full h-[55%] bg-primary-container/20 rounded-t-md hover:bg-primary-container/40 transition-all"></div>
+<div class="w-full h-[40%] bg-primary-container/10 rounded-t-md hover:bg-primary-container/30 transition-all"></div>
+</div>
+<div class="grid grid-cols-3 gap-4">
+<div class="p-4 rounded-md bg-white/5">
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Affinity Score</p>
+<p class="text-2xl font-bold text-primary">88.4%</p>
+</div>
+<div class="p-4 rounded-md bg-white/5">
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Churn Risk</p>
+<p class="text-2xl font-bold text-error">Low</p>
+</div>
+<div class="p-4 rounded-md bg-white/5">
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Growth Index</p>
+<p class="text-2xl font-bold text-on-surface">+12.4</p>
+</div>
+</div>
+</div>
+<!-- Sync Health (Vertical Glass Card) -->
+<div class="md:col-span-4 glass-card rounded-lg p-8 flex flex-col justify-between">
+<div class="space-y-6">
+<div class="flex justify-between items-center">
+<h2 class="text-xl font-bold tracking-tight">Sync Health</h2>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">sync</span>
+</div>
+<div class="space-y-4">
+<div class="space-y-2">
+<div class="flex justify-between text-xs">
+<span class="text-on-surface-variant">Database Integrity</span>
+<span class="text-primary">99.9%</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[99.9%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs">
+<span class="text-on-surface-variant">API Latency (Neural)</span>
+<span class="text-primary">42ms</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[85%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs">
+<span class="text-on-surface-variant">Cross-Identity Map</span>
+<span class="text-on-surface">Valid</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[100%]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-8">
+<div class="p-6 rounded-md bg-primary-container/10 border border-primary-container/20">
+<p class="text-xs font-bold text-primary mb-2 uppercase tracking-tighter">System Alert</p>
+<p class="text-sm text-on-surface/80 leading-relaxed">Identity nodes successfully synchronized across 14 edge locations.</p>
+</div>
+</div>
+</div>
+<!-- Neural Identity Synchronization Logs -->
+<div class="md:col-span-7 space-y-6">
+<h3 class="text-lg font-bold tracking-tight px-2">Neural Identity Logs</h3>
+<div class="space-y-3">
+<!-- Log Item 1 -->
+<div class="flex items-center justify-between p-4 glass-card rounded-md border-l-2 border-primary-container">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant">fingerprint</span>
+<div>
+<p class="text-sm font-medium">User identity 0x982... synced</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Mobile Client • San Francisco, CA</p>
+</div>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant">12:04:11</span>
+</div>
+<!-- Log Item 2 -->
+<div class="flex items-center justify-between p-4 glass-card rounded-md">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant">database</span>
+<div>
+<p class="text-sm font-medium">Global CRM re-indexing complete</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Mainframe • Node 7</p>
+</div>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant">11:58:34</span>
+</div>
+<!-- Log Item 3 -->
+<div class="flex items-center justify-between p-4 glass-card rounded-md">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant">security</span>
+<div>
+<p class="text-sm font-medium">Biometric validation pass-thru</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Web Gateway • Auth-Layer</p>
+</div>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant">11:52:19</span>
+</div>
+</div>
+</div>
+<!-- Compliance Validation Status -->
+<div class="md:col-span-5 space-y-6">
+<h3 class="text-lg font-bold tracking-tight px-2">Compliance &amp; Trust</h3>
+<div class="glass-card rounded-lg p-6 space-y-6">
+<div class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-primary-container/5 border border-primary-container/10">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+</div>
+<div>
+<p class="font-bold tracking-tight">GDPR Framework</p>
+<p class="text-xs text-on-surface-variant">Fully Compliant • Audit 2024-Q3</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<div class="h-px bg-white/5"></div>
+<div class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-primary-container/5 border border-primary-container/10">
+<span class="material-symbols-outlined text-primary">policy</span>
+</div>
+<div>
+<p class="font-bold tracking-tight">CCPA Standard</p>
+<p class="text-xs text-on-surface-variant">Data Residency Validated</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<div class="h-px bg-white/5"></div>
+<div class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full flex items-center justify-center bg-primary-container/5 border border-primary-container/10">
+<span class="material-symbols-outlined text-primary">gavel</span>
+</div>
+<div>
+<p class="font-bold tracking-tight">SOC2 Type II</p>
+<p class="text-xs text-on-surface-variant">Continuous Monitoring Active</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-white/5 backdrop-blur-md z-50 rounded-t-[32px] border-t border-white/10 shadow-[0_-20px_60px_rgba(0,8,20,0.4)]">
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-[#f3ffca] transition-colors cursor-pointer">
+<span class="material-symbols-outlined">insert_chart</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium mt-1">Insight</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-[#f3ffca] transition-colors cursor-pointer">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium mt-1">Sales</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-500 hover:text-[#f3ffca] transition-colors cursor-pointer">
+<span class="material-symbols-outlined">settings_applications</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium mt-1">Ops</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#ccff00] bg-white/5 rounded-full p-3 scale-90 duration-300">
+<span class="material-symbols-outlined">group</span>
+<span class="font-inter text-[10px] uppercase tracking-widest font-medium mt-1">Client</span>
+</div>
+</nav>
+<!-- Decoration Background -->
+<div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary-container/5 blur-[120px] rounded-full -z-10"></div>
+<div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[100px] rounded-full -z-10"></div>
+</body></html>
