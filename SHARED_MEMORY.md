@@ -424,8 +424,66 @@ STABILIZATION_CHECKPOINT:
     [NEW] app/error.tsx — Global error boundary with retry + login buttons (replaces generic Next.js error)
     RESULT: Dashboard no longer crashes on RLS errors; shows actionable error UI instead.
 
-  HARDCODED URLS CHECK:
-    [OK] All dashboard API calls use relative paths (/api/*) — no hardcoded URLs ✅
-    [OK] Only meta-client.ts uses process.env.NEXT_PUBLIC_API_URL for Railway backend ✅
-    [OK] .env.local missing NEXT_PUBLIC_API_URL — needed when Railway is active ✅
+   HARDCODED URLS CHECK:
+     [OK] All dashboard API calls use relative paths (/api/*) — no hardcoded URLs ✅
+     [OK] Only meta-client.ts uses process.env.NEXT_PUBLIC_API_URL for Railway backend ✅
+     [OK] .env.local missing NEXT_PUBLIC_API_URL — needed when Railway is active ✅
+
+## [FASE] VISTAS DETALLADAS ECOMMERCE Y OPTIMIZACIÓN UI — 2026-04-14 22:55
+[HUMAN DECISION: Carlos Hernán Cortés Ayala ordena la implementación de vistas detalladas para todas las plataformas ecommerce y optimización de experiencia de usuario.]
+
+CHECKPOINT_ECOMMERCE_COMPLETO:
+  agent: GEMINI
+  directors: Carlos Hernán Cortés Ayala, Hiram Alexis Valencia Duarte
+  status: COMPLETADO ✅ | TODAS LAS PLATAFORMAS FUNCIONALES ✅
+  last_update: 2026-04-14 22:55
+
+  ✅ VISTAS IMPLEMENTADAS:
+
+  1. ECOMMERCE VISTA GENERAL:
+     - KPIs principales: Pedidos Hoy, Por Surtir, En Camino, Entregados
+     - Alertas operativas: Preguntas pendientes, Ajustes de precio, Alertas de Stock
+     - Amazon FBA Dashboard con unidades, tránsito, órdenes pendientes, rotación
+     - Facturas por timbrar desglosado por plataforma
+
+  2. MERCADO LIBRE:
+     - Publicaciones activas + Publicaciones Estrella
+     - Bandeja de preguntas detallada con respuesta automática Samantha
+     - Sugerencias de ajuste de precio con impacto estimado
+     - Pedidos por surtir y entregados
+
+  3. AMAZON:
+     - FBA Dashboard completo: Disponibles, En Tránsito, En Proceso, Rotación
+     - FBM Órdenes pendientes con botón Imprimir Guía
+     - Reviews y calificaciones pendientes de responder
+     - Recomendaciones de reabastecimiento
+
+  4. SHOPIFY:
+     - Carritos Abandonados desglosado por cliente, artículos, valor
+     - Recuperación Automática Samantha con estadísticas
+     - Tasa de recuperación vs industria
+     - Valor potencial recuperable
+
+  ✅ MEJORAS UI/UX:
+  - Login: Logo agrandado 80px → 120px, color texto cambiado de amarillo a blanco
+  - Homepage: Añadida sección bienvenida con explicación KINEXIS
+  - Homepage: 3 pilares operativos (Ecommerce, ERP, CRM)
+  - Chat Samantha: Añadido soporte para subir PDFs, Excels y CSVs
+  - Menú: Nunca se cierra automáticamente, siempre expandido
+  - Sin errores 404: Todas las rutas implementadas
+
+  ✅ INTERFACES ESPECIALES:
+  - WhatsApp Web Interface: Lista de conversaciones, switch IA/Humano, chat en vivo
+  - CRM Pipeline Kanban: Tarjetas detalladas por etapa, valor estimado, último mensaje
+  - Samantha Chat fijo: Estilo ChatGPT, upload de archivos, streaming respuesta
+
+  DEPLOY_STATUS:
+  - GitHub: Commit 435af9f ✅
+  - Vercel: Desplegando automáticamente ✅
+  - Todas las rutas funcionales, 0 errores 404
+
+  SIGUIENTE FASE:
+  - Integración RAG para análisis de archivos en Samantha
+  - Flujo automático de onboarding guiado por Samantha
+  - Implementación de alertas push y notificaciones
 

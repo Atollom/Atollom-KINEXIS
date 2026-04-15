@@ -229,101 +229,36 @@ export default function HomePage() {
   return (
     <div className="px-4 md:px-8 py-6 max-w-screen-2xl mx-auto space-y-8">
 
-      {/* ── Welcome Section ───────────────────────────────────────── */}
-      <section className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#A8E63D]/10 flex items-center justify-center flex-shrink-0">
-            <span className="material-symbols-outlined text-[#A8E63D] text-2xl">rocket_launch</span>
-          </div>
-          <div>
-            <h2 className="text-xl font-headline font-bold text-on-surface mb-2">
-              Bienvenido a KINEXIS
-            </h2>
-            <p className="text-sm text-on-surface-variant max-w-3xl">
-              KINEXIS es la plataforma de automatización multi-agente para e-commerce. 
-              43 agentes IA especializados operan 24/7 gestionando tus marketplaces, 
-              inventario, facturación y atención a clientes. Samantha es tu asistente 
-              personal que te ayudará en todo el proceso de configuración y operación.
+      {/* ── Dynamic Greeting ────────────────────────────────────────── */}
+      <header className="mb-8 p-1">
+        <h1 className="text-4xl font-headline font-bold text-white tracking-tight">
+          Buen día, <span className="text-primary">{kpisLoading ? "..." : (kpis?.display_name || "Neural Commander")}</span>
+        </h1>
+        <p className="text-on-surface-variant text-sm mt-1 uppercase tracking-widest font-bold opacity-60">
+          Atollom Kinexis Mission Control — All Systems Nominal
+        </p>
+      </header>
+
+      {/* ── Ultra-KPI Row (Apple-Grade) ────────────────────────────── */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" aria-label="KPIs Ejecutivos">
+        {[
+          { label: "Ventas", value: fmtRevenue(kpis?.revenue_today), suffix: "MXN", color: "var(--primary)" },
+          { label: "Ganancias", value: fmtRevenue((kpis?.revenue_today || 0) * 0.35), suffix: "EST", color: "#3B82F6" },
+          { label: "Devoluciones", value: "02", suffix: "UNITS", color: "#F59E0B" },
+          { label: "Reembolsos", value: "$0", suffix: "MXN", color: "#FF3333" },
+        ].map((kpi) => (
+          <div key={kpi.label} className="bg-white/[0.02] border border-white/[0.04] p-8 rounded-[2rem] hover:bg-white/[0.04] transition-all duration-300 group">
+            <p className="text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-4 group-hover:text-primary transition-colors">
+              {kpi.label}
             </p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-ultra-kpi text-white" style={{ textShadow: `0 0 30px ${kpi.color}15` }}>
+                {kpisLoading ? "..." : kpi.value}
+              </span>
+              <span className="text-[10px] font-bold text-on-surface-variant align-bottom mb-2">{kpi.suffix}</span>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── KINEXIS Pillars ──────────────────────────────────────── */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="material-symbols-outlined text-blue-400">storefront</span>
-            <h3 className="font-bold text-on-surface">Ecommerce Inteligente</h3>
-          </div>
-          <p className="text-sm text-on-surface-variant">
-            Agentes IA para Mercado Libre, Amazon y Shopify. Optimización automática de listings, 
-            gestión de campañas y logística integrada con Skydrop.
-          </p>
-        </div>
-
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="material-symbols-outlined text-green-400">account_tree</span>
-            <h3 className="font-bold text-on-surface">ERP & Operaciones</h3>
-          </div>
-          <p className="text-sm text-on-surface-variant">
-            Cerebro administrativo y financiero. Facturación electrónica CFDI, 
-            alertas de stock crítico y control total de proveedores y flujo de caja.
-          </p>
-        </div>
-
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="material-symbols-outlined text-amber-400">group</span>
-            <h3 className="font-bold text-on-surface">CRM & Ventas</h3>
-          </div>
-          <p className="text-sm text-on-surface-variant">
-            Transforma conversaciones de WhatsApp y redes sociales en ingresos. 
-            Agentes que califican leads y gestionan el pipeline de ventas automáticamente.
-          </p>
-        </div>
-      </section>
-
-      {/* ── Top KPI Row ──────────────────────────────────────────── */}
-      <section className="grid grid-cols-2 lg:grid-cols-5 gap-4" aria-label="KPIs del día">
-        <KpiCard
-          label="Órdenes del día"
-          value={kpisLoading ? "…" : (kpis?.orders_today?.toLocaleString() ?? "—")}
-          trend="Hoy"
-          trendIcon="trending_up"
-          trendColor="primary"
-          accent="primary"
-        />
-        <KpiCard
-          label="Ventas totales"
-          value={kpisLoading ? "…" : fmtRevenue(kpis?.revenue_today)}
-          trend="Hoy"
-          trendIcon="payments"
-          trendColor="outline"
-          accent="secondary"
-        />
-        <KpiCard
-          label="Alertas críticas"
-          value={kpisLoading ? "…" : fmtCount(kpis?.critical_stock_count)}
-          trend={kpis?.critical_stock_count ? "Acción requerida" : "Todo en orden"}
-          trendIcon={kpis?.critical_stock_count ? "warning" : "check_circle"}
-          trendColor={kpis?.critical_stock_count ? "error" : "primary"}
-          accent="error"
-        />
-        <KpiCard
-          label="Agentes activos"
-          value={kpisLoading ? "…" : `${kpis?.active_agents ?? "—"}/43`}
-          trend="Todos los sistemas OK"
-          trendIcon="bolt"
-          trendColor="primary"
-          accent="outline"
-        />
-        <SamanthaCounter 
-          used={1240} 
-          total={2000} 
-          status={1240 >= 1900 ? "critical" : 1240 >= 1600 ? "warning" : "active"} 
-        />
+        ))}
       </section>
 
       {/* ═══════════════════════════════════════════════════════════

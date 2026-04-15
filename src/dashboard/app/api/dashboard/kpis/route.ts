@@ -80,6 +80,7 @@ export async function GET(req: NextRequest) {
       active_agents,
       revenue_today,
       cfdi_pending: cfdi_pending || 0,
+      display_name: auth.name,
     });
   } catch (error: any) {
     console.error('[KPIs API] Error:', error);

@@ -1,5 +1,4 @@
-// src/dashboard/app/erp/inventory/page.tsx
-// Inventario completo: Tabla SKUs + Crear OC + Movimientos + Filtros
+// Almacén completo: Tabla SKUs + Crear OC + Movimientos + Filtros
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -46,10 +45,12 @@ const FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "ok",       label: "Saludable" },
 ];
 
+import { ExcelUploadComponent } from "@/components/ExcelUploadComponent";
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Componente principal
 // ──────────────────────────────────────────────────────────────────────────────
-export default function InventoryPage() {
+export default function AlmacenPage() {
   const { inventory, isLoading } = useInventory();
   const [role, setRole] = useState<UserRole | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -134,8 +135,8 @@ export default function InventoryPage() {
             <span className="material-symbols-outlined text-[#22C55E] text-lg">warehouse</span>
           </div>
           <div>
-            <h1 className="text-2xl font-headline font-bold text-[#E8EAF0]">Inventario Central</h1>
-            <p className="text-[11px] text-[#8DA4C4]">Monitoreo de Stock & Desplazamiento</p>
+            <h1 className="text-2xl font-headline font-bold text-[#E8EAF0]">Almacén Central</h1>
+            <p className="text-[11px] text-[#8DA4C4]">Monitoreo de Stock & Desplazamiento Directo</p>
           </div>
         </div>
 
@@ -155,6 +156,11 @@ export default function InventoryPage() {
           Movimientos
         </button>
       </header>
+
+      {/* ── Samantha Excel Sync ──────────────────────────────────── */}
+      <section className="mb-8">
+        <ExcelUploadComponent />
+      </section>
 
       {/* ── KPIs rápidos ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
@@ -243,7 +249,7 @@ export default function InventoryPage() {
                 ) : filtered.length === 0 ? (
                   <tr>
                     <td colSpan={canRestock ? 5 : 4} className="px-5 py-12 text-center text-[#8DA4C4] text-[12px]">
-                      {search || statusFilter !== "all" ? "Sin resultados para este filtro" : "Sin datos de inventario"}
+                      {search || statusFilter !== "all" ? "Sin resultados para este filtro" : "Sin datos de almacén"}
                     </td>
                   </tr>
                 ) : (

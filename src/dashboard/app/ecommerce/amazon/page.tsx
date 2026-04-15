@@ -10,6 +10,14 @@ export default function EcommerceAmazonPage() {
         <p className="text-on-surface-variant text-sm">
           Gestión completa de Amazon Seller Central y FBA.
         </p>
+        <div className="flex gap-2 mt-3">
+          {[7, 8, 9, 10].map(id => (
+            <div key={id} className="flex items-center gap-1.5 px-2 py-1 bg-[#CCFF00]/10 border border-[#CCFF00]/20 rounded-lg">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
+              <span className="text-[9px] font-bold text-[#CCFF00] uppercase tracking-wider">Agent #{id}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* KPIs Principales */}
@@ -106,8 +114,9 @@ export default function EcommerceAmazonPage() {
                   <td className="px-3 py-3 text-sm text-center font-mono text-on-surface-variant">{ord.sku}</td>
                   <td className="px-3 py-3 text-sm text-center font-bold">${ord.total}</td>
                   <td className="px-3 py-3 text-center">
-                    <button className="px-3 py-1.5 bg-[#A8E63D]/10 text-[#A8E63D] rounded text-xs font-bold hover:bg-[#A8E63D]/20">
-                      Imprimir Guía
+                    <button className="flex items-center gap-1 px-3 py-1.5 bg-[#CCFF00] text-black rounded text-xs font-bold hover:shadow-[0_0_10px_rgba(204,255,0,0.3)] transition-all">
+                      <span className="material-symbols-outlined text-sm">print</span>
+                      Guía Skydrop
                     </button>
                   </td>
                 </tr>

@@ -144,7 +144,7 @@ const API_KEY_GROUPS = [
 
 const MODULES_LIST = [
   { id: "ecommerce", name: "Ecommerce", description: "ML, Amazon, Shopify — catálogo, órdenes, reseñas", icon: "storefront", color: "#3B82F6" },
-  { id: "erp",       name: "ERP",       description: "Inventario, CFDI, compras, almacén, fiscal",       icon: "account_tree", color: "#22C55E" },
+  { id: "erp",       name: "ERP",       description: "Almacén, CFDI, compras, logística, fiscal",       icon: "account_tree", color: "#CCFF00" },
   { id: "crm",       name: "CRM",       description: "Leads, pipeline B2B, WhatsApp, Instagram, NPS",   icon: "group",        color: "#F59E0B" },
 ];
 
@@ -823,8 +823,8 @@ export default function SettingsPage() {
               </div>
             </SectionCard>
 
-            {/* Umbrales de inventario */}
-            <SectionCard title="Umbrales de Inventario" icon="warehouse" color="#22C55E">
+            {/* Umbrales de almacén */}
+            <SectionCard title="Umbrales de Almacén" icon="warehouse" color="#CCFF00">
               {rules.stock_critical_days >= rules.stock_safety_days && (
                 <p className="text-red-400 text-[11px] mb-2 flex items-center gap-1">
                   <span className="material-symbols-outlined text-sm">error</span>

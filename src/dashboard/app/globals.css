@@ -4,42 +4,42 @@
 
 /* ─── CSS Design Tokens ─────────────────────────────────────────────────────── */
 :root {
-  /* Surface hierarchy */
-  --surface:                    #0D1B3E;
-  --surface-dim:                #081326;
-  --surface-container-lowest:   #060E1E;
-  --surface-container-low:      #0A1628;
-  --surface-container:          #0E1D40;
-  --surface-container-high:     #132650;
-  --surface-container-highest:  #182F5E;
-  --surface-bright:             #1E3A6E;
+  /* Surface hierarchy — Deep Dark Mode (#000103) */
+  --surface:                    #000103;
+  --surface-dim:                #000000;
+  --surface-container-lowest:   #020202;
+  --surface-container-low:      #050505;
+  --surface-container:          #080808;
+  --surface-container-high:     #0C0C0C;
+  --surface-container-highest:  #111111;
+  --surface-bright:             #1A1A1A;
 
-  /* Primary — Lime Green */
-  --primary:            #D4FF6B;
-  --primary-dim:        #A8E63D;
-  --primary-container:  #A8E63D;
+  /* Primary — Neon Green (#CCFF00) */
+  --primary:            #CCFF00;
+  --primary-dim:        #A3CC00;
+  --primary-container:  #CCFF00;
 
   /* Module colors */
   --ecommerce:  #3B82F6;
-  --erp:        #22C55E;
+  --erp:        #CCFF00;
   --crm:        #F59E0B;
 
   /* Text */
-  --on-surface:          #d7e7ff;
+  --on-surface:          #ffffff;
   --on-surface-variant:  #8DA4C4;
 
   /* Borders */
-  --outline:          #506584;
-  --outline-variant:  #2A3E5C;
+  --outline:          #333333;
+  --outline-variant:  #1A1A1A;
 
   /* Status */
-  --error:   #EF4444;
-  --success: #22C55E;
+  --error:   #FF3333;
+  --success: #CCFF00;
   --warning: #F59E0B;
 
   /* Glows */
-  --volt-glow:   0 0 24px 2px rgba(168, 230, 61, 0.08);
-  --volt-strong: 0 0 15px rgba(168, 230, 61, 0.25);
+  --volt-glow:   0 0 30px 2px rgba(204, 255, 0, 0.12);
+  --volt-strong: 0 0 20px rgba(204, 255, 0, 0.3);
 }
 
 /* ─── Base Reset ────────────────────────────────────────────────────────────── */
@@ -74,6 +74,14 @@ body {
   letter-spacing: -0.02em;
   line-height: 1.1;
   font-weight: 700;
+}
+
+.text-ultra-kpi {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 80px;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-weight: 800;
 }
 
 .label-sm,

@@ -74,6 +74,7 @@ export interface DashboardKPIs {
   active_agents: number;
   revenue_today: number;
   cfdi_pending: number;
+  display_name?: string;
 }
 
 export interface ChatMessage {

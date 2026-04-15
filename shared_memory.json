@@ -1,0 +1,37 @@
+{
+  "project": "KINEXIS",
+  "phase": "Apple-Grade Refactor",
+  "status": "COMPLETED",
+  "visual_identity": {
+    "theme": "Deep Dark",
+    "surface": "#000103",
+    "accent": "#CCFF00 (Neon Green)",
+    "typography": "Inter/Outfit, Ultra-KPI (80px)"
+  },
+  "modules": {
+    "erp": {
+      "old_name": "Inventario",
+      "new_name": "Almacén",
+      "features": ["ExcelUploadComponent", "Samantha AI Sync", "Predictive Stock Days"]
+    },
+    "ecommerce": {
+      "amazon": "Agents #7-10",
+      "mercado_libre": "Agents #2-6",
+      "shipping_provider": "Skydrop"
+    },
+    "atollom_central": {
+      "type": "Admin Mission Control",
+      "route": "/atollom/central",
+      "features": ["43-Agent Grid", "Latency Monitoring", "SaaS Economics"]
+    }
+  },
+  "critical_rules": [
+    "Strict agent scoping per marketplace",
+    "No layout shifts in sidebars (absolute hover menus)",
+    "Dynamic user greetings in dashboard"
+  ],
+  "agent_ecosystem": {
+    "count": 43,
+    "monitoring": "Atollom Central Grid"
+  }
+}

@@ -10,6 +10,14 @@ export default function EcommerceMLPage() {
         <p className="text-on-surface-variant text-sm">
           Gestión completa de tu tienda Mercado Libre.
         </p>
+        <div className="flex gap-2 mt-3">
+          {[2, 3, 4, 5, 6].map(id => (
+            <div key={id} className="flex items-center gap-1.5 px-2 py-1 bg-[#CCFF00]/10 border border-[#CCFF00]/20 rounded-lg">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
+              <span className="text-[9px] font-bold text-[#CCFF00] uppercase tracking-wider">Agent #{id}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* KPIs Principales */}
@@ -129,42 +137,32 @@ export default function EcommerceMLPage() {
         </div>
       </section>
 
-      {/* Ajustes de Precio */}
+      {/* Pedidos Pendientes */}
       <section className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-on-surface flex items-center gap-2">
-            <span className="material-symbols-outlined text-purple-400">price_change</span>
-            Sugerencias de Ajuste de Precio
+            <span className="material-symbols-outlined text-blue-400">local_shipping</span>
+            Pedidos Pendientes
           </h3>
-          <button className="px-3 py-1.5 bg-purple-400/10 text-purple-400 rounded-lg text-xs font-bold hover:bg-purple-400/20 transition-all">
-            Aplicar todos
-          </button>
+          <span className="px-2 py-1 rounded-md text-xs bg-amber-400/20 text-amber-400 font-bold">7 Órdenes</span>
         </div>
 
         <div className="space-y-3">
           {[
-            { product: "Cargador Portátil 20000mAh", current: 299, suggested: 279, reason: "Competencia redujo precio", impact: "+12% ventas estimadas" },
-            { product: "Audífonos Bluetooth Pro", current: 549, suggested: 519, reason: "Demanda estacional alta", impact: "+8% ventas estimadas" },
-          ].map((adj, i) => (
+            { id: "ML-908123", user: "Beatriz Luna", total: 450 },
+            { id: "ML-908124", user: "Marco Valdés", total: 1290 },
+          ].map((ord, i) => (
             <div key={i} className="bg-white/[0.04] rounded-lg p-4 flex items-center justify-between">
               <div>
-                <p className="font-bold text-sm text-on-surface">{adj.product}</p>
-                <p className="text-xs text-on-surface-variant">{adj.reason}</p>
+                <p className="font-bold text-sm text-on-surface">{ord.user}</p>
+                <p className="text-[10px] text-on-surface-variant font-mono">{ord.id}</p>
               </div>
               <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <p className="text-xs text-on-surface-variant">Actual</p>
-                  <p className="font-bold text-on-surface">${adj.current}</p>
-                </div>
-                <span className="material-symbols-outlined text-green-400">arrow_forward</span>
-                <div className="text-center">
-                  <p className="text-xs text-on-surface-variant">Sugerido</p>
-                  <p className="font-bold text-green-400">${adj.suggested}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button className="px-3 py-1.5 bg-green-400/10 text-green-400 rounded text-xs font-bold hover:bg-green-400/20">Aceptar</button>
-                  <button className="px-3 py-1.5 bg-white/[0.06] text-on-surface rounded text-xs font-bold hover:bg-white/[0.1]">Ignorar</button>
-                </div>
+                <p className="font-bold text-on-surface">${ord.total}</p>
+                <button className="flex items-center gap-1 px-4 py-2 bg-[#CCFF00] text-black rounded-xl text-[10px] font-bold uppercase tracking-wider hover:shadow-[0_0_10px_rgba(204,255,0,0.3)] transition-all">
+                  <span className="material-symbols-outlined text-sm">print</span>
+                  Guía Skydrop
+                </button>
               </div>
             </div>
           ))}

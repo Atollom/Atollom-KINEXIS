@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ModuleNav } from "./ModuleNav";
 import { SamanthaFAB } from "./SamanthaFAB";
 import { Header } from "./Header";
+import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
+import { useRouter } from "next/navigation";
 import type { ModuleDefinition } from "./ModuleNav";
 import type { UserRole } from "@/types";
 
@@ -39,10 +41,10 @@ const DEFAULT_MODULES: ModuleDefinition[] = [
     locked: false,
     items: [
       { id: "erp-overview",   label: "Vista General",     href: "/erp",                  icon: "dashboard" },
-      { id: "erp-inventory",  label: "Inventario",         href: "/erp/inventory",        icon: "warehouse" },
+      { id: "erp-inventory",  label: "Almacén",         href: "/erp/inventory",        icon: "warehouse" },
       { id: "erp-cfdi",       label: "Facturación CFDI",   href: "/erp/cfdi",             icon: "description" },
       { id: "erp-procurement",label: "Compras",            href: "/erp/procurement",      icon: "shopping_basket" },
-      { id: "erp-warehouse",  label: "Almacén",            href: "/warehouse",            icon: "forklift" },
+      { id: "erp-warehouse",  label: "Operaciones",        href: "/warehouse",            icon: "forklift" },
       { id: "erp-cashflow",   label: "Flujo de Caja",      href: "/erp/cashflow",         icon: "account_balance" },
       { id: "erp-tax",        label: "Fiscal",             href: "/erp/tax",              icon: "gavel" },
     ],
@@ -63,6 +65,20 @@ const DEFAULT_MODULES: ModuleDefinition[] = [
       { id: "crm-instagram", label: "Instagram",          href: "/meta/instagram",       icon: "photo_camera" },
       { id: "crm-nps",       label: "NPS & Satisfacción", href: "/crm/nps",              icon: "sentiment_satisfied" },
       { id: "crm-support",   label: "Soporte",            href: "/crm/support",          icon: "support_agent" },
+    ],
+  },
+];
+
+const ADMIN_MODULES: ModuleDefinition[] = [
+  {
+    id: "atollom-admin",
+    name: "System Root",
+    color: "lime",
+    colorHex: "#CCFF00",
+    icon: "shield",
+    locked: false,
+    items: [
+      { id: "admin-central", label: "Mission Control", href: "/atollom/central", icon: "terminal" },
     ],
   },
 ];
@@ -90,12 +106,24 @@ export function DashboardShell({
   userName = "",
 }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
+  const supabase = createBrowserSupabaseClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.refresh();
+    router.push("/auth/login");
+  };
+
 
   // Apply lock state based on unlockedModules prop
-  const modules: ModuleDefinition[] = DEFAULT_MODULES.map((mod) => ({
-    ...mod,
-    locked: unlockedModules ? !unlockedModules.includes(mod.id) : false,
-  }));
+  const modules: ModuleDefinition[] = [
+    ...(userRole === "atollom_admin" ? ADMIN_MODULES : []),
+    ...DEFAULT_MODULES.map((mod) => ({
+      ...mod,
+      locked: unlockedModules ? !unlockedModules.includes(mod.id) : false,
+    }))
+  ];
 
   return (
     <>
@@ -146,22 +174,30 @@ export function DashboardShell({
         {/* Divider */}
         <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-         {/* User card */}
-         <div className="px-5 py-5">
-           <div className="flex items-center gap-4">
-             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A8E63D]/20 to-[#A8E63D]/5 border border-[#A8E63D]/20 flex items-center justify-center flex-shrink-0">
-               <span className="material-symbols-outlined text-[#A8E63D] text-base">person</span>
-             </div>
-             <div className="min-w-0 flex-1">
-               <p className="text-sm font-headline font-bold text-on-surface truncate">
-                 {userName || "Usuario"}
-               </p>
-               <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">
-                 {userRole}
-               </p>
-             </div>
-           </div>
-         </div>
+          {/* User card / Apple Menu */}
+          <div className="px-5 py-5 group/user">
+            <div className="flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 hover:bg-white/[0.04]">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#CCFF00]/20 to-[#CCFF00]/5 border border-[#CCFF00]/20 flex items-center justify-center flex-shrink-0 animate-pulse">
+                <span className="material-symbols-outlined text-[#CCFF00] text-base">person</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-headline font-bold text-on-surface truncate">
+                  {userName || "Usuario"}
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">
+                    {userRole}
+                  </p>
+                  <button 
+                    onClick={handleLogout}
+                    className="text-[9px] text-[#CCFF00] font-bold uppercase tracking-widest hover:underline opacity-0 group-hover/user:opacity-100 transition-opacity"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
         {/* Divider */}
         <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-3" />
@@ -210,7 +246,7 @@ export function DashboardShell({
           pt-16
           pb-24 md:pb-8
           min-h-screen
-          bg-[#0D1B3E]
+          bg-[#000103]
         "
       >
         {children}
