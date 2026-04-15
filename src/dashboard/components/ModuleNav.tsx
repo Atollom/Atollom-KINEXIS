@@ -59,21 +59,14 @@ function canSeeModule(role: UserRole, moduleId: string): boolean {
 export function ModuleNav({ modules, userRole }: ModuleNavProps) {
   const pathname = usePathname();
   const [expandedModules, setExpandedModules] = useState<Set<string>>(() => {
-    // auto-expand the module that matches the current path
-    const active = modules.find((m) =>
-      m.items.some((item) => pathname.startsWith(item.href))
-    );
-    return new Set(active ? [active.id] : [modules[0]?.id]);
+    // auto-expand ALL modules by default, no se cierren nunca
+    return new Set(modules.map(m => m.id));
   });
 
-  const toggleModule = (id: string) => {
-    setExpandedModules((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+   // ✅ NUNCA cerrar los módulos. Siempre abiertos.
+   const toggleModule = (id: string) => {
+     // No hacer nada. Menú siempre expandido.
+   };
 
    return (
      <nav className="flex flex-col gap-2 flex-1 overflow-y-auto px-4 pb-4" aria-label="Módulos">
