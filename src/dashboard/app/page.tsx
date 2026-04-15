@@ -12,7 +12,7 @@ import type { Order, DashboardKPIs, InventoryItem, Lead, PurchaseOrder } from "@
 // ──────────────────────────────────────────────────────────────────────────────
 // Fetcher
 // ──────────────────────────────────────────────────────────────────────────────
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { fetcher } from "@/lib/fetcher";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Helpers

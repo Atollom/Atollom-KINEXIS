@@ -211,8 +211,8 @@ describe("vault GET — nunca retorna valores reales de API keys", () => {
 
     // Every value must be a boolean — NEVER a string
     for (const [keyName, value] of Object.entries(body.keys)) {
-      expect(typeof value).toBe("boolean",
-        `Key "${keyName}" should be boolean but got ${typeof value}: ${value}`);
+      expect(typeof value === "boolean",
+        `Key "${keyName}" should be boolean but got ${typeof value}: ${value}`).toBe(true);
     }
 
     // Configured keys must be true, unconfigured must be false

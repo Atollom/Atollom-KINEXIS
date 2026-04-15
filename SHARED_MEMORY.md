@@ -347,3 +347,85 @@ CHECKPOINT_SAVE:
   directors: Carlos Hernán Cortés Ayala, Hiram Alexis Valencia Duarte
   status: TYPES_FIXED ✅ | SEED_READY ✅ | UPLOADING_TO_PROD...
   infrastructure: META_WEBHOOKS_ENABLED ✅
+  last_update: 2026-04-14 17:52
+
+## [FASE] RESTAURACIÓN AUTH & REPARACIÓN RLS — 2026-04-14
+[HUMAN DECISION: Carlos Hernán Cortés Ayala y Hiram Alexis Valencia Duarte supervisan la restauración nuclear de cuentas tras corrupción de auth schema. Se establece el rol atollom_admin como autoridad global.]
+
+CHECKPOINT_AUTH_REPAIR:
+  - USERS_RECREATED: contacto@atollom.com, orthocardio@prueba.com ✅ (via Admin API)
+  - SCHEMA_FIX: user_profiles role check constraint updated (includes atollom_admin) ✅
+  - FRONTEND_SAFETY: Applied ?.map() and || [] guards in atollom/page.tsx and lib/auth.ts to prevent crashes ✅
+  - RLS_FIX_SCRIPT: scripts/037_fix_rls_recursion.sql created — SECURITY DEFINER function + policy rewrite
+  - BLOCKER_STATUS: RLS Recursion Fix script READY — user must execute in Supabase SQL Editor.
+  - NEXT_STEP: Execute SQL → verify access → proceed to Analytics + Finance phase.
+
+AUTH_CREDENTIALS (RECOUPED):
+  - Atollom Admin: contacto@atollom.com / Atollom2026
+  - Pilot Owner: orthocardio@prueba.com / Atollom
+
+## [FASE] ESTABILIZACIÓN PRODUCCIÓN & AUDITORÍA MEMORIA — 2026-04-14
+[HUMAN DECISION: Carlos Hernán Cortés Ayala ordena auditoría completa de acceso gerencial, sincronización de memoria, optimización Meta y limpieza de tipos.]
+
+STABILIZATION_CHECKPOINT:
+  agent: GEMINI (Claude Opus 4.6)
+  directors: Carlos Hernán Cortés Ayala, Hiram Alexis Valencia Duarte
+  status: STABILIZED ✅ | TSC_ZERO_ERRORS ✅
+  last_update: 2026-04-14 19:53
+
+  TASK 1 — AUTH GUARD AUDIT (atollom_admin Master Role):
+    [OK] types/index.ts — UserRole type includes atollom_admin ✅
+    [OK] middleware.ts — atollom_admin in ALL RBAC arrays (WAREHOUSE_ROLES, FISCAL_ROLES, CRM_ROLES, AGENT_ROLES) ✅
+    [OK] middleware.ts — /atollom page gate: only atollom_admin ✅
+    [OK] middleware.ts — /api/atollom/* API gate: only atollom_admin ✅
+    [OK] ModuleNav.tsx — atollom_admin: "all" (full module visibility) ✅
+    [OK] LoginForm.tsx — atollom_admin redirect to /atollom ✅
+    [OK] auth.ts — is_atollom_admin computed flag ✅
+    [OK] atollom/page.tsx — client-side defense-in-depth role check ✅
+    [OK] /api/atollom/notify — atollom_admin-only guard ✅
+    CONCLUSION: NO refactoring needed. atollom_admin is correctly recognized as master hierarchy throughout.
+
+  TASK 2 — MEMORY STRUCTURE SYNC (43 Agents):
+    [OK] types/index.ts — Agent interface uses agent_status (not status) ✅
+    [OK] AgentsFeed.tsx — Uses agent_status field consistently ✅
+    [OK] AGENT_REGISTRY in main.py — 40 agents registered (excluding abstract: BaseAgent, BaseAdsManager, ChurnRecovery) ✅
+    [OK] types/index.ts — TenantUser extended with is_atollom_admin boolean ✅
+    [OK] samantha_memory table — per-tenant conversational memory (RLS isolation) ✅
+    AGENT HIERARCHY (by module):
+      ECOMMERCE: ml_fulfillment, ml_listing_optimizer, ml_analytics, ml_ads_manager, ml_question_handler,
+                 amazon_orders, amazon_fba_manager, amazon_listing, amazon_ads_manager,
+                 shopify_orders, catalog_manager, catalog_sync, price_sync, review_monitor
+      ERP:       inventory, procurement, warehouse_coordinator, cfdi_billing, finance_cashflow, tax_compliance,
+                 import_logistics, returns_refunds
+      CRM:       leads_pipeline, lead_qualifier, sales_b2b, customer_support, nps_satisfaction,
+                 account_manager, whatsapp_handler, instagram_dm_handler, instagram_comments,
+                 instagram_content_publisher, instagram_ads_manager, facebook_ads
+      SYSTEM:    router, validation, onboarding, crisis_response, product_development, supplier_relations
+
+  TASK 3 — META WEBHOOK OPTIMIZATION:
+    [FIX] main.py POST /webhooks/meta — HMAC mismatch now returns 403 (was 200 with diagnostic)
+    [FIX] main.py POST /webhooks/meta — Response body cleaned: no internal fields leaked (warning, diagnostic, message removed)
+    [FIX] main.py POST /webhooks/meta — Agent dispatch via asyncio.create_task() (fire-and-forget)
+    [FIX] main.py POST /webhooks/meta — Returns {"status": "ok"} IMMEDIATELY (< 100ms) per Meta protocol
+    CONCLUSION: Strict HMAC in prod, async dispatch for latency compliance.
+
+  TASK 4 — TYPESCRIPT CLEANUP (0 Errors):
+    [FIX] __tests__/chat-tools.test.ts — makeAuth() return type: TenantUser (was inferred string, caused 10+ TS2345)
+    [FIX] __tests__/dashboard-pages.test.ts — beforeEach(() => { vi.clearAllMocks(); }) (was returning VitestUtils)
+    [FIX] __tests__/onboarding.test.ts — Same beforeEach fix
+    [FIX] __tests__/settings-routes.test.ts — expect(typeof value === "boolean", msg).toBe(true) (toBe only accepts 1 arg)
+    [FIX] types/index.ts — TenantUser.is_atollom_admin added (matches auth.ts return shape)
+    RESULT: npx tsc --noEmit → 0 errors ✅
+
+  FRONTEND RESILIENCE (RLS Crash Prevention):
+    [FIX] layout.tsx — try/catch around user_profiles query; falls back to viewer role on failure
+    [FIX] middleware.ts — Consolidated 4 separate user_profiles queries into 1 with try/catch
+    [FIX] middleware.ts — API RBAC query wrapped with try/catch; returns 503 on RLS failure
+    [NEW] app/error.tsx — Global error boundary with retry + login buttons (replaces generic Next.js error)
+    RESULT: Dashboard no longer crashes on RLS errors; shows actionable error UI instead.
+
+  HARDCODED URLS CHECK:
+    [OK] All dashboard API calls use relative paths (/api/*) — no hardcoded URLs ✅
+    [OK] Only meta-client.ts uses process.env.NEXT_PUBLIC_API_URL for Railway backend ✅
+    [OK] .env.local missing NEXT_PUBLIC_API_URL — needed when Railway is active ✅
+

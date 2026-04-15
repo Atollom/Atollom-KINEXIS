@@ -132,7 +132,7 @@ function makeMetaSupabase(opts: { insertError?: any } = {}) {
 
 // ── Setup ─────────────────────────────────────────────────────────────────────
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => { vi.clearAllMocks(); });
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 1 — Almacenista → 403 en GET /api/erp/purchase-orders

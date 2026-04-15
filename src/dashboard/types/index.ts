@@ -8,6 +8,7 @@ export interface TenantUser {
   role: UserRole;
   name: string;
   email: string;
+  is_atollom_admin?: boolean;
 }
 
 export type Platform = 'ml' | 'amazon' | 'shopify' | 'b2b';

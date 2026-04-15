@@ -312,8 +312,10 @@ async def meta_webhook_receive(request: Request):
     """
     Recibe eventos de Meta (WhatsApp, Instagram).
     Verifica la firma X-Hub-Signature-256 antes de procesar.
-    Durante fase de configuración, devuelve 200 OK aunque la firma falle (pero loguea error).
+    Devuelve {"status": "ok"} INMEDIATAMENTE para cumplir el protocolo de latencia de Meta.
+    El procesamiento del agente ocurre en background (fire-and-forget).
     """
+    import asyncio
     import hashlib
     import hmac as hmac_lib
     from fastapi.responses import JSONResponse
@@ -322,33 +324,31 @@ async def meta_webhook_receive(request: Request):
     raw_body = await request.body()
     signature_header = request.headers.get("X-Hub-Signature-256", "")
 
-    # 1. Validación HMAC con Log de Diagnóstico
+    # 1. Validación HMAC — fail-closed en producción
     if not app_secret:
         logger.error("❌ META_APP_SECRET no configurada. No se puede validar firma.")
-        # Devolvemos 200 para no bloquear a Meta durante el setup
-        return JSONResponse(content={"status": "ok", "warning": "no_secret"}, status_code=200)
+        # Devolvemos 200 para no bloquear a Meta durante el setup inicial
+        return JSONResponse(content={"status": "ok"}, status_code=200)
 
     expected = "sha256=" + hmac_lib.new(
         app_secret.encode(), raw_body, hashlib.sha256
     ).hexdigest()
 
     if not signature_header or not hmac_lib.compare_digest(expected.encode(), signature_header.encode()):
-        logger.warning("❌ Error de firma HMAC. Verifica META_APP_SECRET.")
-        logger.debug(f"Signature Header: {signature_header}")
-        # En fase de configuración, devolvemos 200 OK para permitir la suscripción
-        return JSONResponse(content={"status": "ok", "diagnostic": "hmac_mismatch"}, status_code=200)
+        logger.warning("❌ HMAC signature mismatch — rejecting Meta webhook.")
+        return JSONResponse(content={"status": "error"}, status_code=403)
 
     # 2. Parsear body JSON
     try:
         import json
         body = json.loads(raw_body)
     except Exception:
-        return JSONResponse(content={"status": "error", "message": "invalid_json"}, status_code=400)
+        return JSONResponse(content={"status": "error"}, status_code=400)
 
-    # 3. Despachar al agente según el objeto Meta
+    # 3. Responder INMEDIATAMENTE a Meta (< 100ms)
+    # El procesamiento del agente se hace en background.
     object_type = body.get("object", "")
     tenant_id   = os.getenv("DEFAULT_TENANT_ID", "")
-    payload     = {"event": body, "raw": True}
 
     if object_type == "whatsapp_business_account":
         agent_id = "whatsapp_handler"
@@ -356,10 +356,13 @@ async def meta_webhook_receive(request: Request):
         agent_id = "instagram_dm_handler"
     else:
         logger.info("Unhandled Meta object type: %s", object_type)
-        return JSONResponse(content={"status": "ok", "message": "EVENT_RECEIVED"}, status_code=200)
+        return JSONResponse(content={"status": "ok"}, status_code=200)
 
-    agent_class = AGENT_REGISTRY.get(agent_id)
-    if agent_class and tenant_id:
+    # 4. Fire-and-forget: despachar agente en background
+    async def _dispatch_agent():
+        agent_class = AGENT_REGISTRY.get(agent_id)
+        if not agent_class or not tenant_id:
+            return
         supabase_client = None
         supabase_url = os.getenv("SUPABASE_URL")
         supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
@@ -369,12 +372,14 @@ async def meta_webhook_receive(request: Request):
                 supabase_client = create_client(supabase_url, supabase_key)
             except Exception:
                 logger.error("Supabase client creation failed for Meta webhook dispatch")
-
+                return
         try:
             agent = agent_class(tenant_id=tenant_id, supabase_client=supabase_client)
-            await agent.run(payload)
+            await agent.run({"event": body, "raw": True})
         except Exception:
             logger.error("Meta webhook agent dispatch error: agent=%s", agent_id, exc_info=True)
+
+    asyncio.create_task(_dispatch_agent())
 
     return JSONResponse(content={"status": "ok"}, status_code=200)
 

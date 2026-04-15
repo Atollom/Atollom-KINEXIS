@@ -1,7 +1,6 @@
 // src/dashboard/hooks/usePurchaseOrders.ts
 import useSWR from 'swr';
-
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+import { fetcher } from '@/lib/fetcher';
 
 export function usePurchaseOrders() {
   const { data, error, isLoading, mutate } = useSWR('/api/erp/purchase-orders', fetcher, {
@@ -10,7 +9,7 @@ export function usePurchaseOrders() {
   });
 
   return {
-    purchaseOrders: data || [],
+    purchaseOrders: Array.isArray(data) ? data : [],
     isLoading,
     isError: error,
     mutate

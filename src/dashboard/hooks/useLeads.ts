@@ -1,8 +1,7 @@
 // src/dashboard/hooks/useLeads.ts
 import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
 import { Lead } from '../types';
-
-const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export function useLeads() {
   const { data, error, isLoading, mutate } = useSWR<Lead[]>('/api/crm/leads', fetcher, {
@@ -11,7 +10,7 @@ export function useLeads() {
   });
 
   return {
-    leads: data || [],
+    leads: Array.isArray(data) ? data : [],
     isLoading,
     isError: error,
     mutate

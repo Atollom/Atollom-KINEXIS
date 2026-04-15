@@ -1,8 +1,7 @@
 // src/dashboard/hooks/useKPIs.ts
 import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
 import { DashboardKPIs } from '../types';
-
-const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export function useKPIs() {
   const { data, error, isLoading } = useSWR<DashboardKPIs>('/api/dashboard/kpis', fetcher, {

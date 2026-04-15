@@ -24,16 +24,26 @@ export default async function RootLayout({
   let userName = "";
 
   if (session?.user) {
-    const { data: profile } = await supabase
-      .from("user_profiles")
-      .select("role, full_name")
-      .eq("id", session.user.id)
-      .single();
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from("user_profiles")
+        .select("role, full_name")
+        .eq("id", session.user.id)
+        .single();
 
-    if (profile) {
-      userRole = profile.role as UserRole;
-      userName =
-        profile.full_name || session.user.email?.split("@")[0] || "";
+      if (profile && !profileError) {
+        userRole = profile.role as UserRole;
+        userName =
+          profile.full_name || session.user.email?.split("@")[0] || "";
+      } else {
+        // Profile query failed (possibly RLS issue) — use safe defaults
+        userName = session.user.email?.split("@")[0] || "";
+        console.error("[layout] user_profiles query failed:", profileError?.message);
+      }
+    } catch (err) {
+      // Catch any unexpected error to prevent full page crash
+      userName = session.user.email?.split("@")[0] || "";
+      console.error("[layout] user_profiles query crashed:", err);
     }
   }
 

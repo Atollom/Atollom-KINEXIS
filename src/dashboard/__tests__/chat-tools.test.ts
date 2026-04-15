@@ -28,9 +28,11 @@ import {
   escalateToHuman,
 } from "../lib/samantha-tools";
 
+import type { TenantUser } from "../types";
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeAuth(tenantId = "tenant-abc", userId = "user-123") {
+function makeAuth(tenantId = "tenant-abc", userId = "user-123"): TenantUser {
   return { id: userId, tenant_id: tenantId, role: "owner", name: "Test", email: "t@t.com" };
 }
 

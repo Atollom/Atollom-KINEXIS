@@ -62,7 +62,7 @@ function makeSupabase(opts: {
   };
 }
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => { vi.clearAllMocks(); });
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 1-4 — RBAC en /api/onboarding/complete

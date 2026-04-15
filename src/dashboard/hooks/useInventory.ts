@@ -1,8 +1,7 @@
 // src/dashboard/hooks/useInventory.ts
 import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
 import { InventoryItem } from '../types';
-
-const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export function useInventory() {
   const { data, error, isLoading } = useSWR<InventoryItem[]>('/api/inventory', fetcher, {
@@ -11,7 +10,7 @@ export function useInventory() {
   });
 
   return {
-    inventory: data || [],
+    inventory: Array.isArray(data) ? data : [],
     isLoading,
     isError: error
   };
