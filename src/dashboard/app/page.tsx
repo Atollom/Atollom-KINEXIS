@@ -90,9 +90,9 @@ export default function HomePage() {
   const { leads, isLoading: leadsLoading } = useLeads();
   
   // Logic: plan_id determines visibility
-  const planId = kpis?.plan_id || "enterprise";
+  const planId = kpis?.plan_id?.toLowerCase() || "enterprise";
   const isErpLocked = planId === "growth";
-  const isCrmLocked = planId === "growth" || planId === "pro";
+  const isCrmLocked = planId === "growth"; // Pro and Enterprise can see CRM
 
   const criticalSkus = inventory
     .filter((i) => i.status === "critical")
