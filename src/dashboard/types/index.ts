@@ -80,6 +80,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   ts: string;
+  attachments?: string[];
 }
 
 export type ChatContext = 'full' | 'warehouse' | 'fiscal';
