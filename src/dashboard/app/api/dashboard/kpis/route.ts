@@ -73,6 +73,14 @@ export async function GET(req: NextRequest) {
       .eq('tenant_id', tenant_id)
       .in('status', ['ERROR_PAC', 'ERROR_VALIDACION', 'CANCELACION_PENDIENTE']);
 
+    // 6. Returns Count (Last 30 days)
+    const { count: returns_count } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenant_id)
+      .eq('status', 'returned')
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
     return NextResponse.json({
       orders_today,
       pending_to_pick: pending_to_pick || 0,
@@ -81,6 +89,8 @@ export async function GET(req: NextRequest) {
       revenue_today,
       cfdi_pending: cfdi_pending || 0,
       display_name: auth.name,
+      plan_id: auth.plan_id || 'enterprise',
+      returns_count: returns_count || 0
     });
   } catch (error: any) {
     console.error('[KPIs API] Error:', error);
