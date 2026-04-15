@@ -26,11 +26,12 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText]);
 
-  async function handleSend(text: string) {
+  async function handleSend(text: string, files?: File[]) {
     const userMsg: ChatMessage = {
       role: "user",
-      content: text,
+      content: text + (files && files.length > 0 ? `\n\n📎 Archivos adjuntos: ${files.map(f => f.name).join(', ')}` : ''),
       ts: new Date().toISOString(),
+      attachments: files?.map(f => f.name)
     };
     setMessages((prev) => [...prev, userMsg]);
     setStreaming(true);

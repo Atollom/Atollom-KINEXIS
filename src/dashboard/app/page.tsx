@@ -229,6 +229,62 @@ export default function HomePage() {
   return (
     <div className="px-4 md:px-8 py-6 max-w-screen-2xl mx-auto space-y-8">
 
+      {/* ── Welcome Section ───────────────────────────────────────── */}
+      <section className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-[#A8E63D]/10 flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-[#A8E63D] text-2xl">rocket_launch</span>
+          </div>
+          <div>
+            <h2 className="text-xl font-headline font-bold text-on-surface mb-2">
+              Bienvenido a KINEXIS
+            </h2>
+            <p className="text-sm text-on-surface-variant max-w-3xl">
+              KINEXIS es la plataforma de automatización multi-agente para e-commerce. 
+              43 agentes IA especializados operan 24/7 gestionando tus marketplaces, 
+              inventario, facturación y atención a clientes. Samantha es tu asistente 
+              personal que te ayudará en todo el proceso de configuración y operación.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── KINEXIS Pillars ──────────────────────────────────────── */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="material-symbols-outlined text-blue-400">storefront</span>
+            <h3 className="font-bold text-on-surface">Ecommerce Inteligente</h3>
+          </div>
+          <p className="text-sm text-on-surface-variant">
+            Agentes IA para Mercado Libre, Amazon y Shopify. Optimización automática de listings, 
+            gestión de campañas y logística integrada con Skydrop.
+          </p>
+        </div>
+
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="material-symbols-outlined text-green-400">account_tree</span>
+            <h3 className="font-bold text-on-surface">ERP & Operaciones</h3>
+          </div>
+          <p className="text-sm text-on-surface-variant">
+            Cerebro administrativo y financiero. Facturación electrónica CFDI, 
+            alertas de stock crítico y control total de proveedores y flujo de caja.
+          </p>
+        </div>
+
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="material-symbols-outlined text-amber-400">group</span>
+            <h3 className="font-bold text-on-surface">CRM & Ventas</h3>
+          </div>
+          <p className="text-sm text-on-surface-variant">
+            Transforma conversaciones de WhatsApp y redes sociales en ingresos. 
+            Agentes que califican leads y gestionan el pipeline de ventas automáticamente.
+          </p>
+        </div>
+      </section>
+
       {/* ── Top KPI Row ──────────────────────────────────────────── */}
       <section className="grid grid-cols-2 lg:grid-cols-5 gap-4" aria-label="KPIs del día">
         <KpiCard

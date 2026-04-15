@@ -74,26 +74,26 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#0D1B3E] flex flex-col">
       {/* Hero Section */}
       <div className="px-8 pt-12 pb-8 text-center max-w-5xl mx-auto">
-        <div className="mb-8">
-          <div className="relative inline-block mb-6">
-            <div className="absolute inset-0 rounded-full blur-2xl bg-lime-400/20 animate-pulse"></div>
-            <Image 
-              src="/kinexis-logo.png" 
-              alt="KINEXIS" 
-              width={80} 
-              height={80}
-              className="relative drop-shadow-[0_0_15px_rgba(202,253,0,0.5)] rounded-xl"
-            />
-          </div>
-          
-          <h1 className={`${spaceGrotesk.className} text-4xl tracking-tighter text-[#cafd00] font-bold mb-2`}>
-            KINEXIS
-          </h1>
-          <p className="text-lg text-on-surface-variant max-w-2xl mx-auto">
-            Plataforma de automatización multi-agente para e-commerce. 
-            43 agentes IA operando en tiempo real 24/7.
-          </p>
-        </div>
+         <div className="mb-8">
+           <div className="relative inline-block mb-6">
+             <div className="absolute inset-0 rounded-full blur-2xl bg-lime-400/20 animate-pulse"></div>
+             <Image 
+               src="/kinexis-logo.png" 
+               alt="KINEXIS" 
+               width={120} 
+               height={120}
+               className="relative drop-shadow-[0_0_15px_rgba(202,253,0,0.5)] rounded-2xl"
+             />
+           </div>
+           
+           <h1 className={`${spaceGrotesk.className} text-3xl tracking-tighter text-white font-bold mb-3`}>
+             KINEXIS
+           </h1>
+           <p className="text-lg text-on-surface-variant max-w-2xl mx-auto">
+             Plataforma de automatización multi-agente para e-commerce. 
+             43 agentes IA operando en tiempo real 24/7.
+           </p>
+         </div>
 
         {/* Tabs Login / Registro */}
         <div className="flex justify-center gap-4 mb-8">
