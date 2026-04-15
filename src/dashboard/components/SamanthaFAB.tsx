@@ -149,19 +149,125 @@ function TypingIndicator() {
 interface SamanthaFABProps {
   /** ID del tenant para persistir historial por organización */
   tenantId?: string;
+  /** Subscription plan ID */
+  planId?: string;
 }
 
-export function SamanthaFAB({ tenantId = "default" }: SamanthaFABProps) {
+export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: SamanthaFABProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState("");
   const [initialized, setInitialized] = useState(false);
+  const [showIntervention, setShowIntervention] = useState(false);
+  const [lastActivity, setLastActivity] = useState(Date.now());
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ── Inactivity Timer (2 mins) ────────────────────────────────
+  useEffect(() => {
+    const handleActivity = () => {
+      setLastActivity(Date.now());
+      // No ocultamos la intervención si ya se mostró, dejamos que el usuario interactúe con ella
+    };
+
+    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("keydown", handleActivity);
+    window.addEventListener("scroll", handleActivity);
+
+    return () => {
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
+      window.removeEventListener("scroll", handleActivity);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (activityTimerRef.current) clearTimeout(activityTimerRef.current);
+
+    // Si el chat está abierto o ya se mostró la intervención, no re-activar el timer
+    if (open || showIntervention) return;
+
+    activityTimerRef.current = setTimeout(() => {
+      setShowIntervention(true);
+    }, 120000); // 2 minutos
+
+    return () => {
+      if (activityTimerRef.current) clearTimeout(activityTimerRef.current);
+    };
+  }, [lastActivity, open, showIntervention]);
+
+  // ── Analyze My Context (Helper) ──────────────────────────────
+  const handleAnalyzeContext = useCallback(async (pastedText: string) => {
+    setOpen(true);
+    setShowIntervention(false);
+    const contextMsg = "Analizando contexto copiado...\n\n" + (pastedText.length > 500 ? pastedText.substring(0, 500) + "..." : pastedText);
+    
+    const userMsg: ChatMessage = {
+      role: "user",
+      content: contextMsg,
+      ts: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setStreaming(true);
+
+    const query = `[PROTOCOL: NO ESTÁS SOLO] El usuario ha pegado este contexto de error o pantalla: "${pastedText.substring(0, 1000)}". Analízalo detalladamente, identifica si hay una suspensión o error conocido, y propón una solución inmediata con un tono premium y tranquilizador.`;
+
+    await sendToSamantha(query);
+  }, [planId]);
+
+  // ── Send to API (Internal) ───────────────────────────────────
+  const sendToSamantha = async (text: string) => {
+    setStreaming(true);
+    setStreamingText("");
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, context: "full", plan_id: planId }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok || !res.body) throw new Error(`Error (${res.status})`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const data = line.slice(5).trim();
+          if (data === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(data) as { text: string };
+            accumulated += parsed.text;
+            setStreamingText(accumulated);
+          } catch {}
+        }
+      }
+      setMessages((prev) => [...prev, { role: "assistant", content: accumulated, ts: new Date().toISOString() }]);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setMessages((prev) => [...prev, { role: "assistant", content: "Error de conexión.", ts: new Date().toISOString() }]);
+    } finally {
+      setStreaming(false);
+      setStreamingText("");
+      abortRef.current = null;
+    }
+  };
 
   // ── Cargar historial al montar ────────────────────────────────
   useEffect(() => {
@@ -209,76 +315,8 @@ export function SamanthaFAB({ tenantId = "default" }: SamanthaFABProps) {
 
     setMessages((prev) => [...prev, userMsg]);
     setInputValue("");
-    setStreaming(true);
-    setStreamingText("");
-
-    // Crear AbortController para poder cancelar la petición
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, context: "full" }),
-        signal: controller.signal,
-      });
-
-      if (!res.ok || !res.body) {
-        throw new Error(`Error del servidor (${res.status})`);
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulated = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
-          const data = line.slice(5).trim();
-          if (data === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(data) as { text: string };
-            accumulated += parsed.text;
-            setStreamingText(accumulated);
-          } catch {
-            // Chunk malformado — ignorar
-          }
-        }
-      }
-
-      // Agregar respuesta completa al historial
-      const assistantMsg: ChatMessage = {
-        role: "assistant",
-        content: accumulated || "Sin respuesta del servidor.",
-        ts: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err: unknown) {
-      // No reportar errores de abort (usuario cerró el chat)
-      if (err instanceof DOMException && err.name === "AbortError") return;
-
-      const errorMsg: ChatMessage = {
-        role: "assistant",
-        content: `Lo siento, hubo un problema de conexión: ${
-          err instanceof Error ? err.message : "desconocido"
-        }. Intenta de nuevo en unos segundos.`,
-        ts: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
-    } finally {
-      setStreaming(false);
-      setStreamingText("");
-      abortRef.current = null;
-    }
-  }, [inputValue, streaming]);
+    await sendToSamantha(text);
+  }, [inputValue, streaming, planId]);
 
   // ── Limpiar historial ─────────────────────────────────────────
   const handleClear = useCallback(() => {
@@ -473,6 +511,68 @@ export function SamanthaFAB({ tenantId = "default" }: SamanthaFABProps) {
             <p className="text-[9px] text-[#506584] text-center mt-2 select-none">
               Samantha puede cometer errores · Verifica la información importante
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          INTERVENCIÓN (Burbuja de inactividad)
+          ═══════════════════════════════════════════════════════════ */}
+      {showIntervention && !open && (
+        <div className="fixed bottom-24 right-6 z-[60] w-72 animate-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-[#0A1628]/95 backdrop-blur-xl border border-[#A8E63D]/30 p-5 rounded-2xl shadow-2xl relative">
+            {/* Close button */}
+            <button 
+              onClick={() => setShowIntervention(false)}
+              className="absolute top-2 right-2 text-[#506584] hover:text-white"
+            >
+              <span className="material-symbols-outlined text-sm">close</span>
+            </button>
+
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[#A8E63D]/10 flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined text-[#A8E63D]">smart_toy</span>
+              </div>
+              <div>
+                <p className="text-[13px] text-[#E8EAF0] leading-relaxed">
+                  Llevas un momento en silencio. ¿En qué puedo ayudarte hoy?
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+              <button 
+                onClick={async () => {
+                  const text = await navigator.clipboard.readText();
+                  handleAnalyzeContext(text);
+                }}
+                className="w-full py-2 bg-[#A8E63D]/10 hover:bg-[#A8E63D]/20 text-[#A8E63D] text-[11px] font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">content_paste_search</span>
+                Analizar texto de pantalla
+              </button>
+              <button 
+                onClick={() => {
+                  setOpen(true);
+                  setShowIntervention(false);
+                  setMessages(prev => [...prev, {
+                    role: "assistant",
+                    content: "¡Claro! Aquí tienes algunos tutoriales que pueden ayudarte: \n\n" + 
+                             "• [Configuración ML API](https://youtube.com/atollomlabs/tutorial-ml-api)\n" +
+                             "• [Gestión de Almacén](https://youtube.com/atollomlabs/tutorial-warehouse)\n" +
+                             "• [Facturación CFDI](https://youtube.com/atollomlabs/tutorial-cfdi)",
+                    ts: new Date().toISOString()
+                  }]);
+                }}
+                className="w-full py-2 bg-white/[0.05] hover:bg-white/[0.1] text-white text-[11px] font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">play_circle</span>
+                Ver video tutorial
+              </button>
+            </div>
+
+            {/* Pointer arrow */}
+            <div className="absolute -bottom-1 right-6 w-3 h-3 bg-[#0A1628] border-r border-b border-[#A8E63D]/30 rotate-45" />
           </div>
         </div>
       )}

@@ -135,6 +135,18 @@ export async function POST(req: NextRequest) {
         parameters: { type: SchemaType.OBJECT, properties: {} as Record<string, never> }
       },
       {
+        name: "stripe_downgrade_subscription",
+        description: "Inicia el flujo de downgrade (reducción de plan) de la suscripción de Stripe del cliente. Úsalo cuando el cliente exprese que ya no puede pagar o quiera cancelar, como una medida de retención con el protocolo 'No estás solo'.",
+        parameters: {
+          type: SchemaType.OBJECT,
+          properties: {
+             target_plan: { type: SchemaType.STRING, description: "El plan al que se desea bajar (growth, basic, etc.)." },
+             reason: { type: SchemaType.STRING, description: "La razón por la cual el cliente solicita el cambio." }
+          },
+          required: ["target_plan", "reason"]
+        }
+      },
+      {
         name: "escalate_to_human",
         description: "Escala la situación creando un ticket de soporte interno y notifica al equipo humano de Kinexis vía WhatsApp (+525646060947). Úsalo cuando no sepas la respuesta o haya un problema mayor.",
         parameters: {
@@ -213,6 +225,12 @@ export async function POST(req: NextRequest) {
             resultStr = await getCriticalInventory(supabase, auth);
           } else if (toolName === "generate_weekly_report") {
             resultStr = await generateWeeklyReport(supabase, auth);
+          } else if (toolName === "stripe_downgrade_subscription") {
+            // Simulate Stripe operation
+            resultStr = JSON.stringify({ 
+              status: "success", 
+              message: `Downgrade iniciado exitosamente al plan '${toolInput.target_plan}'. Samantha ha ajustado los límites de facturación para tu tranquilidad.` 
+            });
           } else if (toolName === "escalate_to_human") {
             resultStr = await escalateToHuman(
               supabase,

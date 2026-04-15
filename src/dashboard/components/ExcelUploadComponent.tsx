@@ -12,8 +12,16 @@ interface Discrepancy {
 
 export function ExcelUploadComponent() {
   const [dragActive, setDragActive] = useState(false);
+  const [category, setCategory] = useState<"almacen" | "precios" | "proveedores" | "clientes">("almacen");
   const [analysis, setAnalysis] = useState<Discrepancy[] | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+
+  const categories = [
+    { id: "almacen", label: "Almacén", icon: "warehouse" },
+    { id: "precios", label: "Precios", icon: "sell" },
+    { id: "proveedores", label: "Proveedores", icon: "badge" },
+    { id: "clientes", label: "Clientes", icon: "groups" },
+  ];
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -29,11 +37,18 @@ export function ExcelUploadComponent() {
     setAnalyzing(true);
     // Simulating Samantha's intelligence processing the file
     setTimeout(() => {
-      setAnalysis([
-        { sku: "SKU-PRO-001", name: "Cargador Magnético MagSafe", systemStock: 45, excelStock: 120, predictedDays: 14 },
-        { sku: "SKU-PRO-042", name: "Funda Silicona Midnight", systemStock: 12, excelStock: 5, predictedDays: 3 },
-        { sku: "SKU-PRO-089", name: "Protector Pantalla Pro", systemStock: 230, excelStock: 230, predictedDays: 45 },
-      ]);
+      if (category === "almacen") {
+        setAnalysis([
+          { sku: "SKU-PRO-001", name: "Cargador Magnético MagSafe", systemStock: 45, excelStock: 120, predictedDays: 14 },
+          { sku: "SKU-PRO-042", name: "Funda Silicona Midnight", systemStock: 12, excelStock: 5, predictedDays: 3 },
+          { sku: "SKU-PRO-089", name: "Protector Pantalla Pro", systemStock: 230, excelStock: 230, predictedDays: 45 },
+        ]);
+      } else {
+        // Mock generic analysis for other categories
+        setAnalysis([
+          { sku: "NEW-DATA-001", name: "Dato Importado #1", systemStock: 0, excelStock: 100, predictedDays: 0 },
+        ]);
+      }
       setAnalyzing(false);
     }, 1500);
   };
@@ -41,6 +56,29 @@ export function ExcelUploadComponent() {
   return (
     <div className="bg-[#050505] border border-white/[0.04] rounded-[2.5rem] p-1 shadow-2xl overflow-hidden">
       <div className="bg-white/[0.02] rounded-[2.2rem] p-8">
+        
+        {/* Category Selector */}
+        {!analysis && !analyzing && (
+          <div className="flex gap-2 mb-8 justify-center">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setCategory(cat.id as any)}
+                className={`
+                  flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all w-28
+                  ${category === cat.id 
+                    ? "bg-[#CCFF00]/10 border-[#CCFF00] text-[#CCFF00]" 
+                    : "bg-white/[0.02] border-white/[0.06] text-on-surface-variant hover:bg-white/[0.04]"
+                  }
+                `}
+              >
+                <span className="material-symbols-outlined">{cat.icon}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">{cat.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {!analysis && !analyzing ? (
           <div 
             className={`

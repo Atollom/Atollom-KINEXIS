@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ShippingDimensionsCard } from "@/components/ecommerce/ShippingDimensionsCard";
 
 interface Order {
   order_id: string;
@@ -32,6 +33,9 @@ const statusConfig: Record<string, { color: string; label: string }> = {
 
 export default function EcommerceOrdersPage() {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [surtirOrder, setSurtirOrder] = useState<string | null>(null);
+  const [shippingTotal, setShippingTotal] = useState<number | null>(null);
+  const [needsInvoice, setNeedsInvoice] = useState<boolean | null>(null);
 
   const toggleOrder = (id: string) => {
     setSelectedOrders(prev => {
@@ -122,11 +126,17 @@ export default function EcommerceOrdersPage() {
                   <td className="px-4 py-3 text-sm text-on-surface-variant">{order.shipping_method}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSurtirOrder(order.order_id);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-[#A8E63D]/10 hover:bg-[#A8E63D]/20 text-[#A8E63D] text-[10px] font-bold uppercase tracking-wider transition-all"
+                      >
+                        Surtir
+                      </button>
                       <button className="p-1.5 rounded-md bg-white/[0.06] hover:bg-white/[0.1] transition-all" title="Ver detalle">
                         <span className="material-symbols-outlined text-sm">visibility</span>
-                      </button>
-                      <button className="p-1.5 rounded-md bg-white/[0.06] hover:bg-white/[0.1] transition-all" title="Imprimir etiqueta">
-                        <span className="material-symbols-outlined text-sm text-[#A8E63D]">local_printshop</span>
                       </button>
                     </div>
                   </td>
@@ -136,6 +146,71 @@ export default function EcommerceOrdersPage() {
           </table>
         </div>
       </div>
+
+      {/* Modal Surtir Pedido */}
+      {surtirOrder && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#000103] border border-white/[0.08] rounded-[2rem] w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-headline font-bold text-white">Surtir Pedido</h2>
+                  <p className="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Configuración de Envío y Facturación</p>
+                </div>
+                <button onClick={() => setSurtirOrder(null)} className="text-on-surface-variant hover:text-white">
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Paso 1: Dimensiones */}
+                <ShippingDimensionsCard onCalculated={(total) => setShippingTotal(total)} />
+
+                {/* Paso 2: Facturación */}
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
+                   <h3 className="text-sm font-headline font-bold text-white mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-blue-400 text-base">receipt</span>
+                    ¿Requieres Factura CFDI?
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => setNeedsInvoice(true)}
+                      className={`py-3 rounded-xl border transition-all text-[11px] font-bold uppercase tracking-wider ${needsInvoice ? "bg-blue-500/10 border-blue-500 text-blue-400" : "bg-white/[0.02] border-white/[0.06] text-on-surface-variant"}`}
+                    >
+                      Sí, requiero factura
+                    </button>
+                    <button 
+                      onClick={() => setNeedsInvoice(false)}
+                      className={`py-3 rounded-xl border transition-all text-[11px] font-bold uppercase tracking-wider ${needsInvoice === false ? "bg-white/[0.1] border-white text-white" : "bg-white/[0.02] border-white/[0.06] text-on-surface-variant"}`}
+                    >
+                      Venta al Público
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-10 flex gap-4">
+                <button 
+                  onClick={() => setSurtirOrder(null)}
+                  className="flex-1 py-4 bg-white/[0.03] text-on-surface-variant font-bold rounded-2xl uppercase tracking-widest text-xs hover:bg-white/[0.06]"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className="flex-1 py-4 bg-[#CCFF00] text-black font-bold rounded-2xl uppercase tracking-widest text-xs hover:shadow-[0_0_20px_#CCFF0040] transition-all disabled:opacity-30"
+                  disabled={!shippingTotal || needsInvoice === null}
+                  onClick={() => {
+                    alert(`Guía generada. Facturación: ${needsInvoice ? 'CFDI Solicitado' : 'Público General'}`);
+                    setSurtirOrder(null);
+                  }}
+                >
+                  Confirmar y Generar Guía
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -97,6 +97,8 @@ interface DashboardShellProps {
   userRole?: UserRole;
   /** Display name from user_profiles.full_name */
   userName?: string;
+  /** Subscription plan ID from tenants table */
+  planId?: string;
 }
 
 export function DashboardShell({
@@ -104,6 +106,7 @@ export function DashboardShell({
   unlockedModules,
   userRole = "viewer",   // safe default: no modules visible
   userName = "",
+  planId = "enterprise", // default to full for now if not set
 }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
@@ -116,12 +119,19 @@ export function DashboardShell({
   };
 
 
+  // Determine unlocked modules if not provided, based on planId
+  const effectiveUnlocked = unlockedModules || (
+    planId === "growth" ? ["ecommerce"] :
+    planId === "pro" ? ["ecommerce", "erp"] :
+    ["ecommerce", "erp", "crm"] // enterprise or default
+  );
+
   // Apply lock state based on unlockedModules prop
   const modules: ModuleDefinition[] = [
     ...(userRole === "atollom_admin" ? ADMIN_MODULES : []),
     ...DEFAULT_MODULES.map((mod) => ({
       ...mod,
-      locked: unlockedModules ? !unlockedModules.includes(mod.id) : false,
+      locked: !effectiveUnlocked.includes(mod.id),
     }))
   ];
 
@@ -253,7 +263,7 @@ export function DashboardShell({
       </main>
 
       {/* ── Samantha chat FAB ───────────────────────────────────── */}
-      <SamanthaFAB />
+      <SamanthaFAB planId={planId} />
     </>
   );
 }

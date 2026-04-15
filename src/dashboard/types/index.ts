@@ -9,6 +9,7 @@ export interface TenantUser {
   name: string;
   email: string;
   is_atollom_admin?: boolean;
+  plan_id?: string;
 }
 
 export type Platform = 'ml' | 'amazon' | 'shopify' | 'b2b';

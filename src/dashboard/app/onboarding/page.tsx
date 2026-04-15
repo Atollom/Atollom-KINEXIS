@@ -426,13 +426,25 @@ export default function OnboardingPage() {
               </p>
 
               <div className="space-y-4">
+                <div className="bg-[#A8E63D]/5 border border-[#A8E63D]/20 rounded-xl p-5 mb-6">
+                  <h3 className="text-sm font-bold text-[#A8E63D] mb-2 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-base">info</span>
+                    Inducción de Seguridad Kinexis
+                  </h3>
+                  <ul className="text-[12px] space-y-2 text-[#E8EAF0]">
+                    <li>1. Accede al portal de desarrolladores de cada plataforma.</li>
+                    <li>2. Genera un token con permisos de <strong>Lectura y Escritura</strong> de pedidos.</li>
+                    <li>3. Samantha cifrará estas llaves en el <strong>Supabase Vault</strong> de grado bancario.</li>
+                  </ul>
+                </div>
+
                 <IntegrationInput 
                   name="mlApiKey" color="#FFE600" label="Mercado Libre (Access Token)" icon="shopping_bag"
-                  value={mlApiKey} onChange={setMlApiKey} link="https://developers.mercadolibre.com.mx/"
+                  value={mlApiKey} onChange={setMlApiKey} link="https://youtube.com/atollomlabs/tutorial-ml-api"
                 />
                 <IntegrationInput 
                   name="amzApiKey" color="#FF9900" label="Amazon SP-API Key" icon="inventory_2"
-                  value={amzApiKey} onChange={setAmzApiKey} link="https://developer-docs.amazon.com/sp-api/"
+                  value={amzApiKey} onChange={setAmzApiKey} link="https://youtube.com/atollomlabs/tutorial-amazon-spapi"
                 />
                 <IntegrationInput 
                   name="shpApiKey" color="#96BF48" label="Shopify Access Token" icon="shopping_cart"
@@ -544,7 +556,7 @@ export default function OnboardingPage() {
               <div className="space-y-4">
                 <IntegrationInput 
                   name="metaToken" color="#0084FF" label="Meta System User Access Token" icon="forum"
-                  value={metaAccessToken} onChange={setMetaAccessToken} link="https://developers.facebook.com/"
+                  value={metaAccessToken} onChange={setMetaAccessToken} link="https://youtube.com/atollomlabs/tutorial-meta-crm"
                 />
                 <div className="grid grid-cols-2 gap-4">
                   <IntegrationInput 
