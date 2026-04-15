@@ -46,6 +46,9 @@ export default function LoginPage() {
 
       {/* ── Login Card ─────────────────────────────────────────── */}
       <div className="relative z-10 w-full max-w-[480px] animate-luxe">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-12 bg-primary text-background px-6 py-2 rounded-full text-xs font-black tracking-widest">
+          ✅ ACTUALIZADO 15 ABRIL 2026
+        </div>
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-surface/40 backdrop-blur-2xl border border-white/10 shadow-2xl mb-6 group transition-all hover:scale-105 active:scale-95">
             <span className="material-symbols-outlined text-4xl text-primary drop-shadow-[0_0_8px_var(--primary)] group-hover:rotate-12 transition-transform">
