@@ -75,8 +75,8 @@ export function ModuleNav({ modules, userRole }: ModuleNavProps) {
     });
   };
 
-  return (
-    <nav className="flex flex-col gap-1 flex-1 overflow-y-auto px-3" aria-label="Módulos">
+   return (
+     <nav className="flex flex-col gap-2 flex-1 overflow-y-auto px-4 pb-4" aria-label="Módulos">
       {modules.map((mod) => {
         // RBAC: skip invisible modules
         if (!canSeeModule(userRole, mod.id)) return null;
@@ -92,10 +92,10 @@ export function ModuleNav({ modules, userRole }: ModuleNavProps) {
             <button
               onClick={() => !mod.locked && toggleModule(mod.id)}
               disabled={mod.locked}
-              className={`
-                w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-                font-headline font-bold text-[13px] tracking-tight
-                transition-all duration-200 group relative
+             className={`
+                 w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                 font-headline font-bold text-[13px] tracking-tight
+                 transition-all duration-200 group relative
                 ${mod.locked
                   ? "opacity-40 cursor-not-allowed"
                   : isModuleActive
@@ -182,8 +182,8 @@ export function ModuleNav({ modules, userRole }: ModuleNavProps) {
                       href={item.href}
                       aria-current={isActive ? "page" : undefined}
                       className={`
-                        flex items-center gap-2.5 px-3 py-2 rounded-lg
-                        text-[12px] font-medium
+                         flex items-center gap-3 px-4 py-2.5 rounded-lg
+                         text-[12px] font-medium
                         transition-all duration-150
                         ${isActive
                           ? "bg-white/[0.08] text-on-surface"

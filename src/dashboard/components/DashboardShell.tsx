@@ -109,26 +109,26 @@ export function DashboardShell({
       )}
 
       {/* ── Sidebar ────────────────────────────────────────────── */}
-      <aside
-        className={`
-          fixed left-0 top-0 h-full z-50
-          flex flex-col
-          w-[272px]
-          bg-[#0A1628]/95 backdrop-blur-xl
-          border-r border-white/[0.06]
-          transition-transform duration-300 ease-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-        `}
-        aria-label="Navegación principal"
-      >
+       <aside
+         className={`
+           fixed left-0 top-0 h-full z-50
+           flex flex-col
+           w-[288px]
+           bg-[#0A1628]/98 backdrop-blur-2xl
+           border-r border-white/[0.07]
+           transition-transform duration-300 ease-out
+           ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+         `}
+         aria-label="Navegación principal"
+       >
          {/* Logo */}
-         <div className="px-5 pt-7 pb-4">
+         <div className="px-5 pt-6 pb-5">
            <Link href="/" className="flex items-center gap-3 group" aria-label="Ir al inicio">
-             {/* Logo Original Atollom */}
+             {/* Logo Oficial KINEXIS */}
              <img 
-               src="/ATOLLOM_AI_ICON.png" 
-               alt="Atollom KINEXIS" 
-               className="w-10 h-10 flex-shrink-0 rounded-lg"
+               src="/kinexis-logo.png" 
+               alt="KINEXIS by Atollom AI" 
+               className="w-11 h-11 flex-shrink-0 rounded-xl"
              />
 
              {/* Wordmark */}
@@ -137,7 +137,7 @@ export function DashboardShell({
                  KINEXIS
                </h1>
                <p className="text-[10px] text-on-surface-variant tracking-[0.15em] uppercase -mt-0.5">
-                 Atollom AI
+                 Atollom Neural Platform
                </p>
              </div>
            </Link>
@@ -146,22 +146,22 @@ export function DashboardShell({
         {/* Divider */}
         <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-        {/* User card */}
-        <div className="px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#A8E63D]/20 to-[#A8E63D]/5 border border-[#A8E63D]/20 flex items-center justify-center flex-shrink-0">
-              <span className="material-symbols-outlined text-[#A8E63D] text-base">person</span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-headline font-bold text-on-surface truncate">
-                {userName || "Usuario"}
-              </p>
-              <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">
-                {userRole}
-              </p>
-            </div>
-          </div>
-        </div>
+         {/* User card */}
+         <div className="px-5 py-5">
+           <div className="flex items-center gap-4">
+             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#A8E63D]/20 to-[#A8E63D]/5 border border-[#A8E63D]/20 flex items-center justify-center flex-shrink-0">
+               <span className="material-symbols-outlined text-[#A8E63D] text-base">person</span>
+             </div>
+             <div className="min-w-0 flex-1">
+               <p className="text-sm font-headline font-bold text-on-surface truncate">
+                 {userName || "Usuario"}
+               </p>
+               <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">
+                 {userRole}
+               </p>
+             </div>
+           </div>
+         </div>
 
         {/* Divider */}
         <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-3" />
