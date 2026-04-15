@@ -121,41 +121,27 @@ export function DashboardShell({
         `}
         aria-label="Navegación principal"
       >
-        {/* Logo */}
-        <div className="px-5 pt-7 pb-4">
-          <Link href="/" className="flex items-center gap-3 group" aria-label="Ir al inicio">
-            {/* Isotipo atómico */}
-            <div className="relative w-10 h-10 flex-shrink-0">
-              {/* Nucleus */}
-              <div className="absolute inset-[30%] rounded-full bg-[#A8E63D]" />
-              {/* Orbit rings */}
-              <div
-                className="absolute inset-0 rounded-full border border-[#A8E63D]/40"
-                style={{ transform: "rotateX(60deg)" }}
-              />
-              <div
-                className="absolute inset-0 rounded-full border border-[#A8E63D]/25"
-                style={{ transform: "rotateX(60deg) rotateY(45deg)" }}
-              />
-              <div
-                className="absolute inset-0 rounded-full border border-[#A8E63D]/15"
-                style={{ transform: "rotateX(60deg) rotateY(-45deg)" }}
-              />
-              {/* Electron */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#A8E63D] shadow-[0_0_6px_#A8E63D]" />
-            </div>
+         {/* Logo */}
+         <div className="px-5 pt-7 pb-4">
+           <Link href="/" className="flex items-center gap-3 group" aria-label="Ir al inicio">
+             {/* Logo Original Atollom */}
+             <img 
+               src="/ATOLLOM_AI_ICON.png" 
+               alt="Atollom KINEXIS" 
+               className="w-10 h-10 flex-shrink-0 rounded-lg"
+             />
 
-            {/* Wordmark */}
-            <div>
-              <h1 className="text-xl font-headline font-bold tracking-tight text-white group-hover:text-[#A8E63D] transition-colors">
-                KINEXIS
-              </h1>
-              <p className="text-[10px] text-on-surface-variant tracking-[0.15em] uppercase -mt-0.5">
-                Neural Platform
-              </p>
-            </div>
-          </Link>
-        </div>
+             {/* Wordmark */}
+             <div>
+               <h1 className="text-xl font-headline font-bold tracking-tight text-white group-hover:text-[#A8E63D] transition-colors">
+                 KINEXIS
+               </h1>
+               <p className="text-[10px] text-on-surface-variant tracking-[0.15em] uppercase -mt-0.5">
+                 Atollom AI
+               </p>
+             </div>
+           </Link>
+         </div>
 
         {/* Divider */}
         <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />

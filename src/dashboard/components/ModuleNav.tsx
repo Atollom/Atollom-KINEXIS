@@ -43,7 +43,7 @@ const ROLE_VISIBLE_MODULES: Record<UserRole, string[] | "all"> = {
   almacenista: ["erp"],
   contador:    ["erp"],
   agente:      ["crm"],
-  viewer:      [],
+  viewer:      ["ecommerce", "erp", "crm"],
   atollom_admin: "all",
 };
 
