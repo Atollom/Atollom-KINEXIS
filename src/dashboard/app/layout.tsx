@@ -3,6 +3,7 @@ import "./globals.css";
 
 import { createClient } from "@/lib/supabase";
 import { DashboardShell } from "@/components/DashboardShell";
+import { ShellWrapper } from "@/components/ShellWrapper";
 import { getAuthenticatedTenant } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -40,18 +41,9 @@ export default async function RootLayout({
       </head>
       <body className="antialiased bg-black text-white neural-gradient min-h-screen custom-scrollbar selection:bg-[#ccff00] selection:text-black">
         <Providers>
-          {userData ? (
-            <DashboardShell 
-              userRole={userData.role} 
-              userName={userData.name}
-              tenantName={userData.tenant_name}
-              planId={userData.plan_id || "enterprise"}
-            >
-              {children}
-            </DashboardShell>
-          ) : (
-            children
-          )}
+          <ShellWrapper userData={userData}>
+            {children}
+          </ShellWrapper>
         </Providers>
       </body>
     </html>

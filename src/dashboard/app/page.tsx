@@ -1,215 +1,168 @@
 "use client";
 
-import { useKPIs } from "@/hooks/useKPIs";
-import { useInventory } from "@/hooks/useInventory";
-import { useLeads } from "@/hooks/useLeads";
-import { usePurchaseOrders } from "@/hooks/usePurchaseOrders";
-import { KpiCard } from "@/components/KpiCard";
-import { SystemMetrics } from "@/components/SystemMetrics";
-import { AgentsFeed } from "@/components/AgentsFeed";
-import { ApprovalQueue } from "@/components/ApprovalQueue";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
-function BentoCard({ 
-  title, 
-  subtitle, 
-  icon, 
-  children 
-}: { 
-  title: string; 
-  subtitle?: string; 
-  icon?: string; 
-  children: React.ReactNode 
-}) {
-  return (
-    <div className="glass-card rounded-[2.5rem] p-8 border border-white/5 relative overflow-hidden group">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          {icon && <span className="material-symbols-outlined text-[#ccff00] text-xl">{icon}</span>}
-          <div>
-            <h3 className="text-sm font-black uppercase italic tracking-wider text-white">{title}</h3>
-            {subtitle && <p className="text-[9px] font-black uppercase text-white/20 tracking-widest mt-0.5">{subtitle}</p>}
-          </div>
-        </div>
-      </div>
-      {children}
-    </div>
-  );
-}
+export default function DashboardPage() {
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-export default function HomePage() {
-  const { kpis, isLoading: isLoadingKPIs } = useKPIs();
-  const { inventory, isLoading: isLoadingInv } = useInventory();
-  const { leads, isLoading: isLoadingLeads } = useLeads();
-  const { purchaseOrders, isLoading: isLoadingPOs } = usePurchaseOrders();
+  // Avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const metrics = [
-    { label: "DAILY_REVENUE", value: `$${kpis?.revenue_today?.toLocaleString() ?? "0"}`, trend: "+12.4%", trendColor: "primary" as const },
-    { label: "AI_CONV_NODES", value: kpis?.active_agents?.toLocaleString() ?? "0", trend: "+8.2%", trendColor: "primary" as const },
-    { label: "PENDING_CFDI", value: kpis?.cfdi_pending?.toString() ?? "0", trend: "-2.1%", trendColor: "error" as const, accent: "error" as const },
-    { label: "SYSTEM_UPTIME", value: "99.98%", trend: "0.001s", trendColor: "outline" as const, accent: "primary" as const },
-  ];
+  if (!mounted) return null;
 
   return (
-    <div className="space-y-12 pb-24 animate-luxe">
-      
-      {/* ── Neural Header Cluster ────────────────────────────── */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 py-10">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-             <div className="bg-[#ccff00]/10 border border-[#ccff00]/20 px-4 py-1.5 rounded-full flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse shadow-volt" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ccff00] italic">Neural Link: Online</span>
-             </div>
-             <span className="text-white/10 text-[10px] uppercase font-black tracking-[0.4em] italic leading-none">ID: KINEXIS-OS-BRAVO</span>
-          </div>
-          <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
-            Neural <span className="text-[#ccff00] shadow-volt-text">Commander</span>
+    <div className="space-y-10 animate-in">
+      {/* Hero Header Section */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <span className="text-[0.75rem] font-bold label-tracking text-primary drop-shadow-[0_0_8px_rgba(204,255,0,0.3)]">
+            System Overview
+          </span>
+          <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface leading-tight">
+            Operations Dashboard
           </h1>
-          <p className="text-white/20 text-[11px] uppercase font-black tracking-[0.5em] italic leading-relaxed max-w-xl">
-            Autonomous multi-agent orchestration shell · Level 4 Autonomy Active
-          </p>
         </div>
-
-        <div className="flex items-center gap-6">
-           <div className="text-right">
-              <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.4em] italic mb-1">Last Sync</p>
-              <p className="text-xs font-black text-white italic tracking-wider">0.002s DELTA</p>
-           </div>
-           <div className="w-px h-10 bg-white/5" />
-           <button className="h-14 px-10 bg-[#ccff00] text-black rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] shadow-volt hover:scale-105 active:scale-95 transition-all italic">
-              Deploy Agent
-           </button>
+        <div className="flex gap-3">
+          <button className="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-on-surface font-bold text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95">
+            Export Logs
+          </button>
+          <button className="px-6 py-3 rounded-full neon-disruptor text-[11px] uppercase tracking-widest shadow-[0_0_20px_rgba(204,255,0,0.3)] hover:scale-105 transition-all active:scale-95">
+            System Refresh
+          </button>
         </div>
-      </header>
-
-      {/* ── Telemetry Matrix ─────────────────────────────────── */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {metrics.map((m, i) => (
-          <KpiCard key={i} {...m} />
-        ))}
       </section>
 
-      {/* ── Core Systems ─────────────────────────────────────── */}
-      <section className="grid grid-cols-12 gap-8">
-        
-        {/* Main Intelligence Grid */}
-        <div className="col-span-12 lg:col-span-8 space-y-8">
-          <SystemMetrics />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <BentoCard 
-              title="INVENTORY_FRAGMENTS" 
-              subtitle="Stock Integrity Audit"
-              icon="inventory_2"
-            >
-              <div className="space-y-6 py-6">
-                {(inventory?.slice(0, 4) || []).map((item: any) => (
-                  <div key={item.sku} className="space-y-3 group/row">
-                    <div className="flex justify-between items-end">
-                      <p className="text-[10px] font-black text-white uppercase tracking-tight group-hover/row:text-[#ccff00] transition-colors">{item.name}</p>
-                      <p className="text-[10px] font-black text-white/20 italic">{item.days_remaining} DAYS</p>
-                    </div>
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-0.5">
-                       <div 
-                        className={`h-full rounded-full transition-all duration-1000 ${item.days_remaining < 7 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-[#ccff00] shadow-volt'}`} 
-                        style={{ width: `${Math.min((item.days_remaining / 30) * 100, 100)}%` }} 
-                       />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </BentoCard>
-
-            <BentoCard 
-              title="PROCUREMENT_QUEUE" 
-              subtitle="Pending Human Intercepts"
-              icon="shopping_basket"
-            >
-              <div className="space-y-3 py-6">
-                {(purchaseOrders?.slice(0, 5) || []).map((po: any) => (
-                  <div key={po.po_id} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl hover:border-white/10 transition-all">
-                    <div className="flex items-center gap-3">
-                       <span className="material-symbols-outlined text-white/20 text-lg italic">description</span>
-                       <div>
-                          <p className="text-[10px] font-black text-white uppercase leading-none">{po.supplier}</p>
-                          <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mt-1 italic">{po.status}</p>
-                       </div>
-                    </div>
-                    <span className="text-[10px] font-black text-[#ccff00] italic">${po.total?.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            </BentoCard>
+      {/* KPI Bento Grid */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Throughput */}
+        <div className="glass-card p-8 space-y-6 group cursor-pointer hover:bg-white/[0.08] transition-all">
+          <div className="flex justify-between items-start">
+            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-primary">
+              <span className="material-symbols-outlined !text-[24px]">speed</span>
+            </div>
+            <span className="text-primary font-black text-xs label-tracking">+12.4%</span>
+          </div>
+          <div>
+            <h3 className="text-on-surface-variant text-[10px] font-black label-tracking">Throughput</h3>
+            <p className="text-3xl font-black tight-tracking mt-1">1.2 GB/s</p>
           </div>
         </div>
 
-        {/* Neural Feed Sidebar */}
-        <div className="col-span-12 lg:col-span-4 space-y-8">
-          <AgentsFeed />
-          <ApprovalQueue />
+        {/* System Health */}
+        <div className="glass-card p-8 space-y-6 group cursor-pointer hover:bg-white/[0.08] transition-all">
+          <div className="flex justify-between items-start">
+            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-primary">
+              <span className="material-symbols-outlined !text-[24px]">health_and_safety</span>
+            </div>
+            <span className="text-primary font-black text-xs label-tracking">Stable</span>
+          </div>
+          <div>
+            <h3 className="text-on-surface-variant text-[10px] font-black label-tracking">System Health</h3>
+            <p className="text-3xl font-black tight-tracking mt-1">99.98%</p>
+          </div>
         </div>
 
+        {/* Latency */}
+        <div className="glass-card p-8 space-y-6 group cursor-pointer hover:bg-white/[0.08] transition-all">
+          <div className="flex justify-between items-start">
+            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-secondary">
+              <span className="material-symbols-outlined !text-[24px]">timer</span>
+            </div>
+            <span className="text-red-500 font-black text-xs label-tracking">+2ms</span>
+          </div>
+          <div>
+            <h3 className="text-on-surface-variant text-[10px] font-black label-tracking">Latency</h3>
+            <p className="text-3xl font-black tight-tracking mt-1">14ms</p>
+          </div>
+        </div>
+
+        {/* Active Agents */}
+        <div className="glass-card p-8 space-y-6 group cursor-pointer hover:bg-white/[0.08] transition-all">
+          <div className="flex justify-between items-start">
+            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-on-surface">
+              <span className="material-symbols-outlined !text-[24px]">memory</span>
+            </div>
+            <span className="text-primary font-black text-xs label-tracking">Active</span>
+          </div>
+          <div>
+            <h3 className="text-on-surface-variant text-[10px] font-black label-tracking">Active Agents</h3>
+            <p className="text-3xl font-black tight-tracking mt-1">2,842</p>
+          </div>
+        </div>
       </section>
 
-      {/* ── Operational Sectors ─────────────────────────────── */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
-         {/* Sector Identity Cards */}
-         <div className="glass-card rounded-[3rem] p-10 border border-white/5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#ccff00]/5 rounded-full blur-[60px] pointer-events-none group-hover:bg-[#ccff00]/10 transition-colors duration-1000" />
-            <div className="flex items-center gap-4 mb-6">
-               <span className="material-symbols-outlined text-[#ccff00] text-3xl">storefront</span>
-               <h3 className="text-xl font-black italic text-white uppercase tracking-tighter">Market_Sector</h3>
+      {/* Main Content Area: Chart + Sidebar */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Visualization Area */}
+        <div className="lg:col-span-2 glass-card p-8 space-y-8 relative overflow-hidden group">
+          <div className="flex justify-between items-center relative z-10">
+            <h2 className="text-xl font-black tight-tracking">Network Propagation</h2>
+            <div className="flex items-center gap-4 text-[10px] font-black label-tracking text-on-surface-variant">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span> Edge Nodes
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-white/20"></span> Core Relay
+              </span>
             </div>
-            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] mb-8 leading-relaxed italic">
-               Cross-platform synchronization for ML_Amazon_Shopify nodes.
-            </p>
-            <div className="space-y-3">
-               <div className="flex justify-between text-[9px] font-black text-white/40 uppercase italic">
-                  <span>Sync Status</span>
-                  <span className="text-[#ccff00]">Nominal</span>
-               </div>
-               <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#ccff00] w-full shadow-volt" />
-               </div>
-            </div>
-         </div>
+          </div>
+          
+          <div className="aspect-[21/9] w-full bg-white/5 rounded-2xl overflow-hidden relative group">
+             <div className="absolute inset-x-8 bottom-8 flex items-end gap-1.5 h-3/4">
+               {[40, 55, 45, 70, 60, 85, 75, 90, 80, 65, 50, 40, 60, 70, 55, 80, 65, 95].map((h, i) => (
+                 <div 
+                   key={i} 
+                   className="flex-1 bg-white/5 hover:bg-primary transition-all rounded-t-sm"
+                   style={{ height: `${h}%` }}
+                 />
+               ))}
+             </div>
+             {/* Decorative grid */}
+             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
+          </div>
 
-         <div className="glass-card rounded-[3rem] p-10 border border-white/5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-[60px] pointer-events-none transition-colors duration-1000" />
-            <div className="flex items-center gap-4 mb-6">
-               <span className="material-symbols-outlined text-white/40 text-3xl">psychology</span>
-               <h3 className="text-xl font-black italic text-white uppercase tracking-tighter">Logic_Core</h3>
-            </div>
-            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] mb-8 leading-relaxed italic">
-               High-level procurement and inventory planning fragment.
-            </p>
-            <div className="space-y-3">
-               <div className="flex justify-between text-[9px] font-black text-white/40 uppercase italic">
-                  <span>Processing</span>
-                  <span className="text-white">Active</span>
-               </div>
-               <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-white/20 w-[85%]" />
-               </div>
-            </div>
-         </div>
+          {/* Background glow */}
+          <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-primary/5 blur-[100px] rounded-full group-hover:bg-primary/10 transition-colors" />
+        </div>
 
-         <div className="glass-card rounded-[3rem] p-10 border border-[#ccff00]/10 bg-[#ccff00]/5 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#ccff00]/20 rounded-full blur-[60px] pointer-events-none" />
-            <div className="flex items-center gap-4 mb-8">
-                <div className="w-16 h-16 rounded-3xl bg-black flex items-center justify-center border border-white/10">
-                   <span className="material-symbols-outlined text-[#ccff00] text-4xl shadow-volt">offline_bolt</span>
-                </div>
-                <div>
-                   <h3 className="text-2xl font-black italic text-white uppercase tracking-tighter">System_Auth</h3>
-                   <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#ccff00]">Verified</span>
-                </div>
-            </div>
+        {/* Priority Alerts & Meta */}
+        <div className="space-y-6">
+           <div className="neon-disruptor rounded-2xl p-8 shadow-[0_20px_40px_rgba(204,255,0,0.15)] relative overflow-hidden group">
+              <div className="relative z-10 space-y-4">
+                <h2 className="text-2xl font-black tight-tracking leading-none">Deploy New<br/>Neural Edge</h2>
+                <p className="text-[12px] opacity-70 font-bold leading-relaxed">Scale infrastructure instantly with AI-optimized nodes across 42 regions.</p>
+                <button className="w-full py-4 bg-black text-white font-black text-[11px] uppercase tracking-widest rounded-xl hover:scale-[1.02] transition-all active:scale-95 shadow-2xl">
+                  Initialize Deployment
+                </button>
+              </div>
+              <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/20 rounded-full blur-3xl group-hover:scale-150 transition-all duration-700" />
+           </div>
 
-            <button className="w-full py-4 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:border-[#ccff00]/30 transition-all">
-               Manage Identity Hub
-            </button>
-         </div>
+           <div className="glass-card p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-[10px] font-black label-tracking text-on-surface-variant">Critical Alerts</h3>
+                <span className="px-2 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-full animate-pulse">3 ACTIVE</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { icon: "warning", title: "Latency Spike", desc: "US-East-1 Cluster B", color: "text-red-500" },
+                  { icon: "bolt", title: "Auto-Scale", desc: "EU-West nodes +12", color: "text-primary" },
+                ].map((alert, i) => (
+                  <div key={i} className="flex gap-4 items-start p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer">
+                    <span className={`material-symbols-outlined ${alert.color} !text-lg`}>{alert.icon}</span>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-tight">{alert.title}</p>
+                      <p className="text-[10px] text-on-surface-variant font-bold">{alert.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+           </div>
+        </div>
       </section>
     </div>
   );

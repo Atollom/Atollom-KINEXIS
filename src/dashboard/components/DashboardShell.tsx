@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ModuleNav } from "./ModuleNav";
 import { Header } from "./Header";
@@ -21,31 +21,12 @@ const DEFAULT_MODULES: ModuleDefinition[] = [
     icon: "storefront",
     locked: false,
     items: [
-      { id: "ec-overview",  label: "Vista General",       href: "/ecommerce",           icon: "dashboard" },
-      { id: "ec-orders",    label: "Órdenes",             href: "/ecommerce/orders",    icon: "receipt_long" },
-      { id: "ec-ml",        label: "Mercado Libre",        href: "/ecommerce/ml",        icon: "shopping_bag" },
-      { id: "ec-amazon",    label: "Amazon",               href: "/ecommerce/amazon",    icon: "inventory_2" },
-      { id: "ec-shopify",   label: "Shopify",              href: "/ecommerce/shopify",   icon: "shopping_cart" },
-      { id: "ec-catalog",   label: "Catálogo",             href: "/ecommerce/catalog",   icon: "category" },
-      { id: "ec-prices",    label: "Precios",              href: "/ecommerce/prices",    icon: "sell" },
-      { id: "ec-reviews",   label: "Reseñas",              href: "/ecommerce/reviews",   icon: "star_rate" },
-    ],
-  },
-  {
-    id: "erp",
-    name: "ERP",
-    color: "green",
-    colorHex: "#22C55E",
-    icon: "account_tree",
-    locked: false,
-    items: [
-      { id: "erp-overview",   label: "Vista General",     href: "/erp",                  icon: "dashboard" },
-      { id: "erp-inventory",  label: "Almacén",         href: "/erp/inventory",        icon: "warehouse" },
-      { id: "erp-cfdi",       label: "Facturación CFDI",   href: "/erp/cfdi",             icon: "description" },
-      { id: "erp-procurement",label: "Compras",            href: "/erp/procurement",      icon: "shopping_basket" },
-      { id: "erp-warehouse",  label: "Operaciones",        href: "/warehouse",            icon: "forklift" },
-      { id: "erp-cashflow",   label: "Flujo de Caja",      href: "/erp/cashflow",         icon: "account_balance" },
-      { id: "erp-tax",        label: "Fiscal",             href: "/erp/tax",              icon: "gavel" },
+      { id: "ec-overview",    label: "Dashboard General",   href: "/ecommerce",             icon: "dashboard" },
+      { id: "ec-fulfillment", label: "Pedidos por Surtir",  href: "/ecommerce/fulfillment", icon: "pending_actions" },
+      { id: "ec-ml",          label: "Mercado Libre",      href: "/ecommerce/ml",          icon: "shopping_bag" },
+      { id: "ec-amazon",      label: "Amazon",             href: "/ecommerce/amazon",      icon: "inventory_2" },
+      { id: "ec-shopify",     label: "Shopify",            href: "/ecommerce/shopify",     icon: "shopping_cart" },
+      { id: "ec-b2b",         label: "Ventas B2B",         href: "/ecommerce/b2b",         icon: "handshake" },
     ],
   },
   {
@@ -56,14 +37,25 @@ const DEFAULT_MODULES: ModuleDefinition[] = [
     icon: "group",
     locked: false,
     items: [
-      { id: "crm-overview",  label: "Vista General",      href: "/crm",                  icon: "dashboard" },
-      { id: "crm-leads",     label: "Leads",              href: "/crm/leads",            icon: "person_search" },
-      { id: "crm-pipeline",  label: "Pipeline",           href: "/crm/pipeline",         icon: "filter_alt" },
-      { id: "crm-b2b",       label: "Ventas B2B",         href: "/crm/b2b",              icon: "handshake" },
-      { id: "crm-whatsapp",  label: "WhatsApp",           href: "/meta/whatsapp",        icon: "chat" },
-      { id: "crm-instagram", label: "Instagram",          href: "/meta/instagram",       icon: "photo_camera" },
-      { id: "crm-nps",       label: "NPS & Satisfacción", href: "/crm/nps",              icon: "sentiment_satisfied" },
-      { id: "crm-support",   label: "Soporte",            href: "/crm/support",          icon: "support_agent" },
+      { id: "crm-overview",  label: "Dashboard General",    href: "/crm",                  icon: "dashboard" },
+      { id: "crm-inbox",     label: "Inbox Unificado",      href: "/crm/inbox",            icon: "forum" },
+      { id: "crm-pipeline",  label: "Pipeline & Leads",     href: "/crm/leads",            icon: "filter_alt" },
+      { id: "crm-quotes",    label: "Cotizaciones",         href: "/crm/quotes",           icon: "description" },
+    ],
+  },
+  {
+    id: "erp",
+    name: "ERP",
+    color: "green",
+    colorHex: "#22C55E",
+    icon: "account_tree",
+    locked: false,
+    items: [
+      { id: "erp-overview",   label: "Dashboard General",   href: "/erp",                  icon: "dashboard" },
+      { id: "erp-inventory",  label: "Almacén",            href: "/erp/inventory",        icon: "warehouse" },
+      { id: "erp-procurement",label: "Compras",            href: "/erp/procurement",      icon: "shopping_basket" },
+      { id: "erp-finance",    label: "Finanzas",           href: "/erp/finance",          icon: "account_balance" },
+      { id: "erp-accounting", label: "Accounting ZIP",     href: "/erp/accounting",       icon: "file_zip" },
     ],
   },
 ];
@@ -114,8 +106,19 @@ export function DashboardShell({
   tenantName = "Atollom HQ",
 }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activePlan, setActivePlan] = useState<string>(planId);
   const router = useRouter();
   const supabase = createBrowserSupabaseClient();
+
+  // ──────────────────────────────────────────────────────────────────────────────
+  // QA Mock Integration: Sync plan override from localStorage for audit
+  // ──────────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const mockPlan = localStorage.getItem("kinexis_mock_plan");
+    if (mockPlan && mockPlan !== activePlan) {
+      setActivePlan(mockPlan);
+    }
+  }, [activePlan]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -124,17 +127,15 @@ export function DashboardShell({
   };
 
   const effectiveUnlocked = unlockedModules || (
-    planId === "growth" ? ["ecommerce"] :
-    planId === "pro" ? ["ecommerce", "erp"] :
+    activePlan === "starter" ? ["ecommerce"] :
+    activePlan === "growth" ? ["ecommerce", "erp"] :
     ["ecommerce", "erp", "crm"]
   );
 
+  // Filter modules: Strictly remove if not in effectiveUnlocked
   const modules: ModuleDefinition[] = [
     ...(userRole === "atollom_admin" ? ADMIN_MODULES : []),
-    ...DEFAULT_MODULES.map((mod) => ({
-      ...mod,
-      locked: !effectiveUnlocked.includes(mod.id),
-    }))
+    ...DEFAULT_MODULES.filter((mod) => effectiveUnlocked.includes(mod.id))
   ];
 
   return (

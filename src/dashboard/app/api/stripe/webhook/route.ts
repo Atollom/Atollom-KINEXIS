@@ -130,18 +130,14 @@ export async function POST(req: NextRequest) {
         if (!tenantId) break;
 
         // Notificar al usuario de fallo de pago
-        console.log(`[Webhook] Payment failed for tenant ${tenantId}`);
-        // Aquí podrías insertar en system_notifications
         break;
       }
 
       default:
-        console.log(`[Webhook] Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('[Webhook] Processing error:', error);
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

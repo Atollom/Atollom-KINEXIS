@@ -1,173 +1,192 @@
 "use client";
 
-export default function EcommerceMLPage() {
+import { useMemo } from "react";
+
+export default function MercadoLibrePage() {
+  const stats = useMemo(() => [
+    { label: "Successful Publications", value: "1,240", icon: "inventory", color: "text-blue-400" },
+    { label: "Seller Reputation", value: "Platinum", icon: "verified", color: "text-primary" },
+    { label: "In Transit", value: "42", icon: "local_shipping", color: "text-amber-400" },
+    { label: "Returns", value: "3", icon: "assignment_return", color: "text-red-400" },
+  ], []);
+
+  const comments = [
+    { id: 1, user: "Carlos R.", product: "NX-800 Hub", content: "Excelente calidad, llegó antes de lo esperado.", score: 5 },
+    { id: 2, user: "Ana S.", product: "Neural Cable", content: "Funciona bien, pero el empaque llegó un poco dañado.", score: 4 },
+  ];
+
+  const priceRequests = [
+    { id: "PR-01", product: "NX-800 Hub", current: 1540, requested: 1490, reason: "Competencia bajó precio" },
+    { id: "PR-02", product: "Command Center", current: 8900, requested: 8500, reason: "Promoción Buen Fin" },
+  ];
+
   return (
-    <div className="px-4 md:px-8 py-6 max-w-screen-2xl mx-auto space-y-6">
-      <div className="mb-2">
-        <h1 className="text-2xl font-headline font-bold text-on-surface mb-2">
-          Mercado Libre
-        </h1>
-        <p className="text-on-surface-variant text-sm">
-          Gestión completa de tu tienda Mercado Libre.
-        </p>
-        <div className="flex gap-2 mt-3">
-          {[2, 3, 4, 5, 6].map(id => (
-            <div key={id} className="flex items-center gap-1.5 px-2 py-1 bg-[#CCFF00]/10 border border-[#CCFF00]/20 rounded-lg">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse" />
-              <span className="text-[9px] font-bold text-[#CCFF00] uppercase tracking-wider">Agent #{id}</span>
-            </div>
-          ))}
+    <div className="space-y-10 animate-in">
+      {/* Header */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <span className="text-[0.75rem] font-bold label-tracking text-[#FFE600] drop-shadow-[0_0_8px_rgba(255,230,0,0.3)]">
+            Channel Intelligence / Mercado Libre
+          </span>
+          <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">
+            Control Operativo ML
+          </h1>
         </div>
+
+        <div className="flex items-center gap-3">
+           <button className="px-8 py-4 glass-card border-white/5 rounded-2xl text-[10px] font-black label-tracking text-on-surface-variant hover:text-on-surface hover:border-primary/20 transition-all flex items-center gap-2">
+              <span className="material-symbols-outlined !text-[16px]">sync</span>
+              SYNC API
+           </button>
+           <button className="px-8 py-4 neon-disruptor rounded-2xl text-[10px] font-black label-tracking shadow-glow">
+              SOLICITAR SURTIDO FULL
+           </button>
+        </div>
+      </header>
+
+      {/* Primary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+         {stats.map((s, i) => (
+           <div key={i} className="glass-card p-8 rounded-[2rem] border border-white/5 relative overflow-hidden group">
+              <div className="relative z-10 flex flex-col gap-4">
+                 <span className={`material-symbols-outlined !text-3xl ${s.color}`}>{s.icon}</span>
+                 <div>
+                    <p className="text-[10px] font-black text-on-surface/30 label-tracking uppercase">{s.label}</p>
+                    <p className="text-3xl font-black text-on-surface tight-tracking">{s.value}</p>
+                 </div>
+              </div>
+              <div className="absolute right-0 bottom-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                 <span className="material-symbols-outlined !text-6xl">{s.icon}</span>
+              </div>
+           </div>
+         ))}
       </div>
 
-      {/* KPIs Principales */}
-      <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Publicaciones Activas</p>
-          <p className="text-2xl font-bold text-yellow-400">127</p>
-        </div>
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Publicaciones Estrella</p>
-          <p className="text-2xl font-bold text-green-400">18</p>
-        </div>
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Pedidos Por Surtir</p>
-          <p className="text-2xl font-bold text-amber-400">7</p>
-        </div>
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Preguntas Cliente</p>
-          <p className="text-2xl font-bold text-blue-400">8</p>
-        </div>
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-1">Ventas Hoy</p>
-          <p className="text-2xl font-bold text-purple-400">$18,742</p>
-        </div>
-      </section>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+         {/* Left Col: Price Requests & Comments */}
+         <div className="lg:col-span-8 space-y-10">
+            {/* Price Requests */}
+            <section className="space-y-6">
+               <div className="flex items-center justify-between">
+                  <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic">Solicitudes de Cambio de Precio</h3>
+                  <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">ACTION REQUIRED</span>
+               </div>
+               <div className="space-y-4">
+                  {priceRequests.map(req => (
+                    <div key={req.id} className="glass-card p-6 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-primary/20 transition-all">
+                       <div className="flex items-center gap-6">
+                          <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
+                             <span className="material-symbols-outlined text-amber-500">trending_down</span>
+                          </div>
+                          <div>
+                             <p className="text-sm font-black text-on-surface">{req.product}</p>
+                             <p className="text-[10px] font-bold text-on-surface-variant italic">"{req.reason}"</p>
+                          </div>
+                       </div>
+                       <div className="flex items-center gap-8">
+                          <div className="text-right">
+                             <p className="text-[9px] font-black text-on-surface/20 label-tracking">CURRENT vs NEW</p>
+                             <p className="text-sm font-black text-on-surface">${req.current.toLocaleString()} &rarr; <span className="text-primary font-black">${req.requested.toLocaleString()}</span></p>
+                          </div>
+                          <div className="flex gap-2">
+                             <button className="w-10 h-10 rounded-lg border border-white/5 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                                <span className="material-symbols-outlined !text-[18px]">close</span>
+                             </button>
+                             <button className="w-10 h-10 rounded-lg bg-primary text-black flex items-center justify-center hover:scale-105 transition-all">
+                                <span className="material-symbols-outlined !text-[18px]">check</span>
+                             </button>
+                          </div>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+            </section>
 
-      {/* Publicaciones Estrella */}
-      <section className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
-        <h3 className="font-bold text-on-surface mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-yellow-400">star</span>
-          Publicaciones Estrella
-        </h3>
-
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/[0.06]">
-                <th className="px-3 py-2 text-left text-xs text-on-surface-variant uppercase tracking-wider">Producto</th>
-                <th className="px-3 py-2 text-center text-xs text-on-surface-variant uppercase tracking-wider">SKU</th>
-                <th className="px-3 py-2 text-center text-xs text-on-surface-variant uppercase tracking-wider">Stock</th>
-                <th className="px-3 py-2 text-center text-xs text-on-surface-variant uppercase tracking-wider">Precio</th>
-                <th className="px-3 py-2 text-center text-xs text-on-surface-variant uppercase tracking-wider">Ventas Semana</th>
-                <th className="px-3 py-2 text-center text-xs text-on-surface-variant uppercase tracking-wider">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { name: "Cargador Portátil 20000mAh", sku: "SKU-00123", stock: 47, price: 299, sales: 89, status: "Excelente" },
-                { name: "Audífonos Bluetooth Pro", sku: "SKU-00456", stock: 12, price: 549, sales: 67, status: "Bajo Stock" },
-                { name: "Protector Pantalla Cristal", sku: "SKU-00789", stock: 234, price: 99, sales: 156, status: "Excelente" },
-                { name: "Funda Silicona Premium", sku: "SKU-00145", stock: 89, price: 149, sales: 45, status: "Normal" },
-              ].map((prod, i) => (
-                <tr key={i} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
-                  <td className="px-3 py-3 text-sm text-on-surface">{prod.name}</td>
-                  <td className="px-3 py-3 text-sm text-on-surface-variant text-center font-mono">{prod.sku}</td>
-                  <td className="px-3 py-3 text-sm text-center font-bold">{prod.stock}</td>
-                  <td className="px-3 py-3 text-sm text-center font-bold">${prod.price}</td>
-                  <td className="px-3 py-3 text-sm text-center font-bold text-green-400">{prod.sales}</td>
-                  <td className="px-3 py-3 text-center">
-                    <span className={`px-2 py-1 rounded-md text-xs font-bold ${
-                      prod.status === "Excelente" ? "bg-green-500/20 text-green-400" :
-                      prod.status === "Bajo Stock" ? "bg-amber-500/20 text-amber-400" :
-                      "bg-blue-500/20 text-blue-400"
-                    }`}>
-                      {prod.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Bandeja de Preguntas */}
-      <section className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-on-surface flex items-center gap-2">
-            <span className="material-symbols-outlined text-blue-400">question_answer</span>
-            Bandeja de Preguntas
-          </h3>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-on-surface-variant">Respuesta Automática: 🟢 ACTIVA</span>
-            <button className="px-3 py-1.5 bg-white/[0.06] text-on-surface rounded-lg text-xs font-bold hover:bg-white/[0.1] transition-all">
-              Ver todas
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          {[
-            { user: "María González", question: "¿Este producto es compatible con iPhone 15?", time: "Hace 12 min", auto_responded: true, response: "Si, es perfectamente compatible con iPhone 15 y todos los modelos anteriores." },
-            { user: "Juan Pérez", question: "¿Cuánto tiempo tarda en llegar?", time: "Hace 28 min", auto_responded: true, response: "El tiempo de entrega es de 2 a 4 días hábiles por Mercado Envíos." },
-            { user: "Ana Martínez", question: "Tienen factura?", time: "Hace 1h", auto_responded: false, response: null },
-          ].map((q, i) => (
-            <div key={i} className="bg-white/[0.04] rounded-lg p-4">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <p className="font-bold text-sm text-on-surface">{q.user}</p>
-                  <p className="text-xs text-on-surface-variant">{q.time}</p>
+            {/* Recent Product Comments */}
+            <section className="space-y-6">
+                <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic">Feedback de Productos</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   {comments.map(comment => (
+                     <div key={comment.id} className="glass-card p-6 rounded-3xl border border-white/5 flex flex-col gap-4">
+                        <div className="flex justify-between items-start">
+                           <div>
+                              <p className="text-xs font-black text-on-surface">{comment.user}</p>
+                              <p className="text-[9px] font-bold text-on-surface/40 uppercase tracking-tighter">{comment.product}</p>
+                           </div>
+                           <div className="flex text-primary">
+                              {[...Array(5)].map((_, i) => (
+                                <span key={i} className={`material-symbols-outlined !text-[12px] ${i < comment.score ? 'fill-1' : ''}`}>star</span>
+                              ))}
+                           </div>
+                        </div>
+                        <p className="text-[11px] font-medium text-on-surface-variant leading-relaxed italic">"{comment.content}"</p>
+                     </div>
+                   ))}
                 </div>
-                {q.auto_responded && (
-                  <span className="px-2 py-1 rounded-md text-xs bg-[#A8E63D]/20 text-[#A8E63D] font-bold">🤖 Respondido por IA</span>
-                )}
-                {!q.auto_responded && (
-                  <span className="px-2 py-1 rounded-md text-xs bg-amber-500/20 text-amber-400 font-bold">⏳ Pendiente</span>
-                )}
-              </div>
-              <p className="text-sm text-on-surface mb-2">❝ {q.question} ❞</p>
-              {q.response && (
-                <div className="bg-[#A8E63D]/5 border-l-2 border-[#A8E63D] rounded-r-lg p-2 ml-4">
-                  <p className="text-sm text-on-surface">{q.response}</p>
+            </section>
+         </div>
+
+         {/* Right Col: Logistics Summary & Seller Health */}
+         <div className="lg:col-span-4 space-y-10">
+            {/* Seller Health */}
+            <section className="glass-card p-8 rounded-[2.5rem] border border-white/5 space-y-6 relative overflow-hidden">
+               <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic relative z-10">Salud del Vendedor</h3>
+               
+               <div className="space-y-6 relative z-10">
+                  <div className="flex justify-between items-center">
+                     <p className="text-xs font-bold text-on-surface/60">Ventas con Reclamo</p>
+                     <p className="text-xs font-black text-primary">&lt; 1%</p>
+                  </div>
+                  <div className="w-full h-1 bg-white/5 rounded-full">
+                     <div className="w-1/4 h-full bg-primary rounded-full shadow-glow" />
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                     <p className="text-xs font-bold text-on-surface/60">Tiempo de Despacho</p>
+                     <p className="text-xs font-black text-amber-500">1.2h delay</p>
+                  </div>
+                  <div className="w-full h-1 bg-white/5 rounded-full">
+                     <div className="w-3/4 h-full bg-amber-500 rounded-full" />
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                     <p className="text-xs font-bold text-on-surface/60">Cancelaciones</p>
+                     <p className="text-xs font-black text-primary">0%</p>
+                  </div>
+                  <div className="w-full h-1 bg-white/5 rounded-full">
+                     <div className="w-[2%] h-full bg-primary rounded-full shadow-glow" />
+                  </div>
+               </div>
+
+               <div className="absolute inset-0 bg-primary/5 opacity-5 blur-3xl" />
+            </section>
+
+            {/* Top Publications Area */}
+            <section className="glass-card p-8 rounded-[2.5rem] border border-white/5">
+                <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic mb-8">Top Publicaciones</h3>
+                <div className="space-y-6">
+                   <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10" />
+                      <div className="flex-1">
+                         <p className="text-[11px] font-black text-on-surface truncate">NX-800 Pulse Hub</p>
+                         <p className="text-[9px] font-bold text-[#ccff00] uppercase tracking-widest">Active / Promoted</p>
+                      </div>
+                      <span className="material-symbols-outlined text-primary !text-[16px]">trending_up</span>
+                   </div>
+                   <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10" />
+                      <div className="flex-1">
+                         <p className="text-[11px] font-black text-on-surface truncate">Neural Link v2</p>
+                         <p className="text-[9px] font-bold text-primary uppercase tracking-widest">Active</p>
+                      </div>
+                      <span className="material-symbols-outlined text-on-surface/30 !text-[16px]">horizontal_rule</span>
+                   </div>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+            </section>
+         </div>
+      </div>
 
-      {/* Pedidos Pendientes */}
-      <section className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-on-surface flex items-center gap-2">
-            <span className="material-symbols-outlined text-blue-400">local_shipping</span>
-            Pedidos Pendientes
-          </h3>
-          <span className="px-2 py-1 rounded-md text-xs bg-amber-400/20 text-amber-400 font-bold">7 Órdenes</span>
-        </div>
-
-        <div className="space-y-3">
-          {[
-            { id: "ML-908123", user: "Beatriz Luna", total: 450 },
-            { id: "ML-908124", user: "Marco Valdés", total: 1290 },
-          ].map((ord, i) => (
-            <div key={i} className="bg-white/[0.04] rounded-lg p-4 flex items-center justify-between">
-              <div>
-                <p className="font-bold text-sm text-on-surface">{ord.user}</p>
-                <p className="text-[10px] text-on-surface-variant font-mono">{ord.id}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <p className="font-bold text-on-surface">${ord.total}</p>
-                <button className="flex items-center gap-1 px-4 py-2 bg-[#CCFF00] text-black rounded-xl text-[10px] font-bold uppercase tracking-wider hover:shadow-[0_0_10px_rgba(204,255,0,0.3)] transition-all">
-                  <span className="material-symbols-outlined text-sm">print</span>
-                  Guía Skydrop
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <div className="h-20" />
     </div>
   );
 }

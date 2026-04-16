@@ -2,79 +2,102 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── CSS Design Tokens ─────────────────────────────────────────────────────── */
+/* ─── CSS Design Tokens (KINEXIS DUAL-THEME) ─────────────────────────────── */
 
 :root {
-  --background: #ffffff;
-  --surface: #ffffff;
-  --on-surface: #000000;
+  --background: #F7F9FC;
+  --surface: #F7F9FC;
+  --on-surface: #191c1e;
+  --on-surface-variant: #444933;
   --primary: #506600;
-  --primary-container: #ccff00;
+  --primary-container: #CCFF00;
+  --on-primary-container: #5b7300;
+  
+  /* Glassmorphism Light */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-blur: 20px;
+  --card-shadow: 0 20px 40px rgba(25, 28, 30, 0.04), shadow-xl shadow-slate-200/50;
+  --card-border: transparent;
 }
 
 .dark {
-  --background: #000000;
-  --surface: #000000;
-  --on-surface: #ffffff;
-  --on-surface-variant: rgba(255, 255, 255, 0.4);
-  --primary: #ccff00;
-  --primary-container: #ccff00;
-  --outline-variant: rgba(255, 255, 255, 0.05);
+  --background: #040f1b;
+  --surface: #040f1b;
+  --on-surface: #dde9fb;
+  --on-surface-variant: #a0acbd;
+  --primary: #f3ffca;
+  --primary-container: #CCFF00;
+  --on-primary-container: #4a5e00;
 
   /* Glassmorphism Luxe */
-  --glass-bg: rgba(255, 255, 255, 0.02);
-  --glass-blur: 40px;
-  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-blur: 12px;
+  --card-shadow: none;
+  --card-border: rgba(255, 255, 255, 0.1); /* Subtle glow border */
 }
 
-/* ─── Base Reset & Selection ────────────────────────────────────────────────── */
+/* ─── Base Reset & Selection ─────────────────────────────────────────────── */
 
 body {
   background-color: var(--background);
   color: var(--on-surface);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1), color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 ::selection {
-  background-color: #ccff00;
-  color: #000000;
+  background-color: #CCFF00;
+  color: #040f1b;
 }
 
-/* ─── Luxe Utility Classes ─────────────────────────────────────────────────── */
+/* ─── Kinexis Utility Classes ────────────────────────────────────────────── */
 
 .glass-card {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-}
-
-.shadow-volt {
-  box-shadow: 0 0 20px rgba(204, 255, 0, 0.2), 0 0 40px rgba(204, 255, 0, 0.1);
-}
-
-.shadow-volt-text {
-  text-shadow: 0 0 10px rgba(204, 255, 0, 0.4);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: 1rem;
 }
 
 .tight-tracking {
-  letter-spacing: -0.05em;
+  letter-spacing: -0.02em;
 }
 
-.neural-gradient {
-  background: radial-gradient(circle at 50% 0%, rgba(204, 255, 0, 0.05), transparent 50%),
-              radial-gradient(circle at 0% 100%, rgba(204, 255, 0, 0.02), transparent 40%);
+.label-tracking {
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.ease-luxe {
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+.neon-disruptor {
+  background-color: #CCFF00;
+  color: #040f1b;
+  font-weight: 700;
 }
 
-/* ─── Scrollbars ───────────────────────────────────────────────────────────── */
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── Material Symbols ───────────────────────────────────────────────────── */
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ─── Scrollbars ──────────────────────────────────────────────────────────── */
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
@@ -93,39 +116,3 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.scrollbar-none {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-
-/* ─── Animations ────────────────────────────────────────────────────────────── */
-
-@keyframes luxeFadeIn {
-  from { opacity: 0; transform: translateY(20px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.animate-luxe {
-  animation: luxeFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* ─── Material Symbols Refinement ─────────────────────────────────────────── */
-
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 1, 'wght' 900, 'GRAD' 0, 'opsz' 20;
-}
-
-/* ─── Shake Animation (Errors) ─────────────────────────────────────────────── */
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
-}
-
-.animate-shake {
-  animation: shake 0.2s ease-in-out infinite alternate;
-}
