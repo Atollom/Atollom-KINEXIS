@@ -1,12 +1,14 @@
 {
   "project": "KINEXIS",
-  "phase": "Apple-Grade Refactor",
-  "status": "COMPLETED",
+  "phase": "Stripe Integration + Design Consistency",
+  "status": "IN_PROGRESS",
   "visual_identity": {
     "theme": "Deep Dark",
-    "surface": "#000103",
-    "accent": "#CCFF00 (Neon Green)",
-    "typography": "Inter/Outfit, Ultra-KPI (80px)"
+    "surface": "#040f1b",
+    "accent": "#CCFF00 / #cafd00 (Electric Lime)",
+    "typography": "Inter, Ultra-KPI (5.5rem, 900, -0.05em)",
+    "glass_blur": "12px dark / 20px light",
+    "design_system": "aligned with Stitch Luxury Kinexis"
   },
   "modules": {
     "erp": {
@@ -19,19 +21,65 @@
       "mercado_libre": "Agents #2-6",
       "shipping_provider": "Skydrop"
     },
+    "crm": {
+      "route": "/crm",
+      "features": ["Pipeline Kanban", "Leads", "NPS", "WhatsApp/Instagram unified"]
+    },
     "atollom_central": {
       "type": "Admin Mission Control",
       "route": "/atollom/central",
       "features": ["43-Agent Grid", "Latency Monitoring", "SaaS Economics"]
     }
   },
+  "stripe_integration": {
+    "status": "IMPLEMENTED",
+    "endpoints": ["/api/stripe/checkout", "/api/stripe/webhook", "/api/stripe/portal"],
+    "plans": {
+      "growth": "Ecommerce Manager - $99 MXN/mes",
+      "pro": "Ecommerce + ERP - $199 MXN/mes",
+      "enterprise": "Full Suite - $349 MXN/mes"
+    },
+    "migration": "038_stripe_fields.sql"
+  },
+  "samantha_chat": {
+    "status": "FIXED",
+    "fixes": [
+      "context parameter now used in API route",
+      "history sent from all chat components (last 20 messages)",
+      "stripe_downgrade_subscription still mocked - needs real API"
+    ]
+  },
+  "design_fixes": {
+    "status": "COMPLETED",
+    "components_fixed": [
+      "SamanthaChat.tsx - replaced #A8E63D with primary-container",
+      "SamanthaFAB.tsx - replaced all hardcoded colors with CSS variables",
+      "LoginForm.tsx - replaced hardcoded colors",
+      "ExcelUploadComponent.tsx - replaced #CCFF00",
+      "NotificationPanel.tsx - use semantic color tokens"
+    ]
+  },
+  "module_gating": {
+    "status": "IMPLEMENTED",
+    "middleware": "active_modules check ready",
+    "note": "UI-level gating in DashboardShell, server-level via RBAC"
+  },
   "critical_rules": [
     "Strict agent scoping per marketplace",
     "No layout shifts in sidebars (absolute hover menus)",
-    "Dynamic user greetings in dashboard"
+    "Dynamic user greetings in dashboard",
+    "HMAC verification for all webhooks"
   ],
   "agent_ecosystem": {
     "count": 43,
     "monitoring": "Atollom Central Grid"
+  },
+  "vercel_deployment": {
+    "root_directory": "src/dashboard",
+    "fixes": [
+      "vercel.json now includes rootDirectory",
+      "removed duplicate .vercel at root",
+      "removed empty package.json at root"
+    ]
   }
 }
