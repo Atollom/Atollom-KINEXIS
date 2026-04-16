@@ -1,4 +1,4 @@
-"use client";
+q"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,8 +26,7 @@ export function Sidebar({ modules, userRole, userName, tenantName, onLogout, ope
         fixed left-0 top-0 h-full z-50
         flex flex-col
         w-[280px]
-        bg-surface
-        border-r border-white/5
+        bg-[#040f1b]
         transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]
         ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
       `}
@@ -55,9 +54,9 @@ export function Sidebar({ modules, userRole, userName, tenantName, onLogout, ope
 
       {/* User Footer - Premium Edition */}
       <div className="p-6 mt-auto">
-        <div className="glass-card rounded-2xl p-4 flex items-center gap-4 group/user cursor-pointer active:scale-95 transition-all">
-          <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
-             <span className="material-symbols-outlined text-white/40 group-hover/user:text-primary transition-colors">person</span>
+        <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] p-5 flex items-center gap-5 group/user cursor-pointer active:scale-95 transition-all shadow-lg">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-white/5 flex items-center justify-center">
+             <span className="material-symbols-outlined text-white/40 group-hover/user:text-[#CCFF00] transition-colors">person</span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-white truncate">{userName || "Comandante"}</p>

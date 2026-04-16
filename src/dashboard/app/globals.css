@@ -2,116 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── CSS Design Tokens (KINEXIS DUAL-THEME) ─────────────────────────────── */
-
-:root {
-  --background: #F7F9FC;
-  --surface: #F7F9FC;
-  --on-surface: #191c1e;
-  --on-surface-variant: #444933;
-  --primary: #506600;
-  --primary-container: #CCFF00;
-  --on-primary-container: #5b7300;
-  
-  /* Glassmorphism Light */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-blur: 24px;
-  --card-shadow: 0 40px 100px rgba(0, 0, 0, 0.05);
-  --card-border: transparent;
+@layer base {
+  :root {
+    --background: #040f1b; /* Kinexis Deep Navy */
+    --foreground: #f0f0f0;
+    --primary: #CCFF00;
+  }
 }
 
-.dark {
-  --background: #040f1b;
-  --surface: #040f1b;
-  --on-surface: #dde9fb;
-  --on-surface-variant: #a0acbd;
-  --primary: #f3ffca;
-  --primary-container: #CCFF00;
-  --on-primary-container: #4a5e00;
-
-  /* Glassmorphism Luxe */
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-blur: 20px;
-  --card-shadow: 0 40px 100px rgba(0, 0, 0, 0.2);
-  --card-border: transparent;
+/* RESET AGRESIVO: Muerte a los bordes grises de principiante */
+* {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
-
-/* ─── Base Reset & Selection ─────────────────────────────────────────────── */
 
 body {
-  background-color: var(--background);
-  color: var(--on-surface);
+  background-color: #040f1b;
+  color: #f0f0f0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
+  letter-spacing: -0.02em;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
 }
 
-::selection {
-  background-color: #CCFF00;
-  color: #040f1b;
-}
-
-/* ─── Kinexis Utility Classes ────────────────────────────────────────────── */
+/* ─── Kinexis Utility Classes (Luxe Overrides) ──────────────────────────── */
 
 .glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: none;
-  box-shadow: var(--card-shadow);
-}
-
-.tight-tracking {
-  letter-spacing: -0.02em;
-}
-
-.label-tracking {
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.neon-disruptor {
-  background-color: #CCFF00;
-  color: #040f1b;
-  font-weight: 700;
-}
-
-/* ─── Animations ─────────────────────────────────────────────────────────── */
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-in {
-  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* ─── Material Symbols ───────────────────────────────────────────────────── */
-
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+  border-radius: 3.5rem;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7) !important;
+  border: none !important;
 }
 
 /* ─── Scrollbars ──────────────────────────────────────────────────────────── */
 
-.custom-scrollbar::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 4px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.1);
 }
-

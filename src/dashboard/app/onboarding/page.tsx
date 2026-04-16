@@ -41,52 +41,52 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#040f1b] flex items-center justify-center p-6 relative overflow-hidden selection:bg-primary selection:text-black">
+    <div className="min-h-screen bg-[#040f1b] flex items-center justify-center p-8 relative overflow-hidden">
       
       {/* Samantha Guide */}
       <SamanthaGuide step={step} />
 
-      {/* Main Glass Card */}
-      <div className="w-full max-w-3xl bg-white/[0.03] backdrop-blur-3xl p-16 rounded-[2.5rem] shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative z-10 animate-in zoom-in-95 duration-1000 border-none">
+      {/* Main Luxe Card */}
+      <div className="w-full max-w-4xl bg-white/5 backdrop-blur-[50px] rounded-[3.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.7)] p-20 relative z-10 animate-in zoom-in-95 duration-1000">
          
-         {/* Step Indicators */}
-         <div className="mb-16 flex justify-between items-center">
-            <div className="flex gap-3">
+         {/* Sequence Indicator */}
+         <div className="mb-20 flex justify-between items-center">
+            <div className="flex gap-4">
                {[1, 2, 3].map(s => (
-                 <div key={s} className={`h-1 rounded-full transition-all duration-700 ${step === s ? 'w-16 bg-primary shadow-[0_0_15px_rgba(204,255,0,0.5)]' : step > s ? 'w-8 bg-primary/20' : 'w-8 bg-white/5'}`} />
+                 <div key={s} className={`h-1.5 rounded-full transition-all duration-1000 ${step === s ? 'w-20 bg-[#CCFF00] shadow-[0_0_20px_rgba(204,255,0,0.4)]' : step > s ? 'w-10 bg-white/20' : 'w-10 bg-white/5'}`} />
                ))}
             </div>
-            <span className="text-[11px] font-black text-on-surface/20 uppercase tracking-[0.2em]">Sequence 0{step}</span>
+            <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">Section 0{step}</span>
          </div>
 
          {/* STEP 1: IDENTIDAD */}
          {step === 1 && (
-           <div className="space-y-12 animate-in slide-in-from-right-8 duration-700">
-              <div className="space-y-4">
-                 <h2 className="text-5xl font-black text-on-surface tight-tracking tracking-tighter">Identidad Operativa</h2>
-                 <p className="text-[15px] font-medium text-on-surface/40 leading-relaxed">Defina el identificador maestro para su terminal de comando.</p>
+           <div className="space-y-16 animate-in slide-in-from-right-10 duration-700">
+              <div className="space-y-6">
+                 <h2 className="text-7xl font-black text-white tracking-tighter leading-none">Identidad Operativa</h2>
+                 <p className="text-lg font-medium text-white/30 leading-relaxed">Establezca el identificador maestro de su terminal.</p>
               </div>
 
-              <div className="space-y-10">
-                 <div className="space-y-4">
-                    <label className="text-[11px] font-black text-on-surface/20 tracking-[0.2em] uppercase ml-6">Entidad Corporativa</label>
+              <div className="space-y-12">
+                 <div className="space-y-6">
+                    <label className="text-[10px] font-bold text-white/10 tracking-[0.3em] uppercase ml-8">Corporación</label>
                     <input 
                       type="text" 
-                      placeholder="Nombre de su Empresa"
-                      className="w-full bg-white/[0.04] rounded-3xl p-8 text-2xl font-black text-on-surface placeholder:text-on-surface/10 focus:bg-white/[0.07] outline-none transition-all border-none shadow-inner"
+                      placeholder="Nombre de la Entidad"
+                      className="w-full bg-white/5 rounded-[2rem] px-10 py-10 text-3xl font-bold text-white placeholder:text-white/5 focus:bg-white/10 outline-none transition-all shadow-inner"
                       value={formData.companyName}
                       onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                     />
                  </div>
 
-                 <div className="space-y-4">
-                    <label className="text-[11px] font-black text-on-surface/20 tracking-[0.2em] uppercase ml-6">Segmendo de Mercado</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                       {["Retail", "E-commerce", "Manufactura", "Logística", "B2B"].map(ind => (
+                 <div className="space-y-6">
+                    <label className="text-[10px] font-bold text-white/10 tracking-[0.3em] uppercase ml-8">Ecosistema</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                       {["Retail", "E-commerce", "B2B", "Lujo"].map(ind => (
                          <button 
                            key={ind}
                            onClick={() => setFormData({ ...formData, industry: ind })}
-                           className={`p-5 rounded-3xl text-[12px] font-black uppercase tracking-wider transition-all duration-500 border-none ${formData.industry === ind ? 'bg-primary text-black shadow-[0_20px_40px_rgba(204,255,0,0.2)]' : 'bg-white/5 text-on-surface/30 hover:bg-white/10'}`}
+                           className={`px-8 py-6 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-700 ${formData.industry === ind ? 'bg-[#CCFF00] text-black shadow-[0_20px_40px_rgba(204,255,0,0.2)]' : 'bg-white/5 text-white/20 hover:bg-white/10'}`}
                          >
                             {ind}
                          </button>
@@ -95,100 +95,102 @@ export default function OnboardingPage() {
                  </div>
               </div>
 
-              <button 
-                onClick={nextStep}
-                disabled={!formData.companyName}
-                className="w-full py-7 bg-primary text-black rounded-full text-[13px] font-black uppercase tracking-[0.2em] shadow-[0_25px_50px_rgba(204,255,0,0.15)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-10 border-none mt-4"
-              >
-                 INICIAR APROVISIONAMIENTO
-              </button>
+              <div className="pt-8">
+                <button 
+                  onClick={nextStep}
+                  disabled={!formData.companyName}
+                  className="w-full bg-[#CCFF00] rounded-full px-12 py-8 text-[11px] tracking-[0.3em] font-bold uppercase text-black shadow-[0_30px_60px_rgba(204,255,0,0.2)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-5"
+                >
+                   INICIAR APROVISIONAMIENTO
+                </button>
+              </div>
            </div>
          )}
 
          {/* STEP 2: APROVISIONAMIENTO */}
          {step === 2 && (
-           <div className="space-y-12 animate-in slide-in-from-right-8 duration-700">
-              <div className="space-y-4">
-                 <h2 className="text-5xl font-black text-on-surface tight-tracking tracking-tighter">Sistemas a la Carta</h2>
-                 <p className="text-[15px] font-medium text-on-surface/40 leading-relaxed">Configurando nodos operativos para el plan <span className="text-primary font-black uppercase">{mockPlan}</span>.</p>
+           <div className="space-y-16 animate-in slide-in-from-right-10 duration-700">
+              <div className="space-y-6">
+                 <h2 className="text-7xl font-black text-white tracking-tighter leading-none">Red Operativa</h2>
+                 <p className="text-lg font-medium text-white/30 leading-relaxed">Módulos habilitados para el plan <span className="text-[#CCFF00] font-black uppercase">{mockPlan}</span>.</p>
               </div>
 
-              <div className="grid grid-cols-1 gap-5">
+              <div className="grid grid-cols-1 gap-6">
                  {[
-                   { id: "ecommerce", name: "Escaparate Digital", icon: "shopping_bag", status: "Active", color: "text-blue-400" },
-                   { id: "crm", name: "Relaciones Neurales", icon: "forum", status: mockPlan === 'starter' ? 'Gated' : 'Active', color: "text-amber-500" },
-                   { id: "erp", name: "Logística Core", icon: "warehouse", status: mockPlan === 'enterprise' ? 'Active' : 'Gated', color: "text-emerald-500" },
+                   { id: "ecommerce", name: "Escaparate Digital", status: "Enabled", color: "text-[#CCFF00]" },
+                   { id: "crm", name: "Relaciones Neurales", status: mockPlan === 'starter' ? 'Gated' : 'Enabled', color: "text-blue-400" },
+                   { id: "erp", name: "Recursos Core", status: mockPlan === 'enterprise' ? 'Enabled' : 'Gated', color: "text-emerald-400" },
                  ].map(mod => (
-                   <div key={mod.id} className="bg-white/[0.03] p-7 rounded-[2rem] flex items-center justify-between border-none shadow-sm">
-                      <div className="flex items-center gap-8">
-                         <div className="w-16 h-16 rounded-3xl flex items-center justify-center bg-white/[0.04] shadow-inner">
-                            <span className={`material-symbols-outlined !text-4xl ${mod.color}`}>{mod.icon}</span>
+                   <div key={mod.id} className="bg-white/5 p-10 rounded-[2.5rem] flex items-center justify-between shadow-sm">
+                      <div className="flex items-center gap-10">
+                         <div className="w-20 h-20 rounded-[1.5rem] bg-white/5 flex items-center justify-center">
+                            <span className={`material-symbols-outlined !text-4xl ${mod.color}`}>neurology</span>
                          </div>
                          <div>
-                            <p className="text-xl font-black text-on-surface tracking-tight">{mod.name}</p>
-                            <p className="text-[11px] font-black text-on-surface/20 uppercase tracking-widest">{mod.status === 'Active' ? 'READY FOR SYNC' : 'UPGRADE REQUIRED'}</p>
+                            <p className="text-2xl font-bold text-white tracking-tight">{mod.name}</p>
+                            <p className="text-[10px] font-bold text-white/10 uppercase tracking-[0.3em]">{mod.status === 'Enabled' ? 'SISTEMA LISTO' : 'REQUIERE UPGRADE'}</p>
                          </div>
                       </div>
                       {mod.status === 'Gated' ? (
-                        <button className="px-8 py-3 bg-white/5 rounded-full text-[10px] font-black text-primary uppercase tracking-widest hover:bg-white/10 transition-all border-none">BUY NOW</button>
+                        <button className="bg-white/10 backdrop-blur-md rounded-full px-8 py-4 text-[9px] tracking-[0.2em] font-bold uppercase text-[#CCFF00] hover:bg-white/20 transition-all">RESERVAR</button>
                       ) : (
-                        <div className="flex items-center gap-3 px-5 py-2 bg-primary/5 rounded-full">
-                           <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                           <span className="text-[10px] font-black text-primary uppercase tracking-widest">ENABLED</span>
+                        <div className="px-8 py-4 bg-[#CCFF00]/10 rounded-full flex items-center gap-3">
+                           <span className="w-2 h-2 rounded-full bg-[#CCFF00] animate-pulse" />
+                           <span className="text-[9px] font-bold text-[#CCFF00] uppercase tracking-widest">ACTIVO</span>
                         </div>
                       )}
                    </div>
                  ))}
               </div>
 
-              <div className="flex gap-6 pt-4">
-                 <button onClick={prevStep} className="flex-1 py-7 bg-white/5 rounded-full text-[12px] font-black uppercase tracking-widest text-on-surface/30 hover:bg-white/10 transition-all border-none">VOLVER</button>
-                 <button onClick={nextStep} className="flex-[2] py-7 bg-primary text-black rounded-full text-[13px] font-black uppercase tracking-widest shadow-[0_25px_50px_rgba(204,255,0,0.1)] border-none">APLICAR CONFIGURACIÓN</button>
+              <div className="flex gap-6 pt-8">
+                 <button onClick={prevStep} className="flex-1 bg-white/10 backdrop-blur-md rounded-full px-10 py-7 text-[10px] tracking-[0.2em] font-bold uppercase text-white/20 hover:bg-white/20 transition-all">VOLVER</button>
+                 <button onClick={nextStep} className="flex-[2] bg-[#CCFF00] rounded-full px-10 py-7 text-[11px] tracking-[0.2em] font-bold uppercase text-black shadow-[0_20px_40px_rgba(204,255,0,0.1)]">CONFIRMAR CONEXIÓN</button>
               </div>
            </div>
          )}
 
          {/* STEP 3: SINCRONIZACIÓN */}
          {step === 3 && (
-           <div className="space-y-12 animate-in slide-in-from-right-8 duration-700">
-              <div className="space-y-4">
-                 <h2 className="text-5xl font-black text-on-surface tight-tracking tracking-tighter">Handshake Externo</h2>
-                 <p className="text-[15px] font-medium text-on-surface/40 leading-relaxed">Sincronice sus ecosistemas para iniciar la telemetría.</p>
+           <div className="space-y-16 animate-in slide-in-from-right-10 duration-700">
+              <div className="space-y-6">
+                 <h2 className="text-7xl font-black text-white tracking-tighter leading-none">Sincronización</h2>
+                 <p className="text-lg font-medium text-white/30 leading-relaxed">Vincule sus ecosistemas con el núcleo Kinexis.</p>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
                  {[
-                   { id: "shopify", name: "Shopify / M. Libre", icon: "hub", color: "text-blue-400" },
-                   { id: "meta", name: "WhatsApp Business", icon: "chat", color: "text-[#25D366]" },
-                   { id: "sat", name: "SAT / Fiscal Concierge", icon: "shield", color: "text-amber-500" },
+                   { id: "shopify", name: "Shopify / ML", icon: "hub" },
+                   { id: "meta", name: "Meta (WhatsApp)", icon: "chat" },
+                   { id: "sat", name: "SAT / Fiscal", icon: "shield" },
                  ].map(end => (
                    <button 
                      key={end.id}
                      onClick={() => performSync(end.id as any)}
                      disabled={syncStatus[end.id as keyof typeof syncStatus] !== 'idle'}
-                     className="bg-white/[0.03] p-6 rounded-3xl flex items-center justify-between group hover:bg-white/[0.06] transition-all border-none shadow-sm"
+                     className="bg-white/5 p-8 rounded-[2rem] flex items-center justify-between group hover:bg-white/10 transition-all"
                    >
-                       <div className="flex items-center gap-8">
-                          <span className={`material-symbols-outlined !text-3xl ${end.color}`}>{end.icon}</span>
-                          <p className="text-[15px] font-black text-on-surface uppercase tracking-wider">{end.name}</p>
+                       <div className="flex items-center gap-10">
+                          <span className="material-symbols-outlined !text-3xl text-white/20 group-hover:text-[#CCFF00] transition-colors">{end.icon}</span>
+                          <p className="text-lg font-bold text-white uppercase tracking-[0.2em]">{end.name}</p>
                        </div>
                        <div>
                           {syncStatus[end.id as keyof typeof syncStatus] === 'idle' ? (
-                            <span className="text-[11px] font-black text-on-surface/20 group-hover:text-primary transition-colors tracking-widest">CONECTAR</span>
+                            <span className="text-[10px] font-bold text-white/10 group-hover:text-[#CCFF00] transition-colors tracking-widest">CONECTAR</span>
                           ) : syncStatus[end.id as keyof typeof syncStatus] === 'syncing' ? (
-                            <span className="material-symbols-outlined !text-[24px] text-primary animate-spin">sync</span>
+                            <span className="material-symbols-outlined !text-[24px] text-[#CCFF00] animate-spin">sync</span>
                           ) : (
-                            <span className="material-symbols-outlined !text-[24px] text-primary shadow-[0_0_15px_rgba(204,255,0,0.5)]">check_circle</span>
+                            <span className="material-symbols-outlined !text-[24px] text-[#CCFF00] shadow-[0_0_20px_rgba(204,255,0,0.5)]">check_circle</span>
                           )}
                        </div>
                    </button>
                  ))}
               </div>
 
-              <div className="pt-10">
+              <div className="pt-12">
                 <button 
                   onClick={finalize}
-                  className="w-full py-9 bg-on-surface text-[#040f1b] rounded-full text-sm font-black uppercase tracking-[0.3em] shadow-[0_40px_80px_rgba(0,0,0,0.4)] hover:bg-primary transition-all hover:scale-[1.01] border-none"
+                  className="w-full bg-[#CCFF00] rounded-full px-12 py-10 text-[13px] tracking-[0.4em] font-bold uppercase text-black shadow-[0_40px_80px_rgba(0,0,0,0.4)] hover:scale-[1.01] transition-all"
                 >
                    ESTABLECER CONEXIÓN TOTAL
                 </button>
@@ -198,16 +200,16 @@ export default function OnboardingPage() {
 
          {/* STEP 4: FINALIZING */}
          {step === 4 && (
-           <div className="py-24 text-center space-y-12 animate-in zoom-in-50 duration-1000">
+           <div className="py-24 text-center space-y-16 animate-in zoom-in-50 duration-1000">
               <div className="relative inline-block">
-                 <div className="w-32 h-32 rounded-full border-[6px] border-primary/10 border-t-primary animate-spin" />
+                 <div className="w-40 h-40 rounded-full border-[10px] border-[#CCFF00]/5 border-t-[#CCFF00] animate-spin" />
                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary !text-5xl drop-shadow-[0_0_15px_rgba(204,255,0,0.5)]">bolt</span>
+                    <span className="material-symbols-outlined text-[#CCFF00] !text-6xl drop-shadow-[0_0_20px_rgba(204,255,0,0.6)]">bolt</span>
                  </div>
               </div>
-              <div className="space-y-5">
-                 <h2 className="text-4xl font-black text-on-surface uppercase tracking-[0.4em] opacity-90">Sistemas Online</h2>
-                 <p className="text-[12px] font-black text-primary animate-pulse uppercase tracking-[0.3em]">Cargando Arquitectura V2...</p>
+              <div className="space-y-6">
+                 <h2 className="text-5xl font-black text-white uppercase tracking-[0.6em] opacity-90">Sistemas Online</h2>
+                 <p className="text-[11px] font-bold text-[#CCFF00] animate-pulse uppercase tracking-[0.5em]">Inyectando Arquitectura Luxe...</p>
               </div>
            </div>
          )}
@@ -215,8 +217,8 @@ export default function OnboardingPage() {
       </div>
 
       {/* Ambinet Luxe Glows */}
-      <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-primary/5 blur-[160px] -z-10 rounded-full" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[800px] h-[800px] bg-blue-500/5 blur-[160px] -z-10 rounded-full" />
+      <div className="absolute top-[-20%] right-[-10%] w-[1000px] h-[1000px] bg-[#CCFF00]/5 blur-[200px] -z-10 rounded-full" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[1000px] h-[1000px] bg-blue-500/5 blur-[200px] -z-10 rounded-full" />
     </div>
   );
 }
