@@ -106,7 +106,7 @@ export default function HomePage() {
       {/* Greeting Header */}
       <header className="flex flex-col gap-2">
         <h1 className="text-5xl font-black tight-tracking text-on-surface">
-          Buen día, <span className="text-primary">{kpisLoading ? "..." : (kpis?.display_name || "Neural Commander")}</span>
+          SISTEMA ACTUALIZADO LUXE, <span className="text-primary">{kpisLoading ? "..." : (kpis?.display_name || "Neural Commander")}</span>
         </h1>
         <p className="text-[12px] font-black uppercase tracking-[0.3em] text-on-surface-variant opacity-60">
           Atollom Kinexis Dashboard — Ops Status: Alpha
