@@ -1,41 +1,52 @@
 'use client'
 import { useState } from 'react'
-import { ChevronDown, ShoppingBag, Users, Warehouse, ShieldCheck, Cpu } from 'lucide-react'
+import { ChevronDown, ShoppingBag, Users, Warehouse, ShieldCheck, Cpu, Database } from 'lucide-react'
+import { UserRole } from '@/app/dashboard/DashboardShell'
 
-// DEFINICIÓN DE INTERFAZ (Esto arregla el error de Vercel)
 interface NavModule {
   label: string;
   icon: any;
   items: string[];
   requiresPlan?: string[];
+  allowedRoles?: UserRole[];
 }
 
 const MODULES: Record<string, NavModule> = {
   ecommerce: {
     label: 'Ecommerce',
     icon: ShoppingBag,
-    items: ['Catálogo', 'Órdenes', 'Logística']
+    items: ['Catálogo', 'Órdenes', 'Logística'],
+    allowedRoles: ['ADMIN', 'ALMACEN'] 
   },
   crm: {
     label: 'CRM',
     icon: Users,
-    items: ['Inbox', 'Pipeline', 'Audiencias']
+    items: ['Inbox', 'Pipeline', 'Audiencias'],
+    allowedRoles: ['ADMIN', 'VENTAS']
   },
   erp: {
     label: 'ERP',
     icon: Warehouse,
     items: ['Finanzas', 'SAT', 'Inventario'],
-    requiresPlan: ['pro', 'enterprise'] 
+    requiresPlan: ['pro', 'enterprise'],
+    allowedRoles: ['ADMIN'] // ERP core es admin
+  },
+  stock_erp: {
+    label: 'ERP Inventario',
+    icon: Database,
+    items: ['Stock Físico', 'Surtido'],
+    allowedRoles: ['ALMACEN'] // Módulo específico para Almacén
   },
   sistema: {
     label: 'Sistema',
     icon: Cpu,
-    items: ['Agentes IA', 'Configuración']
+    items: ['Agentes IA', 'Configuración'],
+    allowedRoles: ['ADMIN']
   }
 }
 
-export function SidebarNav({ planId }: { planId: string }) {
-  const [expanded, setExpanded] = useState(['ecommerce'])
+export function SidebarNav({ planId, userRole }: { planId: string, userRole: UserRole }) {
+  const [expanded, setExpanded] = useState(['ecommerce', 'crm', 'stock_erp'])
   
   const toggleModule = (key: string) => {
     setExpanded(prev => 
@@ -44,10 +55,15 @@ export function SidebarNav({ planId }: { planId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 overflow-y-auto px-4 custom-scrollbar">
       {Object.entries(MODULES).map(([key, module]) => {
         // TENANCY GATING: ERP oculto en plan Starter
         if (module.requiresPlan && !module.requiresPlan.includes(planId)) {
+          return null
+        }
+
+        // ROLE-BASED FILTERING (V4)
+        if (module.allowedRoles && !module.allowedRoles.includes(userRole)) {
           return null
         }
         
