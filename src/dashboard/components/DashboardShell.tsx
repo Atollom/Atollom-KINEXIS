@@ -14,19 +14,28 @@ import type { UserRole } from "@/types";
 // ──────────────────────────────────────────────────────────────────────────────
 const DEFAULT_MODULES: ModuleDefinition[] = [
   {
-    id: "ecommerce",
-    name: "Ecommerce",
-    color: "blue",
-    colorHex: "#3B82F6",
-    icon: "storefront",
+    id: "command",
+    name: "CENTRO DE COMANDO",
+    color: "lime",
+    colorHex: "#CCFF00",
+    icon: "terminal",
     locked: false,
     items: [
-      { id: "ec-overview",    label: "Dashboard General",   href: "/ecommerce",             icon: "dashboard" },
-      { id: "ec-fulfillment", label: "Pedidos por Surtir",  href: "/ecommerce/fulfillment", icon: "pending_actions" },
-      { id: "ec-ml",          label: "Mercado Libre",      href: "/ecommerce/ml",          icon: "shopping_bag" },
-      { id: "ec-amazon",      label: "Amazon",             href: "/ecommerce/amazon",      icon: "inventory_2" },
-      { id: "ec-shopify",     label: "Shopify",            href: "/ecommerce/shopify",     icon: "shopping_cart" },
-      { id: "ec-b2b",         label: "Ventas B2B",         href: "/ecommerce/b2b",         icon: "handshake" },
+      { id: "cmd-exec",      label: "Dashboard Ejecutivo",   href: "/",                      icon: "monitoring" },
+      { id: "cmd-samantha",  label: "Samantha AI (Auditoría)",href: "/onboarding",           icon: "neurology" },
+    ],
+  },
+  {
+    id: "ecommerce",
+    name: "E-COMMERCE",
+    color: "blue",
+    colorHex: "#3B82F6",
+    icon: "shopping_cart",
+    locked: false,
+    items: [
+      { id: "ec-showcase",   label: "Escaparate Digital",    href: "/ecommerce",             icon: "storefront" },
+      { id: "ec-catalog",    label: "Gestión de Catálogo",   href: "/ecommerce/ml",          icon: "inventory_2" },
+      { id: "ec-fulfillment", label: "Órdenes y Cumplimiento",href: "/ecommerce/fulfillment", icon: "conveyor_belt" },
     ],
   },
   {
@@ -37,10 +46,10 @@ const DEFAULT_MODULES: ModuleDefinition[] = [
     icon: "group",
     locked: false,
     items: [
-      { id: "crm-overview",  label: "Dashboard General",    href: "/crm",                  icon: "dashboard" },
-      { id: "crm-inbox",     label: "Inbox Unificado",      href: "/crm/inbox",            icon: "forum" },
-      { id: "crm-pipeline",  label: "Pipeline & Leads",     href: "/crm/leads",            icon: "filter_alt" },
-      { id: "crm-quotes",    label: "Cotizaciones",         href: "/crm/quotes",           icon: "description" },
+      { id: "crm-inbox",     label: "Comunicaciones (Inbox)",href: "/crm/inbox",            icon: "forum" },
+      { id: "crm-sales",     label: "Operaciones de Venta",  href: "/crm",                  icon: "view_kanban" },
+      { id: "crm-ucp",       label: "Audiencias Corporativas",href: "/crm/leads",           icon: "hub" },
+      { id: "crm-marketing", label: "Motor de Marketing",    href: "/crm/marketing",        icon: "campaign" },
     ],
   },
   {
@@ -51,11 +60,20 @@ const DEFAULT_MODULES: ModuleDefinition[] = [
     icon: "account_tree",
     locked: false,
     items: [
-      { id: "erp-overview",   label: "Dashboard General",   href: "/erp",                  icon: "dashboard" },
-      { id: "erp-inventory",  label: "Almacén",            href: "/erp/inventory",        icon: "warehouse" },
-      { id: "erp-procurement",label: "Compras",            href: "/erp/procurement",      icon: "shopping_basket" },
-      { id: "erp-finance",    label: "Finanzas",           href: "/erp/finance",          icon: "account_balance" },
-      { id: "erp-accounting", label: "Accounting ZIP",     href: "/erp/accounting",       icon: "file_zip" },
+      { id: "erp-finance",    label: "Finanzas Core",        href: "/erp/finance",          icon: "account_balance_wallet" },
+      { id: "erp-accounting", label: "Impuestos (SAT Zip)",  href: "/erp/accounting",       icon: "file_zip" },
+      { id: "erp-inventory",  label: "Cadena de Suministro", href: "/erp/inventory",        icon: "warehouse" },
+    ],
+  },
+  {
+    id: "system",
+    name: "SISTEMA",
+    color: "gray",
+    colorHex: "#94A3B8",
+    icon: "settings",
+    locked: false,
+    items: [
+      { id: "sys-base",      label: "Configuraciones Base",  href: "/settings",             icon: "faders" },
     ],
   },
 ];
@@ -127,9 +145,9 @@ export function DashboardShell({
   };
 
   const effectiveUnlocked = unlockedModules || (
-    activePlan === "starter" ? ["ecommerce"] :
-    activePlan === "growth" ? ["ecommerce", "erp"] :
-    ["ecommerce", "erp", "crm"]
+    activePlan === "starter" ? ["command", "ecommerce", "system"] :
+    activePlan === "growth" ? ["command", "ecommerce", "erp", "system"] :
+    ["command", "ecommerce", "erp", "crm", "system"]
   );
 
   // Filter modules: Strictly remove if not in effectiveUnlocked
