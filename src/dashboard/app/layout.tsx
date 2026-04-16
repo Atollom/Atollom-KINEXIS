@@ -39,7 +39,7 @@ export default async function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased bg-black text-white neural-gradient min-h-screen custom-scrollbar selection:bg-[#ccff00] selection:text-black">
+      <body className="antialiased bg-[#040f1b] text-white neural-gradient min-h-screen custom-scrollbar selection:bg-[#ccff00] selection:text-black">
         <Providers>
           <ShellWrapper userData={userData}>
             {children}

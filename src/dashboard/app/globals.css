@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: #040f1b; /* Kinexis Deep Navy */
+    --background: #040f1b;
     --foreground: #f0f0f0;
     --primary: #CCFF00;
   }
 }
 
-/* RESET AGRESIVO: Muerte a los bordes grises de principiante */
+/* RESET ATÓMICO: Muerte absoluta a las líneas y bordes */
 * {
   border: none !important;
   outline: none !important;
@@ -20,38 +20,44 @@
 body {
   background-color: #040f1b;
   color: #f0f0f0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', sans-serif;
   letter-spacing: -0.02em;
   min-height: 100dvh;
-  -webkit-font-smoothing: antialiased;
 }
 
-/* ─── Kinexis Utility Classes (Luxe Overrides) ──────────────────────────── */
-
-.glass-card {
+/* SISTEMA LUXE/PRISTINE (SOLO SOMBRAS Y TONOS) */
+.luxe-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(50px);
   -webkit-backdrop-filter: blur(50px);
   border-radius: 3.5rem;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7) !important;
-  border: none !important;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8) !important;
 }
 
-/* ─── Scrollbars ──────────────────────────────────────────────────────────── */
+.pill-button {
+  border-radius: 9999px !important;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.crystal-bubble {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(80px);
+  -webkit-backdrop-filter: blur(80px);
+  border-radius: 9999px !important;
+  box-shadow: 0 40px 80px -10px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* SCROLLBAR LUXE */
 ::-webkit-scrollbar {
   width: 4px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.1);
 }
