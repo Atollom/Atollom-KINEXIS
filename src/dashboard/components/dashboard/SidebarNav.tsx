@@ -8,7 +8,13 @@ interface SidebarNavProps {
   planId: 'starter' | 'pro' | 'enterprise'
 }
 
-const MODULES = {
+interface Module {
+  label: string;
+  items: string[];
+  requiresPlan?: string[];
+}
+
+const MODULES: Record<string, Module> = {
   ecommerce: {
     label: 'Ecommerce',
     items: ['Catálogo', 'Órdenes', 'Logística']
