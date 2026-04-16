@@ -21,17 +21,17 @@ export function SamanthaGuide({ step }: SamanthaGuideProps) {
   }, [step]);
 
   return (
-    <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-4 duration-700">
-       <div className="glass-card px-8 py-4 rounded-3xl border border-primary/20 flex items-center gap-6 shadow-[0_0_40px_rgba(204,255,0,0.1)]">
+    <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-1000">
+       <div className="bg-white/5 backdrop-blur-2xl px-10 py-5 rounded-full flex items-center gap-8 shadow-[0_40px_100px_rgba(0,0,0,0.4)] border-none">
           <div className="relative">
-             <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/40 animate-pulse">
-                <span className="material-symbols-outlined text-primary !text-[24px]">neurology</span>
+             <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                <span className="material-symbols-outlined text-primary !text-[28px]">neurology</span>
              </div>
-             <div className="absolute -inset-1 bg-primary/10 blur-lg rounded-full -z-10" />
+             <div className="absolute -inset-2 bg-primary/5 blur-2xl rounded-full -z-10" />
           </div>
-          <div className="max-w-md">
-             <p className="text-[10px] font-black text-primary uppercase label-tracking mb-1">Samantha Guide</p>
-             <p className="text-sm font-bold text-on-surface leading-tight italic">"{message}"</p>
+          <div className="max-w-lg">
+             <p className="text-[11px] font-black text-primary uppercase tracking-[0.3em] mb-1.5 opacity-80">Samantha — Neural Guide</p>
+             <p className="text-[15px] font-bold text-on-surface leading-tight tracking-tight italic opacity-90">"{message}"</p>
           </div>
        </div>
     </div>

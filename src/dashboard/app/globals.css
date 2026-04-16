@@ -15,8 +15,8 @@
   
   /* Glassmorphism Light */
   --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-blur: 20px;
-  --card-shadow: 0 20px 40px rgba(25, 28, 30, 0.04), shadow-xl shadow-slate-200/50;
+  --glass-blur: 24px;
+  --card-shadow: 0 40px 100px rgba(0, 0, 0, 0.05);
   --card-border: transparent;
 }
 
@@ -31,9 +31,9 @@
 
   /* Glassmorphism Luxe */
   --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-blur: 12px;
-  --card-shadow: none;
-  --card-border: rgba(255, 255, 255, 0.1); /* Subtle glow border */
+  --glass-blur: 20px;
+  --card-shadow: 0 40px 100px rgba(0, 0, 0, 0.2);
+  --card-border: transparent;
 }
 
 /* ─── Base Reset & Selection ─────────────────────────────────────────────── */
@@ -60,9 +60,8 @@ body {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--card-border);
+  border: none;
   box-shadow: var(--card-shadow);
-  border-radius: 1rem;
 }
 
 .tight-tracking {

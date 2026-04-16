@@ -25,103 +25,103 @@ export default function QATestPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-12 animate-in p-10">
+    <div className="min-h-[90vh] flex flex-col items-center justify-center space-y-16 animate-in p-12 bg-[#040f1b]">
       
-      <div className="text-center space-y-4 max-w-2xl">
-         <div className="inline-flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-4">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Kinexis Audit Mode v3.0</span>
+      <div className="text-center space-y-6 max-w-2xl">
+         <div className="inline-flex items-center gap-3 px-6 py-2 bg-primary/10 rounded-full mb-4">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(204,255,0,0.8)]" />
+            <span className="text-[11px] font-black text-primary uppercase tracking-[0.3em]">Audit Simulation Mode</span>
          </div>
-         <h1 className="text-5xl font-black tight-tracking text-on-surface">Stress Test Controller</h1>
-         <p className="text-sm font-medium text-on-surface-variant opacity-60 leading-relaxed">
-            Esta página simula la configuración de tenant para la auditoría de mañana. Selecciona un nivel de suscripción para verificar el aislamiento de módulos y la estabilidad del layout dinámico.
+         <h1 className="text-6xl font-black tight-tracking text-on-surface tracking-tighter">Stress Test Controller</h1>
+         <p className="text-[15px] font-medium text-on-surface/40 leading-relaxed max-w-xl mx-auto">
+            Seleccione el perfil de suscripción para validar el aislamiento de nodos y la integridad de la arquitectura de 3 columnas.
          </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
          {/* Starter Card */}
          <button 
            onClick={() => setPlan("starter")}
-           className={`glass-card p-10 rounded-[3rem] border text-left transition-all group relative overflow-hidden ${currentMock === 'starter' ? 'border-primary bg-primary/5' : 'border-white/5 hover:border-white/20'}`}
+           className={`bg-white/[0.03] backdrop-blur-3xl p-12 rounded-[2.5rem] text-left transition-all duration-500 group relative overflow-hidden border-none shadow-[0_30px_60px_rgba(0,0,0,0.3)] ${currentMock === 'starter' ? 'bg-primary/10 shadow-[0_40px_100px_rgba(204,255,0,0.1)]' : 'hover:bg-white/[0.06]'}`}
          >
-            <div className="relative z-10 space-y-6">
-               <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                  <span className="material-symbols-outlined text-on-surface/40 group-hover:text-primary !text-3xl">shopping_bag</span>
+            <div className="relative z-10 space-y-8">
+               <div className="w-16 h-16 rounded-3xl bg-white/[0.04] flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                  <span className="material-symbols-outlined text-primary !text-4xl">shopping_bag</span>
                </div>
                <div>
-                  <h3 className="text-2xl font-black text-on-surface">Starter E-commerce</h3>
-                  <p className="text-[10px] font-bold text-on-surface/30 uppercase label-tracking mt-1">Tenant: Tienda de Charms</p>
+                  <h3 className="text-3xl font-black text-on-surface tracking-tight">Starter Tier</h3>
+                  <p className="text-[11px] font-black text-on-surface/20 uppercase tracking-widest mt-1">Tenant: Retail Focus</p>
                </div>
-               <p className="text-[12px] font-medium text-on-surface-variant leading-relaxed">
-                  Solo Ecommerce. El Sidebar debe ocultar CRM y ERP por completo.
+               <p className="text-[13px] font-medium text-on-surface/40 leading-relaxed">
+                  Acceso restringido a Ecommerce. Los subsistemas ERP y CRM son removidos del DOM.
                </p>
-               <div className="pt-4 flex items-center gap-2">
-                  <span className="text-[10px] font-black label-tracking text-primary uppercase">Simular Plan</span>
-                  <span className="material-symbols-outlined !text-[16px] text-primary group-hover:translate-x-1 transition-transform">east</span>
+               <div className="pt-6 flex items-center gap-3">
+                  <span className="text-[11px] font-black tracking-widest text-primary uppercase">INJECT PLAN</span>
+                  <span className="material-symbols-outlined !text-[18px] text-primary group-hover:translate-x-2 transition-transform">east</span>
                </div>
             </div>
-            {currentMock === 'starter' && <div className="absolute top-6 right-6 w-3 h-3 rounded-full bg-primary shadow-glow" />}
+            {currentMock === 'starter' && <div className="absolute top-8 right-8 w-4 h-4 rounded-full bg-primary shadow-[0_0_20px_rgba(204,255,0,0.8)]" />}
          </button>
 
          {/* Growth Card */}
          <button 
            onClick={() => setPlan("growth")}
-           className={`glass-card p-10 rounded-[3rem] border text-left transition-all group relative overflow-hidden ${currentMock === 'growth' ? 'border-blue-400 bg-blue-400/5' : 'border-white/5 hover:border-white/20'}`}
+           className={`bg-white/[0.03] backdrop-blur-3xl p-12 rounded-[2.5rem] text-left transition-all duration-500 group relative overflow-hidden border-none shadow-[0_30px_60px_rgba(0,0,0,0.3)] ${currentMock === 'growth' ? 'bg-blue-500/10 shadow-[0_40px_100px_rgba(59,130,246,0.1)]' : 'hover:bg-white/[0.06]'}`}
          >
-            <div className="relative z-10 space-y-6">
-               <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-blue-400/10 transition-colors">
-                  <span className="material-symbols-outlined text-on-surface/40 group-hover:text-blue-400 !text-3xl">warehouse</span>
+            <div className="relative z-10 space-y-8">
+               <div className="w-16 h-16 rounded-3xl bg-white/[0.04] flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                  <span className="material-symbols-outlined text-blue-400 !text-4xl">warehouse</span>
                </div>
                <div>
-                  <h3 className="text-2xl font-black text-on-surface">Growth Operativo</h3>
-                  <p className="text-[10px] font-bold text-on-surface/30 uppercase label-tracking mt-1">Tenant: Distribuidora Regional</p>
+                  <h3 className="text-3xl font-black text-on-surface tracking-tight">Growth Tier</h3>
+                  <p className="text-[11px] font-black text-on-surface/20 uppercase tracking-widest mt-1">Tenant: Logistics Hub</p>
                </div>
-               <p className="text-[12px] font-medium text-on-surface-variant leading-relaxed">
-                  Ecommerce + ERP. El Sidebar debe ocultar el CRM dinámicamente.
+               <p className="text-[13px] font-medium text-on-surface/40 leading-relaxed">
+                  Ecommerce + ERP Pack. Activación de telemetría de cadena de suministro.
                </p>
-               <div className="pt-4 flex items-center gap-2">
-                  <span className="text-[10px] font-black label-tracking text-blue-400 uppercase">Simular Plan</span>
-                  <span className="material-symbols-outlined !text-[16px] text-blue-400 group-hover:translate-x-1 transition-transform">east</span>
+               <div className="pt-6 flex items-center gap-3">
+                  <span className="text-[11px] font-black tracking-widest text-blue-400 uppercase">INJECT PLAN</span>
+                  <span className="material-symbols-outlined !text-[18px] text-blue-400 group-hover:translate-x-2 transition-transform">east</span>
                </div>
             </div>
-            {currentMock === 'growth' && <div className="absolute top-6 right-6 w-3 h-3 rounded-full bg-blue-400 shadow-[0_0_10px_#3B82F6]" />}
+            {currentMock === 'growth' && <div className="absolute top-8 right-8 w-4 h-4 rounded-full bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.8)]" />}
          </button>
 
          {/* Enterprise Card */}
          <button 
            onClick={() => setPlan("enterprise")}
-           className={`glass-card p-10 rounded-[3rem] border text-left transition-all group relative overflow-hidden ${currentMock === 'enterprise' ? 'border-emerald-500 bg-emerald-500/5' : 'border-white/5 hover:border-white/20'}`}
+           className={`bg-white/[0.03] backdrop-blur-3xl p-12 rounded-[2.5rem] text-left transition-all duration-500 group relative overflow-hidden border-none shadow-[0_30px_60px_rgba(0,0,0,0.3)] ${currentMock === 'enterprise' ? 'bg-emerald-500/10 shadow-[0_40px_100px_rgba(16,185,129,0.1)]' : 'hover:bg-white/[0.06]'}`}
          >
-            <div className="relative z-10 space-y-6">
-               <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-emerald-500/10 transition-colors">
-                  <span className="material-symbols-outlined text-on-surface/40 group-hover:text-emerald-500 !text-3xl">hub</span>
+            <div className="relative z-10 space-y-8">
+               <div className="w-16 h-16 rounded-3xl bg-white/[0.04] flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                  <span className="material-symbols-outlined text-emerald-400 !text-4xl">hub</span>
                </div>
                <div>
-                  <h3 className="text-2xl font-black text-on-surface">Enterprise Full</h3>
-                  <p className="text-[10px] font-bold text-on-surface/30 uppercase label-tracking mt-1">Tenant: Atollom HQ</p>
+                  <h3 className="text-3xl font-black text-on-surface tracking-tight">Enterprise Full</h3>
+                  <p className="text-[11px] font-black text-on-surface/20 uppercase tracking-widest mt-1">Tenant: Atollom HQ</p>
                </div>
-               <p className="text-[12px] font-medium text-on-surface-variant leading-relaxed">
-                  Sincronización total. Desbloqueo de todos los módulos del Nexus.
+               <p className="text-[13px] font-medium text-on-surface/40 leading-relaxed">
+                  Orquestación total. Desbloqueo de todos los nodos de la red Kinexis.
                </p>
-               <div className="pt-4 flex items-center gap-2">
-                  <span className="text-[10px] font-black label-tracking text-emerald-500 uppercase">Simular Plan</span>
-                  <span className="material-symbols-outlined !text-[16px] text-emerald-500 group-hover:translate-x-1 transition-transform">east</span>
+               <div className="pt-6 flex items-center gap-3">
+                  <span className="text-[11px] font-black tracking-widest text-emerald-400 uppercase">INJECT PLAN</span>
+                  <span className="material-symbols-outlined !text-[18px] text-emerald-400 group-hover:translate-x-2 transition-transform">east</span>
                </div>
             </div>
-            {currentMock === 'enterprise' && <div className="absolute top-6 right-6 w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_#10B981]" />}
+            {currentMock === 'enterprise' && <div className="absolute top-8 right-8 w-4 h-4 rounded-full bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.8)]" />}
          </button>
       </div>
 
-      <div className="flex flex-col items-center gap-6">
+      <div className="flex flex-col items-center gap-8 pt-8">
          <button 
            onClick={clearMock}
-           className="px-10 py-4 glass-card border-white/10 rounded-2xl text-[10px] font-black label-tracking text-on-surface/30 hover:text-white hover:border-white/20 transition-all uppercase"
+           className="px-12 py-5 bg-white/5 hover:bg-white/10 rounded-full text-[11px] font-black tracking-[0.3em] text-on-surface/30 hover:text-white transition-all uppercase border-none"
          >
-           Resetear Mock Operativo
+           RESET AUDIT OVERRIDE
          </button>
-         <div className="flex items-center gap-2 text-on-surface/20 text-[9px] font-bold uppercase tracking-[0.2em]">
-            <span className="material-symbols-outlined !text-[14px]">shield</span>
-            Audit Mode Locked to LocalStorage
+         <div className="flex items-center gap-4 text-on-surface/10 text-[10px] font-black uppercase tracking-[0.5em]">
+            <span className="material-symbols-outlined !text-[16px]">shield_check</span>
+            Secure Audit Mode Isolated
          </div>
       </div>
 

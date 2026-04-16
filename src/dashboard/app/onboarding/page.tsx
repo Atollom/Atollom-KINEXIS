@@ -41,51 +41,52 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black neural-gradient flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#040f1b] flex items-center justify-center p-6 relative overflow-hidden selection:bg-primary selection:text-black">
       
       {/* Samantha Guide */}
       <SamanthaGuide step={step} />
 
-      {/* Wizard Card */}
-      <div className="w-full max-w-2xl glass-card p-12 rounded-[3.5rem] border border-white/5 shadow-2xl relative z-10 animate-in zoom-in-95 duration-700">
+      {/* Main Glass Card */}
+      <div className="w-full max-w-3xl bg-white/[0.03] backdrop-blur-3xl p-16 rounded-[2.5rem] shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative z-10 animate-in zoom-in-95 duration-1000 border-none">
          
-         <div className="mb-12 flex justify-between items-center">
-            <div className="flex gap-2">
+         {/* Step Indicators */}
+         <div className="mb-16 flex justify-between items-center">
+            <div className="flex gap-3">
                {[1, 2, 3].map(s => (
-                 <div key={s} className={`h-1.5 rounded-full transition-all duration-500 ${step === s ? 'w-12 bg-primary' : step > s ? 'w-6 bg-primary/40' : 'w-6 bg-white/5'}`} />
+                 <div key={s} className={`h-1 rounded-full transition-all duration-700 ${step === s ? 'w-16 bg-primary shadow-[0_0_15px_rgba(204,255,0,0.5)]' : step > s ? 'w-8 bg-primary/20' : 'w-8 bg-white/5'}`} />
                ))}
             </div>
-            <span className="text-[10px] font-black text-on-surface/20 uppercase label-tracking">Step {step} of 3</span>
+            <span className="text-[11px] font-black text-on-surface/20 uppercase tracking-[0.2em]">Sequence 0{step}</span>
          </div>
 
          {/* STEP 1: IDENTIDAD */}
          {step === 1 && (
-           <div className="space-y-10 animate-in slide-in-from-right-8 duration-500">
+           <div className="space-y-12 animate-in slide-in-from-right-8 duration-700">
               <div className="space-y-4">
-                 <h2 className="text-4xl font-black text-on-surface tight-tracking">Empresa & Identidad</h2>
-                 <p className="text-sm font-medium text-on-surface-variant opacity-60">Establezcamos las bases de su consola de comando.</p>
+                 <h2 className="text-5xl font-black text-on-surface tight-tracking tracking-tighter">Identidad Operativa</h2>
+                 <p className="text-[15px] font-medium text-on-surface/40 leading-relaxed">Defina el identificador maestro para su terminal de comando.</p>
               </div>
 
-              <div className="space-y-8">
-                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-on-surface/30 label-tracking uppercase ml-4">Nombre de la Empresa</label>
+              <div className="space-y-10">
+                 <div className="space-y-4">
+                    <label className="text-[11px] font-black text-on-surface/20 tracking-[0.2em] uppercase ml-6">Entidad Corporativa</label>
                     <input 
                       type="text" 
-                      placeholder="Ej. Cyberdyne Systems"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-lg font-black focus:border-primary/50 outline-none transition-all"
+                      placeholder="Nombre de su Empresa"
+                      className="w-full bg-white/[0.04] rounded-3xl p-8 text-2xl font-black text-on-surface placeholder:text-on-surface/10 focus:bg-white/[0.07] outline-none transition-all border-none shadow-inner"
                       value={formData.companyName}
                       onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                     />
                  </div>
 
-                 <div className="space-y-3">
-                    <label className="text-[10px] font-black text-on-surface/30 label-tracking uppercase ml-4">Industria Predominante</label>
-                    <div className="grid grid-cols-2 gap-4">
-                       {["Retail", "E-commerce", "Manufactura", "Logística", "Servicios"].map(ind => (
+                 <div className="space-y-4">
+                    <label className="text-[11px] font-black text-on-surface/20 tracking-[0.2em] uppercase ml-6">Segmendo de Mercado</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                       {["Retail", "E-commerce", "Manufactura", "Logística", "B2B"].map(ind => (
                          <button 
                            key={ind}
                            onClick={() => setFormData({ ...formData, industry: ind })}
-                           className={`p-4 rounded-xl text-[11px] font-black uppercase label-tracking border transition-all ${formData.industry === ind ? 'bg-primary text-black border-primary' : 'bg-white/5 border-white/5 text-on-surface/40 hover:border-white/20'}`}
+                           className={`p-5 rounded-3xl text-[12px] font-black uppercase tracking-wider transition-all duration-500 border-none ${formData.industry === ind ? 'bg-primary text-black shadow-[0_20px_40px_rgba(204,255,0,0.2)]' : 'bg-white/5 text-on-surface/30 hover:bg-white/10'}`}
                          >
                             {ind}
                          </button>
@@ -97,99 +98,99 @@ export default function OnboardingPage() {
               <button 
                 onClick={nextStep}
                 disabled={!formData.companyName}
-                className="w-full py-6 neon-disruptor rounded-2xl text-[12px] font-black uppercase label-tracking shadow-glow hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-20"
+                className="w-full py-7 bg-primary text-black rounded-full text-[13px] font-black uppercase tracking-[0.2em] shadow-[0_25px_50px_rgba(204,255,0,0.15)] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-10 border-none mt-4"
               >
-                 CONTINUAR CONFIGURACIÓN
+                 INICIAR APROVISIONAMIENTO
               </button>
            </div>
          )}
 
          {/* STEP 2: APROVISIONAMIENTO */}
          {step === 2 && (
-           <div className="space-y-10 animate-in slide-in-from-right-8 duration-500">
+           <div className="space-y-12 animate-in slide-in-from-right-8 duration-700">
               <div className="space-y-4">
-                 <h2 className="text-4xl font-black text-on-surface tight-tracking">Módulos A la Carta</h2>
-                 <p className="text-sm font-medium text-on-surface-variant opacity-60">Aprovisionando sistemas basados en su plan <span className="text-primary font-black uppercase">{mockPlan}</span>.</p>
+                 <h2 className="text-5xl font-black text-on-surface tight-tracking tracking-tighter">Sistemas a la Carta</h2>
+                 <p className="text-[15px] font-medium text-on-surface/40 leading-relaxed">Configurando nodos operativos para el plan <span className="text-primary font-black uppercase">{mockPlan}</span>.</p>
               </div>
 
-              <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 gap-5">
                  {[
-                   { id: "ecommerce", name: "Ecommerce Pack", icon: "shopping_bag", status: "Available", color: "text-blue-400" },
-                   { id: "crm", name: "CRM Neural", icon: "forum", status: mockPlan === 'starter' ? 'Locked' : 'Available', color: "text-amber-500" },
-                   { id: "erp", name: "ERP Logistics", icon: "warehouse", status: mockPlan === 'enterprise' ? 'Available' : 'Locked', color: "text-emerald-500" },
+                   { id: "ecommerce", name: "Escaparate Digital", icon: "shopping_bag", status: "Active", color: "text-blue-400" },
+                   { id: "crm", name: "Relaciones Neurales", icon: "forum", status: mockPlan === 'starter' ? 'Gated' : 'Active', color: "text-amber-500" },
+                   { id: "erp", name: "Logística Core", icon: "warehouse", status: mockPlan === 'enterprise' ? 'Active' : 'Gated', color: "text-emerald-500" },
                  ].map(mod => (
-                   <div key={mod.id} className="glass-card p-6 rounded-3xl border border-white/5 flex items-center justify-between">
-                      <div className="flex items-center gap-6">
-                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10`}>
-                            <span className={`material-symbols-outlined !text-3xl ${mod.color}`}>{mod.icon}</span>
+                   <div key={mod.id} className="bg-white/[0.03] p-7 rounded-[2rem] flex items-center justify-between border-none shadow-sm">
+                      <div className="flex items-center gap-8">
+                         <div className="w-16 h-16 rounded-3xl flex items-center justify-center bg-white/[0.04] shadow-inner">
+                            <span className={`material-symbols-outlined !text-4xl ${mod.color}`}>{mod.icon}</span>
                          </div>
                          <div>
-                            <p className="text-lg font-black text-on-surface">{mod.name}</p>
-                            <p className="text-[10px] font-black text-on-surface/30 uppercase">{mod.status}</p>
+                            <p className="text-xl font-black text-on-surface tracking-tight">{mod.name}</p>
+                            <p className="text-[11px] font-black text-on-surface/20 uppercase tracking-widest">{mod.status === 'Active' ? 'READY FOR SYNC' : 'UPGRADE REQUIRED'}</p>
                          </div>
                       </div>
-                      {mod.status === 'Locked' ? (
-                        <button className="px-6 py-2 border border-primary/20 rounded-xl text-[9px] font-black text-primary uppercase label-tracking hover:bg-primary/10 transition-all">UPGRADE</button>
+                      {mod.status === 'Gated' ? (
+                        <button className="px-8 py-3 bg-white/5 rounded-full text-[10px] font-black text-primary uppercase tracking-widest hover:bg-white/10 transition-all border-none">BUY NOW</button>
                       ) : (
-                        <div className="flex items-center gap-2">
-                           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                           <span className="text-[10px] font-black text-primary uppercase">Provisioning...</span>
+                        <div className="flex items-center gap-3 px-5 py-2 bg-primary/5 rounded-full">
+                           <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                           <span className="text-[10px] font-black text-primary uppercase tracking-widest">ENABLED</span>
                         </div>
                       )}
                    </div>
                  ))}
               </div>
 
-              <div className="flex gap-4">
-                 <button onClick={prevStep} className="flex-1 py-6 glass-card rounded-2xl text-[12px] font-black uppercase text-on-surface/40 hover:text-white transition-all">VOLVER</button>
-                 <button onClick={nextStep} className="flex-[2] py-6 neon-disruptor rounded-2xl text-[12px] font-black uppercase label-tracking shadow-glow">CONFIRMAR MÓDULOS</button>
+              <div className="flex gap-6 pt-4">
+                 <button onClick={prevStep} className="flex-1 py-7 bg-white/5 rounded-full text-[12px] font-black uppercase tracking-widest text-on-surface/30 hover:bg-white/10 transition-all border-none">VOLVER</button>
+                 <button onClick={nextStep} className="flex-[2] py-7 bg-primary text-black rounded-full text-[13px] font-black uppercase tracking-widest shadow-[0_25px_50px_rgba(204,255,0,0.1)] border-none">APLICAR CONFIGURACIÓN</button>
               </div>
            </div>
          )}
 
          {/* STEP 3: SINCRONIZACIÓN */}
          {step === 3 && (
-           <div className="space-y-10 animate-in slide-in-from-right-8 duration-500">
+           <div className="space-y-12 animate-in slide-in-from-right-8 duration-700">
               <div className="space-y-4">
-                 <h2 className="text-4xl font-black text-on-surface tight-tracking">Nodos de Sincronización</h2>
-                 <p className="text-sm font-medium text-on-surface-variant opacity-60">Conecte sus activos externos al núcleo Kinexis.</p>
+                 <h2 className="text-5xl font-black text-on-surface tight-tracking tracking-tighter">Handshake Externo</h2>
+                 <p className="text-[15px] font-medium text-on-surface/40 leading-relaxed">Sincronice sus ecosistemas para iniciar la telemetría.</p>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
                  {[
-                   { id: "shopify", name: "Shopify / ML", icon: "hub", color: "text-blue-400" },
-                   { id: "meta", name: "WhatsApp / Meta", icon: "chat", color: "text-[#25D366]" },
-                   { id: "sat", name: "Fiscal SAT (e.firma)", icon: "shield", color: "text-amber-500" },
+                   { id: "shopify", name: "Shopify / M. Libre", icon: "hub", color: "text-blue-400" },
+                   { id: "meta", name: "WhatsApp Business", icon: "chat", color: "text-[#25D366]" },
+                   { id: "sat", name: "SAT / Fiscal Concierge", icon: "shield", color: "text-amber-500" },
                  ].map(end => (
                    <button 
                      key={end.id}
                      onClick={() => performSync(end.id as any)}
                      disabled={syncStatus[end.id as keyof typeof syncStatus] !== 'idle'}
-                     className="glass-card p-5 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-primary/20 transition-all"
+                     className="bg-white/[0.03] p-6 rounded-3xl flex items-center justify-between group hover:bg-white/[0.06] transition-all border-none shadow-sm"
                    >
-                       <div className="flex items-center gap-6">
-                          <span className={`material-symbols-outlined !text-2xl ${end.color}`}>{end.icon}</span>
-                          <p className="text-sm font-black text-on-surface uppercase label-tracking">{end.name}</p>
+                       <div className="flex items-center gap-8">
+                          <span className={`material-symbols-outlined !text-3xl ${end.color}`}>{end.icon}</span>
+                          <p className="text-[15px] font-black text-on-surface uppercase tracking-wider">{end.name}</p>
                        </div>
                        <div>
                           {syncStatus[end.id as keyof typeof syncStatus] === 'idle' ? (
-                            <span className="text-[10px] font-black text-on-surface/20 group-hover:text-primary transition-colors">CONECTAR</span>
+                            <span className="text-[11px] font-black text-on-surface/20 group-hover:text-primary transition-colors tracking-widest">CONECTAR</span>
                           ) : syncStatus[end.id as keyof typeof syncStatus] === 'syncing' ? (
-                            <span className="material-symbols-outlined !text-[20px] text-primary animate-spin">sync</span>
+                            <span className="material-symbols-outlined !text-[24px] text-primary animate-spin">sync</span>
                           ) : (
-                            <span className="material-symbols-outlined !text-[20px] text-primary">check_circle</span>
+                            <span className="material-symbols-outlined !text-[24px] text-primary shadow-[0_0_15px_rgba(204,255,0,0.5)]">check_circle</span>
                           )}
                        </div>
                    </button>
                  ))}
               </div>
 
-              <div className="pt-6">
+              <div className="pt-10">
                 <button 
                   onClick={finalize}
-                  className="w-full py-8 bg-white text-black rounded-3xl text-sm font-black uppercase label-tracking hover:bg-primary transition-all shadow-glow hover:scale-[1.01]"
+                  className="w-full py-9 bg-on-surface text-[#040f1b] rounded-full text-sm font-black uppercase tracking-[0.3em] shadow-[0_40px_80px_rgba(0,0,0,0.4)] hover:bg-primary transition-all hover:scale-[1.01] border-none"
                 >
-                   INICIAR SISTEMAS KINEXIS
+                   ESTABLECER CONEXIÓN TOTAL
                 </button>
               </div>
            </div>
@@ -197,25 +198,25 @@ export default function OnboardingPage() {
 
          {/* STEP 4: FINALIZING */}
          {step === 4 && (
-           <div className="py-20 text-center space-y-8 animate-in zoom-in-50 duration-1000">
+           <div className="py-24 text-center space-y-12 animate-in zoom-in-50 duration-1000">
               <div className="relative inline-block">
-                 <div className="w-24 h-24 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                 <div className="w-32 h-32 rounded-full border-[6px] border-primary/10 border-t-primary animate-spin" />
                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary !text-4xl">bolt</span>
+                    <span className="material-symbols-outlined text-primary !text-5xl drop-shadow-[0_0_15px_rgba(204,255,0,0.5)]">bolt</span>
                  </div>
               </div>
-              <div className="space-y-4">
-                 <h2 className="text-3xl font-black text-on-surface uppercase tracking-widest">Estabilizando Red...</h2>
-                 <p className="text-sm font-bold text-primary animate-pulse uppercase label-tracking">Telemetría al 100%</p>
+              <div className="space-y-5">
+                 <h2 className="text-4xl font-black text-on-surface uppercase tracking-[0.4em] opacity-90">Sistemas Online</h2>
+                 <p className="text-[12px] font-black text-primary animate-pulse uppercase tracking-[0.3em]">Cargando Arquitectura V2...</p>
               </div>
            </div>
          )}
 
       </div>
 
-      {/* Decorative Gradients */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] -z-10 rounded-full" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/5 blur-[120px] -z-10 rounded-full" />
+      {/* Ambinet Luxe Glows */}
+      <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-primary/5 blur-[160px] -z-10 rounded-full" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[800px] h-[800px] bg-blue-500/5 blur-[160px] -z-10 rounded-full" />
     </div>
   );
 }
