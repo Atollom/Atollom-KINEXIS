@@ -3,14 +3,12 @@
 import { useState, useEffect } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import type { AutonomyLevel, UserRole } from "@/types";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Tipos locales
 // ──────────────────────────────────────────────────────────────────────────────
 type OnboardingStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
-
 
 interface AutonomyConfig {
   ecommerce: AutonomyLevel;
@@ -19,9 +17,9 @@ interface AutonomyConfig {
 }
 
 const AUTONOMY_OPTIONS: { value: AutonomyLevel; label: string; desc: string; color: string }[] = [
-  { value: "FULL",       label: "Completa",    desc: "Samantha actúa y decide sin intervención",          color: "#22C55E" },
-  { value: "NOTIFY",     label: "Notificar",   desc: "Samantha actúa y te envía una notificación de lo que hizo", color: "#3B82F6" },
-  { value: "SUPERVISED", label: "Supervisado", desc: "Samantha prepara la acción y requiere tu autorización", color: "#F59E0B" },
+  { value: "FULL",       label: "FULL",       desc: "IA autónoma total",           color: "#ccff00" },
+  { value: "NOTIFY",     label: "NOTIFY",     desc: "IA actúa y reporta",           color: "#ccff00" },
+  { value: "SUPERVISED", label: "SUPERVISED", desc: "Requiere autorización",        color: "#ffffff" },
 ];
 
 export default function OnboardingPage() {
@@ -41,30 +39,26 @@ export default function OnboardingPage() {
   // Datos Paso 1: Bienvenida
   const [displayName, setDisplayName] = useState("");
 
-  // Datos Paso 2 (1.5): Multi-empresa
+  // Datos Paso 2: Multi-empresa
   const [hasMultipleCompanies, setHasMultipleCompanies] = useState<boolean | null>(null);
   const [companies, setCompanies] = useState<{ id: string; nombre: string; rfc: string; regimen: string; cp: string }[]>([]);
 
-
-  // Datos Paso 2: Ecommerce Keys
+  // Datos Paso 3: Ecommerce Keys
   const [mlApiKey, setMlApiKey] = useState("");
   const [amzApiKey, setAmzApiKey] = useState("");
   const [shpApiKey, setShpApiKey] = useState("");
 
-  // Datos Paso 3: ERP (FacturAPI ya no la configura el cliente — Atollom la aprovisiona)
+  // Datos Paso 4: ERP
   const [rfc, setRfc] = useState("");
   const [taxRegime, setTaxRegime] = useState("");
   const [cp, setCp] = useState("");
-  const [facturapiProvisionStatus, setFacturapiProvisionStatus] = useState<
-    "idle" | "provisioning" | "done" | "error"
-  >("idle");
 
-  // Datos Paso 4: CRM
+  // Datos Paso 5: CRM
   const [metaAccessToken, setMetaAccessToken] = useState("");
   const [wabaId, setWabaId] = useState("");
   const [phoneId, setPhoneId] = useState("");
 
-  // Datos Paso 5: Autonomía
+  // Datos Paso 6: Autonomía
   const [autonomy, setAutonomy] = useState<AutonomyConfig>({
     ecommerce: "SUPERVISED",
     erp: "SUPERVISED",
@@ -75,7 +69,6 @@ export default function OnboardingPage() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Detectar mobile
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -106,51 +99,55 @@ export default function OnboardingPage() {
     loadUser();
   }, [supabase, router]);
 
-  // Si es movil, muestra bloqueo
   if (isMobile) {
     return (
-      <div className="h-screen w-full bg-[#0D1B3E] p-8 flex flex-col items-center justify-center text-center text-[#E8EAF0]">
-        <div className="w-16 h-16 rounded-2xl bg-[#A8E63D]/10 flex items-center justify-center mb-6">
-          <span className="material-symbols-outlined text-3xl text-[#A8E63D]">desktop_windows</span>
+      <div className="h-screen w-full bg-black p-8 flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 rounded-2xl bg-[#ccff00]/10 flex items-center justify-center mb-6 shadow-volt">
+          <span className="material-symbols-outlined text-3xl text-[#ccff00]">desktop_windows</span>
         </div>
-        <h1 className="text-2xl font-headline font-bold mb-4">Configuración Inicial</h1>
-        <p className="text-[#8DA4C4] text-sm">
-          Por favor, completa este proceso desde tu computadora. Necesitarás tener varias pestañas abiertas para copiar tus API Keys.
+        <h1 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Neural Onboarding</h1>
+        <p className="text-white/40 text-[10px] font-black uppercase tracking-widest leading-relaxed">
+          Please initialize the system from a high-performance desktop terminal. Secure keys required for synchronization.
         </p>
       </div>
     );
   }
 
   if (loadingUser) {
-    return <div className="h-screen w-full bg-[#0D1B3E] flex items-center justify-center">
-      <div className="animate-spin w-8 h-8 border-4 border-[#A8E63D] border-t-transparent rounded-full" />
-    </div>;
-  }
-
-  // Guard: Solo owner
-  if (role !== "owner") {
     return (
-      <div className="h-screen w-full bg-[#0D1B3E] flex items-center justify-center flex-col p-8 text-center">
-        <span className="material-symbols-outlined text-5xl text-[#EF4444] mb-4">lock</span>
-        <h1 className="text-2xl font-headline font-bold text-[#E8EAF0] mb-2">Acceso Denegado</h1>
-        <p className="text-[#8DA4C4] mb-6">Solo el propietario (owner) puede realizar el onboarding inicial.</p>
-        <button onClick={() => router.push("/")} className="px-6 py-2 bg-[#A8E63D] text-[#0D1B3E] font-bold rounded-xl uppercase tracking-wider text-[11px]">Volver</button>
+      <div className="h-screen w-full bg-black flex flex-col items-center justify-center space-y-4">
+        <div className="w-12 h-12 rounded-full border-2 border-[#ccff00]/20 border-t-[#ccff00] animate-spin" />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ccff00]">Syncing Identity...</p>
       </div>
     );
   }
 
-  // Helpers para avanzar
+  if (role !== "owner") {
+    return (
+      <div className="h-screen w-full bg-black flex items-center justify-center flex-col p-8 text-center space-y-8">
+        <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
+          <span className="material-symbols-outlined text-5xl text-red-500">lock_person</span>
+        </div>
+        <div>
+          <h1 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Access Restrained</h1>
+          <p className="text-white/30 text-[10px] uppercase font-black tracking-widest leading-relaxed">Identity Role: {role || 'RESTRICTED'}<br/>Only the Primary Neural Overseer (Owner) can initiate the core onboarding.</p>
+        </div>
+        <button onClick={() => router.push("/")} className="px-8 py-3 bg-white text-black text-[10px] font-black rounded-xl uppercase tracking-widest hover:bg-[#ccff00] transition-colors shadow-xl">Return to Core</button>
+      </div>
+    );
+  }
+
   const nextStep = async () => {
     setSaveError(null);
     if (step === 1) await saveStep1();
-    else if (step === 2) await saveStep2(); // Multi-empresa
-    else if (step === 3) await saveStep3(); // Ecommerce
+    else if (step === 2) await saveStep2();
+    else if (step === 3) await saveStep3();
     else if (step === 4) {
-      const ok = await saveStep4(); // ERP/Fiscal
+      const ok = await saveStep4();
       if (!ok) return;
     }
-    else if (step === 5) await saveStep5(); // CRM
-    else if (step === 6) await saveStep6(); // Autonomía
+    else if (step === 5) await saveStep5();
+    else if (step === 6) await saveStep6();
 
     if (step < 7) setStep(prev => (prev + 1) as OnboardingStep);
   };
@@ -161,19 +158,9 @@ export default function OnboardingPage() {
   };
 
   const skipAll = async () => {
-    try {
-      if (step === 1 && displayName.trim()) await saveStep1();
-      else if (step === 2) await saveStep2();
-      else if (step === 3) await saveStep3();
-      else if (step === 4) await saveStep4();
-      else if (step === 5) await saveStep5();
-      else if (step === 6) await saveStep6();
-    } catch { /* best effort */ }
     router.push("/");
   };
 
-
-  // Guardados
   const saveStep1 = async () => {
     if (!displayName.trim() || !userId) return;
     setSaving(true);
@@ -182,21 +169,13 @@ export default function OnboardingPage() {
   };
 
   const saveStep2 = async () => {
-    // Si no tiene multiples empresas, el paso 4 (Fiscal) creará la principal.
-    // Si tiene múltiples, las guardamos aquí.
     if (hasMultipleCompanies && companies.length > 0) {
       setSaving(true);
       for (const emp of companies) {
         await fetch("/api/settings/companies", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nombre: emp.nombre,
-            rfc: emp.rfc,
-            regimen_fiscal: emp.regimen,
-            cp_expedicion: emp.cp,
-            es_principal: false // Se definirá después o la primera será principal
-          })
+          body: JSON.stringify({ nombre: emp.nombre, rfc: emp.rfc, regimen_fiscal: emp.regimen, cp_expedicion: emp.cp, es_principal: false })
         });
       }
       setSaving(false);
@@ -204,7 +183,6 @@ export default function OnboardingPage() {
   };
 
   const saveStep3 = async () => {
-    // E-commerce keys => Vault
     const keys: Record<string, string> = {};
     if (mlApiKey) keys.ml_access_token = mlApiKey;
     if (amzApiKey) keys.amazon_sp_api_key = amzApiKey;
@@ -225,22 +203,13 @@ export default function OnboardingPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      // Guardar empresa principal (si no se agregaron múltiples antes)
       if (!hasMultipleCompanies && rfc) {
         await fetch("/api/settings/companies", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nombre: displayName + " Fiscal", // Nombre tentativo
-            rfc,
-            regimen_fiscal: taxRegime,
-            cp_expedicion: cp,
-            es_principal: true
-          })
+          body: JSON.stringify({ nombre: displayName + " Corp", rfc, regimen_fiscal: taxRegime, cp_expedicion: cp, es_principal: true })
         });
       }
-
-      // Datos fiscales perfil (redundante pero para compatibilidad)
       if (rfc || taxRegime || cp) {
         const res = await fetch("/api/settings/profile", {
           method: "PATCH",
@@ -249,7 +218,7 @@ export default function OnboardingPage() {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          setSaveError(err.error || "RFC o datos fiscales inválidos.");
+          setSaveError(err.error || "RFC identity rejected by validator.");
           return false;
         }
       }
@@ -286,64 +255,66 @@ export default function OnboardingPage() {
     setSaving(false);
   };
 
-  // Completar onboarding — marca onboarding_complete = true en el servidor
   const finishOnboarding = async () => {
-    try {
-      await fetch("/api/onboarding/complete", { method: "POST" });
-    } catch { /* best effort — no bloquear la navegación */ }
+    try { await fetch("/api/onboarding/complete", { method: "POST" }); } catch {}
     router.push("/");
   };
 
   return (
-    <div className="min-h-screen bg-[#0D1B3E] text-[#E8EAF0] flex flex-col font-sans">
-      {/* ── Progress Bar Top ──────────────────────────────────────── */}
-      <div className="h-1 w-full bg-white/[0.04]">
+    <div className="min-h-screen bg-black text-white flex flex-col font-sans overflow-hidden">
+      
+      {/* ── Luxe Progress Top ──────────────────────────────────────── */}
+      <div className="h-1.5 w-full bg-white/5 relative overflow-hidden">
         <div 
-          className="h-full bg-[#A8E63D] transition-all duration-500 ease-out"
+          className="h-full bg-[#ccff00] transition-all duration-1000 ease-out shadow-volt"
           style={{ width: `${(step / 7) * 100}%` }}
         />
+        <div className="absolute top-0 right-0 h-full w-24 bg-gradient-to-r from-transparent to-[#ccff00] blur-md opacity-30" style={{ right: `${100 - (step/7)*100}%` }} />
       </div>
 
-      {/* ── Contenido Principal ────────────────────────────────────── */}
-      <div className="flex-1 max-w-4xl w-full mx-auto p-12 flex flex-col mt-8">
+      {/* ── Content Canvas ───────────────────────────────────────────── */}
+      <div className="flex-1 max-w-5xl w-full mx-auto p-12 flex flex-col mt-12 relative">
         
-        {/* Cabecera / Paginador */}
-        <div className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-4">
-            {/* Supongo que logo/isotipo.svg existe o usamos texto por seguridad si no existe svg. El user dice "/logo/" */}
-            <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center font-bold text-[#A8E63D] text-lg font-headline">
+        {/* Decorative elements */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#ccff00]/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 -right-48 w-[400px] h-[400px] bg-[#ccff00]/5 rounded-full blur-[120px] pointer-events-none" />
+
+        {/* Global Nav */}
+        <div className="flex items-center justify-between mb-20 relative z-10">
+          <div className="flex items-center gap-6">
+            <div className="w-12 h-12 rounded-2xl bg-[#ccff00]/10 border border-[#ccff00]/20 flex items-center justify-center font-black text-[#ccff00] text-xl shadow-volt italic">
               K
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-[#8DA4C4] font-bold">Onboarding</p>
-              <h2 className="text-xl font-headline font-bold">Paso {step} de 7</h2>
+              <p className="text-[10px] uppercase tracking-[0.4em] text-white/30 font-black">Neural Initialization</p>
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Sequence {step} <span className="text-white/20 italic">/ 07</span></h2>
             </div>
           </div>
 
           <button
             onClick={skipAll}
-            className="text-[11px] font-bold uppercase tracking-wider text-[#8DA4C4] hover:text-[#EF4444] border border-transparent hover:border-[#EF4444]/20 hover:bg-[#EF4444]/10 px-4 py-2 rounded-xl transition-all"
+            className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30 hover:text-red-500 transition-all border-b border-white/5 hover:border-red-500/30 pb-1"
           >
-             Omitir Todo
+             Bypass Sequence
           </button>
         </div>
 
-        {/* ── Área activa del paso ─────────────────────────────────── */}
-        <div className="flex-1 flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* ── Active Module ─────────────────────────────────────────── */}
+        <div className="flex-1 flex flex-col h-full animate-luxe relative z-10">
           
           {step === 1 && (
-            <div className="max-w-xl">
-              <div className="flex items-end gap-4 mb-8">
-                <div className="w-16 h-16 rounded-full bg-[#A8E63D]/10 flex items-center justify-center flex-shrink-0 animate-pulse">
-                  <span className="material-symbols-outlined text-3xl text-[#A8E63D]">smart_toy</span>
+            <div className="max-w-2xl">
+              <div className="flex items-end gap-6 mb-12">
+                <div className="w-16 h-16 rounded-3xl bg-[#ccff00]/10 flex items-center justify-center flex-shrink-0 animate-pulse border border-[#ccff00]/20 shadow-volt">
+                  <span className="material-symbols-outlined text-4xl text-[#ccff00]">smart_toy</span>
                 </div>
-                <div className="bg-white/[0.06] border border-white/[0.1] rounded-2xl rounded-bl-sm p-5 flex-1 relative">
-                  <p className="text-[14px] leading-relaxed">
-                    ¡Hola! Soy <strong className="text-[#A8E63D]">Samantha</strong>, tu asistente e inteligencia orquestadora en Kinexis.
+                <div className="glass-card rounded-[2rem] rounded-bl-sm p-8 flex-1 relative border border-white/5">
+                  <p className="text-[15px] font-medium leading-relaxed uppercase tracking-tight italic">
+                    Greeting, Overseer. I am <strong className="text-[#ccff00]">SAMANTHA</strong>, your Neural Operational Agent.
                     <br/><br/>
-                    Estoy lista para conectar tus herramientas, automatizar tus finanzas y potenciar tus ventas, pero primero necesito algunas llaves de acceso.
+                    I am ready to synchronize your commerce pipelines, stabilize fiscal logs, and amplify your market reach.
                     <br/><br/>
-                    Para empezar, <strong>¿cómo prefieres que te llame?</strong>
+                    Identify yourself for the protocol. <strong>How should I address you?</strong>
                   </p>
                 </div>
               </div>
@@ -351,67 +322,70 @@ export default function OnboardingPage() {
                 <input
                   type="text"
                   autoFocus
-                  placeholder="Tu nombre (ej. Carlos)"
+                  placeholder="IDENTIFY: (e.g. Carlos)"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter") nextStep() }}
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-5 py-4 text-base focus:border-[#A8E63D]/40 focus:outline-none transition-colors"
+                  className="w-full bg-white/5 border border-white/5 rounded-2xl px-8 py-6 text-xl font-black uppercase tracking-widest focus:border-[#ccff00]/40 focus:outline-none transition-all placeholder:text-white/10 italic"
                 />
               </div>
             </div>
           )}
 
           {step === 2 && (
-            <div className="max-w-xl animate-in slide-in-from-right-4 duration-300">
-              <h1 className="text-3xl font-headline font-bold mb-4">Estructura de Empresas</h1>
-              <p className="text-[#8DA4C4] text-[14px] leading-relaxed mb-8">
-                ¿Operas bajo una sola razón social o tienes múltiples empresas que deseas integrar en Kinexis?
+            <div className="max-w-2xl animate-luxe">
+              <h1 className="text-4xl font-black uppercase tracking-tighter mb-4">Operational Structure</h1>
+              <p className="text-white/40 text-[12px] uppercase font-black tracking-widest leading-relaxed mb-12">
+                Define the neural map for your entities. Single or Multi-Corp mapping.
               </p>
 
-              <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="grid grid-cols-2 gap-6 mb-12">
                 <button 
                   onClick={() => setHasMultipleCompanies(false)}
-                  className={`p-6 rounded-2xl border transition-all text-left ${hasMultipleCompanies === false ? "bg-[#A8E63D]/10 border-[#A8E63D]" : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"}`}
+                  className={`relative p-10 rounded-[2.5rem] border transition-all duration-500 text-left group overflow-hidden ${hasMultipleCompanies === false ? "bg-[#ccff00]/10 border-[#ccff00]/30 shadow-volt" : "bg-white/5 border-white/5 hover:border-white/10"}`}
                 >
-                  <span className="material-symbols-outlined text-3xl mb-3 text-[#A8E63D]">business</span>
-                  <h3 className="font-bold text-sm">Empresa Única</h3>
-                  <p className="text-[10px] text-[#8DA4C4] mt-1">Una sola razón social y RFC.</p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#ccff00]/5 rounded-full blur-[60px] pointer-events-none" />
+                  <span className={`material-symbols-outlined text-4xl mb-6 flex-shrink-0 ${hasMultipleCompanies === false ? 'text-[#ccff00]' : 'text-white/20'}`}>business</span>
+                  <h3 className="font-black text-sm uppercase tracking-[0.2em]">Single Grid</h3>
+                  <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mt-2">One core entity / RFC.</p>
                 </button>
                 <button 
                   onClick={() => setHasMultipleCompanies(true)}
-                  className={`p-6 rounded-2xl border transition-all text-left ${hasMultipleCompanies === true ? "bg-[#A8E63D]/10 border-[#A8E63D]" : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"}`}
+                  className={`relative p-10 rounded-[2.5rem] border transition-all duration-500 text-left group overflow-hidden ${hasMultipleCompanies === true ? "bg-[#ccff00]/10 border-[#ccff00]/30 shadow-volt" : "bg-white/5 border-white/5 hover:border-white/10"}`}
                 >
-                  <span className="material-symbols-outlined text-3xl mb-3 text-[#3B82F6]">domain</span>
-                  <h3 className="font-bold text-sm">Multi-empresa</h3>
-                  <p className="text-[10px] text-[#8DA4C4] mt-1">Varias razones sociales o sucursales.</p>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#ccff00]/5 rounded-full blur-[60px] pointer-events-none" />
+                  <span className={`material-symbols-outlined text-4xl mb-6 flex-shrink-0 ${hasMultipleCompanies === true ? 'text-[#ccff00]' : 'text-white/20'}`}>domain</span>
+                  <h3 className="font-black text-sm uppercase tracking-[0.2em]">Multi-Entity</h3>
+                  <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mt-2">Complex organizational grid.</p>
                 </button>
               </div>
 
               {hasMultipleCompanies && (
-                <div className="space-y-4">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#8DA4C4]">Agregar empresas adicionales</p>
+                <div className="space-y-4 animate-luxe">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-4 px-2 tracking-tighter">Sub-Entity Allocation</p>
                   {companies.map((emp, idx) => (
-                    <div key={emp.id} className="bg-white/[0.04] p-4 rounded-xl flex items-center justify-between border border-white/[0.08]">
+                    <div key={emp.id} className="glass-card p-6 rounded-3xl flex items-center justify-between border border-white/5 hover:border-white/10 transition-all">
                       <div>
-                        <p className="text-sm font-bold">{emp.nombre}</p>
-                        <p className="text-[10px] text-[#8DA4C4]">{emp.rfc}</p>
+                        <p className="text-[11px] font-black uppercase tracking-widest">{emp.nombre}</p>
+                        <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mt-1">{emp.rfc}</p>
                       </div>
-                      <button onClick={() => setCompanies(c => c.filter(x => x.id !== emp.id))} className="text-red-400 hover:text-red-300">
-                        <span className="material-symbols-outlined text-sm">delete</span>
+                      <button onClick={() => setCompanies(c => c.filter(x => x.id !== emp.id))} className="text-white/20 hover:text-red-500 transition-colors">
+                        <span className="material-symbols-outlined text-lg">delete</span>
                       </button>
                     </div>
                   ))}
                   <button 
                     onClick={() => {
-                      const nombre = prompt("Nombre de la empresa:");
-                      const rfcVal = prompt("RFC:");
+                      const nombre = prompt("Entity Name:");
+                      const rfcVal = prompt("Tax ID (RFC):");
                       if (nombre && rfcVal) {
                         setCompanies([...companies, { id: Math.random().toString(), nombre, rfc: rfcVal, regimen: "601", cp: "00000" }]);
                       }
                     }}
-                    className="w-full py-3 rounded-xl border border-dashed border-white/[0.2] text-[11px] text-[#8DA4C4] hover:border-[#A8E63D] hover:text-[#A8E63D] transition-all"
+                    className="w-full h-14 rounded-2xl border border-dashed border-white/10 text-[10px] font-black uppercase tracking-[0.3em] text-white/20 hover:border-[#ccff00] hover:text-[#ccff00] transition-all flex items-center justify-center gap-4"
                   >
-                    + Agregar otra empresa
+                    <span className="material-symbols-outlined text-lg">add</span>
+                    Allocate Sub-Entity
                   </button>
                 </div>
               )}
@@ -419,152 +393,115 @@ export default function OnboardingPage() {
           )}
 
           {step === 3 && (
-            <div className="max-w-2xl">
-              <h1 className="text-3xl font-headline font-bold mb-2">Conexión Ecommerce</h1>
-              <p className="text-[#8DA4C4] text-[13px] mb-8">
-                Conectemos tus plataformas de venta para que pueda monitorear el stock y registrar órdenes automáticamente. Puedes omitir las que no uses.
+            <div className="max-w-3xl">
+              <h1 className="text-4xl font-black uppercase tracking-tighter mb-4">Pipeline Sync</h1>
+              <p className="text-white/40 text-[12px] uppercase font-black tracking-widest leading-relaxed mb-12">
+                Conect your commerce ports. Samantha will encrypt all credentials in the Secure Neural Vault.
               </p>
 
-              <div className="space-y-4">
-                <div className="bg-[#A8E63D]/5 border border-[#A8E63D]/20 rounded-xl p-5 mb-6">
-                  <h3 className="text-sm font-bold text-[#A8E63D] mb-2 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-base">info</span>
-                    Inducción de Seguridad Kinexis
-                  </h3>
-                  <ul className="text-[12px] space-y-2 text-[#E8EAF0]">
-                    <li>1. Accede al portal de desarrolladores de cada plataforma.</li>
-                    <li>2. Genera un token con permisos de <strong>Lectura y Escritura</strong> de pedidos.</li>
-                    <li>3. Samantha cifrará estas llaves en el <strong>Supabase Vault</strong> de grado bancario.</li>
-                  </ul>
+              <div className="space-y-6">
+                <div className="glass-card bg-[#ccff00]/5 border border-[#ccff00]/20 rounded-[2rem] p-8 mb-10 flex items-start gap-6">
+                  <div className="w-10 h-10 rounded-xl bg-[#ccff00]/10 flex items-center justify-center text-[#ccff00] flex-shrink-0 animate-pulse">
+                     <span className="material-symbols-outlined text-xl">security</span>
+                  </div>
+                  <div>
+                     <h3 className="text-[11px] font-black text-[#ccff00] uppercase tracking-[0.3em] mb-3">Security Indoctrination</h3>
+                     <p className="text-[10px] font-black text-white/50 uppercase tracking-widest leading-relaxed italic">
+                        All keys are hashed and stored in high-grade vault environments. No raw credentials remain in memory after synchronization.
+                     </p>
+                  </div>
                 </div>
 
-                <IntegrationInput 
-                  name="mlApiKey" color="#FFE600" label="Mercado Libre (Access Token)" icon="shopping_bag"
-                  value={mlApiKey} onChange={setMlApiKey} link="https://youtube.com/atollomlabs/tutorial-ml-api"
-                />
-                <IntegrationInput 
-                  name="amzApiKey" color="#FF9900" label="Amazon SP-API Key" icon="inventory_2"
-                  value={amzApiKey} onChange={setAmzApiKey} link="https://youtube.com/atollomlabs/tutorial-amazon-spapi"
-                />
-                <IntegrationInput 
-                  name="shpApiKey" color="#96BF48" label="Shopify Access Token" icon="shopping_cart"
-                  value={shpApiKey} onChange={setShpApiKey} link="https://shopify.dev/docs/apps/auth"
-                />
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                   <IntegrationInput 
+                     name="mlApiKey" color="#FFE600" label="Mercado Libre Protocol" icon="shopping_bag"
+                     value={mlApiKey} onChange={setMlApiKey}
+                   />
+                   <IntegrationInput 
+                     name="amzApiKey" color="#FF9900" label="Amazon SP-API Gateway" icon="inventory_2"
+                     value={amzApiKey} onChange={setAmzApiKey}
+                   />
+                   <IntegrationInput 
+                     name="shpApiKey" color="#96BF48" label="Shopify Core Sync" icon="shopping_cart"
+                     value={shpApiKey} onChange={setShpApiKey}
+                   />
+                </div>
               </div>
             </div>
           )}
 
           {step === 4 && (
             <div className="max-w-2xl">
-              <h1 className="text-3xl font-headline font-bold mb-2">Datos Fiscales & ERP</h1>
-              <p className="text-[#8DA4C4] text-[13px] mb-8">
-                Ingresa tus datos fiscales para la emisión automática de CFDI 4.0.
-                Kinexis configura la facturación por ti — no necesitas ninguna llave de API.
+              <h1 className="text-4xl font-black uppercase tracking-tighter mb-4">Fiscal Core</h1>
+              <p className="text-white/40 text-[12px] uppercase font-black tracking-widest leading-relaxed mb-12">
+                Identify the fiscal signature for CFDI 4.0 automation. Kinexis provisioned ERP active.
               </p>
 
-              {/* Indicador de aprovisionamiento automático FacturAPI */}
-              <div className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl border mb-6 text-[12px] font-medium transition-all
-                ${facturapiProvisionStatus === "done"
-                  ? "bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]"
-                  : facturapiProvisionStatus === "error"
-                  ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-400"
-                  : facturapiProvisionStatus === "provisioning"
-                  ? "bg-[#3B82F6]/10 border-[#3B82F6]/20 text-[#3B82F6]"
-                  : "bg-white/[0.03] border-white/[0.06] text-[#8DA4C4]"
-                }
-              `}>
-                {facturapiProvisionStatus === "provisioning" && (
-                  <div className="w-3.5 h-3.5 rounded-full border-2 border-[#3B82F6] border-t-transparent animate-spin flex-shrink-0" />
-                )}
-                {facturapiProvisionStatus === "done" && (
-                  <span className="material-symbols-outlined text-base flex-shrink-0">check_circle</span>
-                )}
-                {facturapiProvisionStatus === "error" && (
-                  <span className="material-symbols-outlined text-base flex-shrink-0">warning</span>
-                )}
-                {facturapiProvisionStatus === "idle" && (
-                  <span className="material-symbols-outlined text-base flex-shrink-0">receipt_long</span>
-                )}
-                <span>
-                  {facturapiProvisionStatus === "idle" && "Facturación automática — Kinexis configura esto por ti al guardar"}
-                  {facturapiProvisionStatus === "provisioning" && "Configurando facturación automáticamente..."}
-                  {facturapiProvisionStatus === "done" && "Facturación configurada correctamente"}
-                  {facturapiProvisionStatus === "error" && "La facturación se configurará en un momento — puedes continuar"}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-[10px] text-[#8DA4C4] uppercase font-bold tracking-wider mb-1.5 ml-1">RFC Emisor *</label>
+              <div className="grid grid-cols-2 gap-8 mb-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] ml-1 leading-none">Tax ID (RFC)</label>
                   <input
                     type="text"
                     placeholder="ABC123456T1"
                     maxLength={13}
                     value={rfc}
                     onChange={(e) => setRfc(e.target.value.toUpperCase())}
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 focus:outline-none focus:border-[#22C55E]/40"
+                    className="w-full h-14 bg-white/5 border border-white/5 rounded-2xl px-6 text-sm font-black uppercase focus:border-[#ccff00]/40 transition-all outline-none italic placeholder:text-white/10"
                   />
-                  {rfc && !/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/.test(rfc) && (
-                    <p className="text-[10px] text-red-400 mt-1.5 ml-1">Formato de RFC inválido</p>
-                  )}
                 </div>
-                <div>
-                  <label className="block text-[10px] text-[#8DA4C4] uppercase font-bold tracking-wider mb-1.5 ml-1">Código Postal *</label>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] ml-1 leading-none">Postal Identity (CP)</label>
                   <input
                     type="text"
                     maxLength={5}
                     placeholder="00000"
                     value={cp}
                     onChange={(e) => setCp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 focus:outline-none focus:border-[#22C55E]/40"
+                    className="w-full h-14 bg-white/5 border border-white/5 rounded-2xl px-6 text-sm font-black uppercase focus:border-[#ccff00]/40 transition-all outline-none italic placeholder:text-white/10"
                   />
                 </div>
-                <div className="col-span-2">
-                  <label className="block text-[10px] text-[#8DA4C4] uppercase font-bold tracking-wider mb-1.5 ml-1">Régimen Fiscal *</label>
+                <div className="col-span-2 space-y-3">
+                  <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] ml-1 leading-none">Fiscal Regime Protocol</label>
                   <select
                     value={taxRegime} onChange={e => setTaxRegime(e.target.value)}
-                    className="w-full bg-[#0D1B3E] border border-white/[0.08] rounded-xl px-4 py-3 focus:outline-none focus:border-[#22C55E]/40 text-[#E8EAF0]"
+                    className="w-full h-14 bg-black border border-white/10 rounded-2xl px-6 text-sm font-black uppercase focus:border-[#ccff00]/40 transition-all outline-none appearance-none cursor-pointer italic"
                   >
-                    <option value="">Selecciona tu régimen...</option>
-                    <option value="601">601 - General de Ley Personas Morales</option>
-                    <option value="606">606 - Arrendamiento</option>
-                    <option value="612">612 - Personas Físicas con Actividades Empresariales</option>
-                    <option value="626">626 - Régimen Simplificado de Confianza (RESICO)</option>
+                    <option value="" className="text-white/20">Select Regime...</option>
+                    <option value="601">601 - Gral. Ley Personas Morales</option>
+                    <option value="626">626 - RESICO (Simplified Trust)</option>
+                    <option value="612">612 - Business Individual (PFAE)</option>
                   </select>
                 </div>
               </div>
 
-              {/* Error del servidor al guardar (ej. RFC inválido rechazado por API) */}
               {saveError && (
-                <div className="mt-3 flex items-center gap-2 text-[11px] text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5">
-                  <span className="material-symbols-outlined text-sm">error</span>
-                  {saveError}
+                <div className="mt-8 glass-card border-red-500/20 bg-red-500/5 p-6 rounded-2xl flex items-center gap-4 animate-luxe">
+                  <span className="material-symbols-outlined text-red-500">error</span>
+                  <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">{saveError}</span>
                 </div>
               )}
             </div>
           )}
 
           {step === 5 && (
-            <div className="max-w-2xl">
-              <h1 className="text-3xl font-headline font-bold mb-2">Conexión Meta (CRM)</h1>
-              <p className="text-[#8DA4C4] text-[13px] mb-8">
-                Habilita el envío y recepción de mensajes de WhatsApp e Instagram integrando tu cuenta de Meta for Developers.
+            <div className="max-w-3xl">
+              <h1 className="text-4xl font-black uppercase tracking-tighter mb-4">Neural CRM (Meta)</h1>
+              <p className="text-white/40 text-[12px] uppercase font-black tracking-widest leading-relaxed mb-12">
+                Enable omnichannel intelligence via Meta. Secure WABA integration required.
               </p>
 
-
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <IntegrationInput 
-                  name="metaToken" color="#0084FF" label="Meta System User Access Token" icon="forum"
-                  value={metaAccessToken} onChange={setMetaAccessToken} link="https://youtube.com/atollomlabs/tutorial-meta-crm"
+                  name="metaToken" color="#0084FF" label="Meta Master Access Token" icon="forum"
+                  value={metaAccessToken} onChange={setMetaAccessToken}
                 />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                   <IntegrationInput 
-                    name="phoneId" color="#25D366" label="WA Phone ID" icon="phone_iphone"
+                    name="phoneId" color="#25D366" label="WA Node ID" icon="phone_iphone"
                     value={phoneId} onChange={setPhoneId}
                   />
                   <IntegrationInput 
-                    name="wabaId" color="#25D366" label="WABA ID" icon="domain"
+                    name="wabaId" color="#25C5FF" label="WABA Business Identity" icon="domain"
                     value={wabaId} onChange={setWabaId}
                   />
                 </div>
@@ -573,40 +510,35 @@ export default function OnboardingPage() {
           )}
 
           {step === 6 && (
-            <div className="max-w-3xl">
-              <h1 className="text-3xl font-headline font-bold mb-2">Autonomía de Agentes</h1>
-              <p className="text-[#8DA4C4] text-[13px] mb-8">
-                Define qué tanta libertad de acción tienen mis agentes en cada área de tu negocio. Puedes cambiar esto más tarde en la configuración.
+            <div className="max-w-4xl">
+              <h1 className="text-4xl font-black uppercase tracking-tighter mb-4">Autonomy Matrix</h1>
+              <p className="text-white/40 text-[12px] uppercase font-black tracking-widest leading-relaxed mb-12">
+                Define the freedom parameters for Neural Agents in each operational sector.
               </p>
 
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {(["ecommerce", "erp", "crm"] as const).map(mod => (
-                  <div key={mod} className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-                    <h3 className="text-[12px] font-bold text-[#E8EAF0] uppercase tracking-wider mb-4 border-b border-white/[0.06] pb-3">
-                      Agentes {mod}
+                  <div key={mod} className="glass-card border border-white/5 rounded-[2.5rem] p-10 flex flex-col items-center">
+                    <h3 className="text-[11px] font-black text-white/30 uppercase tracking-[0.4em] mb-10 pb-4 border-b border-white/5 w-full text-center">
+                       {mod} AGENTS
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-4 w-full">
                       {AUTONOMY_OPTIONS.map(opt => (
                         <button
                           key={opt.value}
                           onClick={() => setAutonomy(prev => ({ ...prev, [mod]: opt.value }))}
                           className={`
-                            w-full text-left p-3 rounded-xl border transition-all
+                            w-full p-6 rounded-3xl border transition-all duration-500 text-center relative group overflow-hidden
                             ${autonomy[mod] === opt.value
-                                ? `bg-[${opt.color}]/10 border-[${opt.color}]/30`
-                                : "bg-white/[0.02] border-transparent hover:bg-white/[0.04]"
+                                ? "bg-[#ccff00]/10 border-[#ccff00]/40 shadow-volt"
+                                : "bg-white/5 border-white/5 hover:border-white/10"
                             }
                           `}
-                          style={autonomy[mod] === opt.value ? { borderColor: `${opt.color}40`, backgroundColor: `${opt.color}10` } : {}}
                         >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-[11px] font-bold" style={{ color: autonomy[mod] === opt.value ? opt.color : "#E8EAF0" }}>
-                              {opt.label}
-                            </span>
-                            {autonomy[mod] === opt.value && <span className="material-symbols-outlined text-sm" style={{ color: opt.color }}>check_circle</span>}
-                          </div>
-                          <p className="text-[9px] text-[#8DA4C4] leading-relaxed">{opt.desc}</p>
+                          <p className={`text-[10px] font-black uppercase tracking-widest italic ${autonomy[mod] === opt.value ? 'text-[#ccff00]' : 'text-white/30'}`}>
+                             {opt.label}
+                          </p>
+                          {autonomy[mod] === opt.value && <div className="absolute top-2 right-4 w-1 h-1 rounded-full bg-[#ccff00] shadow-volt" />}
                         </button>
                       ))}
                     </div>
@@ -617,70 +549,69 @@ export default function OnboardingPage() {
           )}
 
           {step === 7 && (
-            <div className="max-w-xl mx-auto text-center py-8">
-              <div className="w-24 h-24 mx-auto rounded-full bg-[#A8E63D]/10 flex items-center justify-center mb-6 shadow-[0_0_40px_#A8E63D40]">
-                <span className="material-symbols-outlined text-5xl text-[#A8E63D]"> rocket_launch</span>
+            <div className="max-w-xl mx-auto text-center py-12 relative overflow-hidden">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-[#ccff00]/10 rounded-full blur-[80px] pointer-events-none" />
+              <div className="w-24 h-24 mx-auto rounded-full bg-[#ccff00]/10 border border-[#ccff00]/20 flex items-center justify-center mb-10 shadow-volt animate-pulse relative z-10">
+                <span className="material-symbols-outlined text-5xl text-[#ccff00]">rocket_launch</span>
               </div>
-              <h1 className="text-3xl font-headline font-bold mb-4">¡Todo listo, {displayName || "owner"}!</h1>
-              <p className="text-[#8DA4C4] text-[14px] leading-relaxed mb-8">
-                He guardado tus configuraciones de forma segura. A partir de ahora estaré monitoreando tu ecosistema.
-                Si en algún momento necesitas ajustar tus reglas de negocio o empresas, dirígete a la sección de Configuración.
+              <h1 className="text-4xl font-black uppercase tracking-tighter mb-6">Matrix Initialized</h1>
+              <p className="text-white/40 text-[13px] uppercase font-black tracking-widest leading-relaxed mb-12 italic">
+                {displayName}, your identity is hardcoded into the neural core. Operational security protocols active.<br/>Welcome to the future of commerce.
               </p>
               
-              <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 text-left flex gap-4 items-center max-w-sm mx-auto mb-10">
-                <span className="material-symbols-outlined text-3xl text-[#3B82F6]">smart_toy</span>
-                <div>
-                  <p className="text-[#E8EAF0] text-[12px] italic">
-                    "Recuerda que siempre puedes usar el botón de chat en la esquina para consultarme lo que necesites."
+              <div className="glass-card border border-[#ccff00]/20 bg-[#ccff00]/5 rounded-[2rem] p-8 flex gap-6 items-center max-w-sm mx-auto shadow-volt group">
+                <span className="material-symbols-outlined text-4xl text-[#ccff00] group-hover:scale-110 transition-transform">smart_toy</span>
+                <div className="text-left">
+                  <p className="text-[#ccff00] text-[11px] font-black uppercase tracking-widest italic leading-relaxed">
+                    "Core stabilized. I am awaiting operational commands. Proceed to Command Center."
                   </p>
-                  <p className="text-[10px] text-[#506584] uppercase tracking-widest mt-1 font-bold">— Samantha</p>
+                  <p className="text-[8px] text-white/20 uppercase tracking-[0.4em] mt-3 font-black">— SAMANTHA</p>
                 </div>
               </div>
             </div>
           )}
 
-
         </div>
 
-        {/* ── Footer / Botones ───────────────────────────────────── */}
-        <div className="flex items-center justify-between mt-12 pt-6 border-t border-white/[0.06] flex-shrink-0">
+        {/* ── Action Grid ───────────────────────────────────────────── */}
+        <div className="flex items-center justify-between mt-20 pt-10 border-t border-white/5 relative z-10">
           <div>
-            {step > 1 && step < 6 && (
+            {step > 1 && step < 7 && (
               <button 
                 onClick={() => setStep(s => s - 1 as OnboardingStep)}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[#8DA4C4] hover:text-[#E8EAF0] hover:bg-white/[0.04] transition-all text-[11px] font-bold uppercase tracking-wider"
+                className="flex items-center gap-3 px-8 h-14 rounded-2xl text-white/30 hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.2em]"
               >
-                <span className="material-symbols-outlined text-sm">arrow_back</span>
-                Atrás
+                <span className="material-symbols-outlined text-lg">arrow_back</span>
+                Re-Sync
               </button>
             )}
           </div>
-          <div className="flex gap-4">
-            {step < 5 && step > 1 && (
+          <div className="flex gap-6">
+            {step < 6 && (
               <button 
                 onClick={skipStep}
-                className="px-5 py-2.5 rounded-xl text-[#8DA4C4] hover:text-[#F59E0B] transition-all text-[11px] font-bold uppercase tracking-wider"
+                className="px-8 h-14 rounded-2xl text-white/20 hover:text-white/50 transition-all text-[9px] font-black uppercase tracking-[0.3em]"
               >
-                Saltar paso
+                Omit Sector
               </button>
             )}
 
-            {step < 6 ? (
+            {step < 7 ? (
               <button 
                 onClick={nextStep}
                 disabled={saving || (step === 1 && !displayName.trim())}
-                className="flex items-center gap-2 px-8 py-2.5 bg-[#A8E63D] text-[#0D1B3E] font-bold rounded-xl uppercase tracking-wider text-[11px] disabled:opacity-40 hover:shadow-[0_0_16px_#A8E63D40] transition-all"
+                className="h-14 px-12 bg-[#ccff00] text-black font-black rounded-2xl uppercase tracking-[0.3em] text-[11px] disabled:opacity-40 hover:scale-105 active:scale-95 transition-all shadow-volt flex items-center gap-4 group"
               >
-                {saving ? "Guardando..." : "Siguiente"}
-                {!saving && <span className="material-symbols-outlined text-sm">arrow_forward</span>}
+                {saving ? "Transmitting..." : "Initialize Next"}
+                {!saving && <span className="material-symbols-outlined text-xl group-hover:translate-x-2 transition-transform italic">bolt</span>}
               </button>
             ) : (
               <button 
                 onClick={finishOnboarding}
-                className="flex items-center gap-2 px-8 py-3 bg-[#A8E63D] text-[#0D1B3E] font-bold rounded-xl uppercase tracking-wider text-[12px] hover:shadow-[0_0_24px_#A8E63D60] transition-all"
+                className="h-16 px-16 bg-[#ccff00] text-black font-black rounded-[2rem] uppercase tracking-[0.4em] text-[12px] hover:scale-105 active:scale-95 transition-all shadow-volt flex items-center gap-6 group"
               >
-                Ir al Dashboard
-                <span className="material-symbols-outlined text-lg">dashboard</span>
+                Deploy Command Center
+                <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">dashboard</span>
               </button>
             )}
 
@@ -694,33 +625,27 @@ export default function OnboardingPage() {
 
 // ── Componente helper: Input de API key ──────────────────────────
 function IntegrationInput({ 
-  name, label, color, icon, value, onChange, link 
+  name, label, color, icon, value, onChange
 }: { 
-  name: string; label: string; color: string; icon: string; value: string; onChange: (v: string) => void; link?: string;
+  name: string; label: string; color: string; icon: string; value: string; onChange: (v: string) => void;
 }) {
   return (
-    <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 flex gap-4 focus-within:border-white/[0.15] transition-all">
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}15`, color }}>
-        <span className="material-symbols-outlined">{icon}</span>
+    <div className="glass-card border border-white/5 rounded-3xl p-6 flex gap-8 focus-within:border-[#ccff00]/30 transition-all group overflow-hidden relative">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-[40px] pointer-events-none group-hover:bg-[#ccff00]/5 transition-all" />
+      <div className="w-14 h-14 rounded-[1.25rem] flex items-center justify-center flex-shrink-0 bg-white/5 border border-white/5 group-hover:border-white/20 transition-all" style={{ color }}>
+        <span className="material-symbols-outlined text-2xl">{icon}</span>
       </div>
-      <div className="flex-1">
-        <label className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-[#E8EAF0] mb-2">
-          {label}
-          {link && (
-            <a href={link} target="_blank" rel="noreferrer" className="text-[#8DA4C4] hover:text-[#A8E63D] normal-case tracking-normal flex items-center gap-1 opacity-70 hover:opacity-100">
-              <span className="material-symbols-outlined text-[10px]">help</span>
-              ¿Cómo obtenerla?
-            </a>
-          )}
-        </label>
+      <div className="flex-1 space-y-3 relative z-10">
+        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 block ml-1">{label}</label>
         <input 
           type="password"
-          placeholder="••••••••••••••••••••••••••••••••"
+          placeholder="SECURE_HASH_INPUT"
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full bg-transparent border-b border-white/[0.1] pb-2 text-[13px] font-mono focus:outline-none placeholder:text-[#506584]"
-          style={{ borderColor: value ? color : undefined }}
+          className="w-full bg-transparent text-xl font-black uppercase tracking-widest focus:outline-none placeholder:text-white/5 italic"
+          style={{ color: value ? '#ccff00' : undefined }}
         />
+        <div className={`h-1 w-full rounded-full transition-all duration-500 ${value ? 'bg-[#ccff00] shadow-volt' : 'bg-white/5'}`} />
       </div>
     </div>
   );

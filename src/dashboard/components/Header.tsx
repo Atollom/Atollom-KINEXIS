@@ -1,64 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationPanel } from "./NotificationPanel";
-import { ThemeToggle } from "./ThemeToggle";
 
 interface HeaderProps {
   onMenuToggle?: () => void;
 }
 
 const MODULES = [
-  { id: "ecommerce", name: "Ecommerce", icon: "storefront", href: "/ecommerce", color: "blue" },
-  { id: "erp", name: "ERP", icon: "account_tree", href: "/erp", color: "green" },
-  { id: "crm", name: "CRM", icon: "group", href: "/crm", color: "amber" },
+  { id: "ecommerce", name: "Ecommerce", href: "/ecommerce" },
+  { id: "erp", name: "ERP", href: "/erp" },
+  { id: "crm", name: "CRM", href: "/crm" },
 ];
-
-// ── Breadcrumb helper ──────────────────────────────────────────────────────────
-const ROUTE_LABELS: Record<string, string> = {
-  ecommerce: "Ecommerce",
-  erp: "ERP",
-  crm: "CRM",
-  meta: "Meta",
-  warehouse: "Almacén",
-  settings: "Configuración",
-  chat: "Chat",
-  orders: "Órdenes",
-  ml: "Mercado Libre",
-  amazon: "Amazon",
-  shopify: "Shopify",
-  catalog: "Catálogo",
-  prices: "Precios",
-  reviews: "Reseñas",
-  inventory: "Inventario",
-  cfdi: "Facturación CFDI",
-  procurement: "Compras",
-  cashflow: "Flujo de Caja",
-  tax: "Fiscal",
-  leads: "Leads",
-  pipeline: "Pipeline",
-  b2b: "Ventas B2B",
-  whatsapp: "WhatsApp",
-  instagram: "Instagram",
-  nps: "NPS",
-  support: "Soporte",
-};
-
-function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
-  const parts = pathname.split("/").filter(Boolean);
-  return parts.map((part, i) => ({
-    label: ROUTE_LABELS[part] || part,
-    href: "/" + parts.slice(0, i + 1).join("/"),
-  }));
-}
 
 function getActiveModule(pathname: string): string | null {
   if (pathname.startsWith("/ecommerce")) return "ecommerce";
   if (pathname.startsWith("/erp") || pathname.startsWith("/warehouse")) return "erp";
-  if (pathname.startsWith("/crm") || pathname.startsWith("/meta")) return "crm";
+  if (pathname.startsWith("/crm")) return "crm";
+  if (pathname.startsWith("/meta")) return "meta";
+  if (pathname.startsWith("/atollom")) return "atollom";
   return null;
 }
 
@@ -77,59 +39,57 @@ export function Header({ onMenuToggle }: HeaderProps) {
     markAllAsRead,
   } = useNotifications();
 
-  const breadcrumbs = getBreadcrumbs(pathname);
-
   return (
     <header
       className="
-        fixed top-0 right-0 left-0 md:left-[320px] z-40
-        flex flex-col
-        h-auto
-        bg-background/80 backdrop-blur-xl
-        border-b border-outline-variant
-        transition-colors duration-500
+        fixed top-0 right-0 left-0 md:left-[280px] z-40
+        flex items-center justify-between
+        h-16 px-6 md:px-10
+        bg-black/60 backdrop-blur-3xl
+        border-b border-white/5
       "
-      aria-label="Top Navigation"
     >
-      {/* Top Row */}
-      <div className="flex items-center justify-between h-14 px-4 md:px-8">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onMenuToggle}
-            className="md:hidden text-on-surface-variant hover:text-primary transition-colors"
-          >
-            <span className="material-symbols-outlined">menu</span>
-          </button>
+      <div className="flex items-center gap-6">
+        <button
+          onClick={onMenuToggle}
+          className="md:hidden text-white/40 hover:text-[#ccff00]"
+        >
+          <span className="material-symbols-outlined">menu</span>
+        </button>
 
-          <nav className="hidden sm:flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
-            <Link href="/" className="hover:text-on-surface transition-colors">Inicio</Link>
-            {breadcrumbs.map((crumb, i) => (
-              <div key={crumb.href} className="flex items-center gap-2">
-                <span className="text-outline opacity-30">/</span>
-                <Link
-                  href={crumb.href}
-                  className={i === breadcrumbs.length - 1 ? "text-on-surface" : "hover:text-on-surface transition-colors"}
-                >
-                  {crumb.label}
-                </Link>
-              </div>
-            ))}
-          </nav>
+        <nav className="hidden lg:flex items-center gap-8">
+          {MODULES.map((mod) => (
+            <button
+              key={mod.id}
+              onClick={() => router.push(mod.href)}
+              className={`
+                text-[10px] font-black uppercase tracking-[0.2em] italic transition-all
+                ${activeModule === mod.id ? "text-[#ccff00] shadow-volt-text" : "text-white/20 hover:text-white"}
+              `}
+            >
+              {mod.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      <div className="flex items-center gap-8">
+        <div className="hidden sm:flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
+           <div className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse shadow-volt" />
+           <span className="text-[9px] font-black uppercase tracking-widest text-[#ccff00] italic">Neural Link Active</span>
         </div>
 
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          
+        <div className="flex items-center gap-5">
           <div className="relative">
             <button
               onClick={() => setPanelOpen((o) => !o)}
-              className="w-9 h-9 rounded-xl flex items-center justify-center bg-white/[0.03] border border-white/[0.05] text-on-surface-variant hover:text-primary transition-all"
+              className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/5 text-white/20 hover:text-[#ccff00] transition-all"
             >
-              <span className="material-symbols-outlined text-[20px]">
-                {criticalCount > 0 ? "notifications_active" : "notifications"}
+              <span className="material-symbols-outlined text-[20px] shadow-volt-text">
+                {criticalCount > 0 ? "notifications_active" : "sensors"}
               </span>
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-error animate-pulse shadow-[0_0_8px_var(--error)]" />
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[#ccff00] shadow-volt" />
               )}
             </button>
             {panelOpen && (
@@ -144,45 +104,17 @@ export function Header({ onMenuToggle }: HeaderProps) {
             )}
           </div>
 
-          <div className="w-9 h-9 rounded-full bg-surface-container overflow-hidden border border-outline-variant">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBn5Uj3mHl2Sq6nPUH3ztTR4KLUd0A7oDpetDUm6wilrk7IsPSALTpFOgUFnPtZpSb__tmhkziqKHgd7UVVWIEmcolFHEdVtTIlgjP4HVioontd8QP9feXcmwiSCs_7aJX0RgALEgbKKhzNJTw4W_Fj5Cem79nCMnOxZ27h6osYd80RQuGaEKGDv3qz-lERwCtkXrXpasGksTCNkTEL7YCJwggiVzgFIjlVBdSbOAFqJUQE0YsVlZCSh8ud741B7mUcFwl5XhKd7S0" alt="Profile" className="w-full h-full object-cover" />
+          <button
+             onClick={() => router.push("/settings")}
+             className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/5 text-white/20 hover:text-white transition-all"
+          >
+            <span className="material-symbols-outlined text-[18px]">grid_view</span>
+          </button>
+
+          <div className="w-9 h-9 rounded-full bg-white/5 overflow-hidden border border-white/10 p-0.5">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBn5Uj3mHl2Sq6nPUH3ztTR4KLUd0A7oDpetDUm6wilrk7IsPSALTpFOgUFnPtZpSb__tmhkziqKHgd7UVVWIEmcolFHEdVtTIlgjP4HVioontd8QP9feXcmwiSCs_7aJX0RgALEgbKKhzNJTw4W_Fj5Cem79nCMnOxZ27h6osYd80RQuGaEKGDv3qz-lERwCtkXrXpasGksTCNkTEL7YCJwggiVzgFIjlVBdSbOAFqJUQE0YsVlZCSh8ud741B7mUcFwl5XhKd7S0" alt="Profile" className="w-full h-full rounded-full object-cover grayscale hover:grayscale-0 transition-all duration-700 hover:scale-110" />
           </div>
         </div>
-      </div>
-
-      {/* Module Navigation Bar */}
-      <div className="flex items-center gap-1 px-4 md:px-8 pb-3 pt-1 border-t border-outline-variant/10">
-        {MODULES.map((mod) => (
-          <button
-            key={mod.id}
-            onClick={() => router.push(mod.href)}
-            className={`
-              flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
-              ${activeModule === mod.id 
-                ? "bg-surface-container text-on-surface shadow-sm" 
-                : "text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface"
-              }
-            `}
-          >
-            <span className="material-symbols-outlined text-[18px]">{mod.icon}</span>
-            <span className="hidden sm:inline font-medium tracking-tight">{mod.name}</span>
-          </button>
-        ))}
-
-        <div className="flex-1" />
-
-        <button
-          onClick={() => router.push("/settings")}
-          className={`
-            flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all
-            ${pathname.startsWith("/settings") 
-              ? "bg-surface-container text-on-surface shadow-sm" 
-              : "text-on-surface-variant hover:bg-surface-container/50 hover:text-on-surface"
-            }
-          `}
-        >
-          <span className="material-symbols-outlined text-[18px]">settings</span>
-        </button>
       </div>
     </header>
   );

@@ -12,50 +12,43 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Luxe Theme Variables
-        background: "var(--background)",
-        surface: "var(--surface)",
-        "surface-bright": "var(--surface-bright)",
-        "surface-dim": "var(--surface-dim)",
-        "surface-container": "var(--surface-container)",
-        
-        primary: {
-          DEFAULT: "var(--primary)",
-          dim: "var(--primary-dim)",
-          container: "var(--primary-container)",
-        },
-        secondary: {
-          DEFAULT: "var(--secondary)",
-          container: "var(--secondary-container)",
-        },
-        tertiary: {
-          DEFAULT: "var(--tertiary)",
-          container: "var(--tertiary-container)",
-        },
-        error: {
-          DEFAULT: "#ff7351",
-          dim: "#d53d18",
-          container: "#b92902",
-        },
-        
-        "on-surface": "var(--on-surface)",
-        "on-surface-variant": "var(--on-surface-variant)",
-        outline: {
-          DEFAULT: "#6a7686",
-          variant: "var(--outline-variant)",
-        },
+        "surface": "#040f1b",
+        "error": "#ff7351",
+        "inverse-surface": "#f8f9ff",
+        "surface-bright": "#1b2d41",
+        "primary-container": "#cafd00",
+        "primary": "#ccff00", // Using the vibrant neon from branding
+        "on-background": "#dde9fb",
+        "surface-container-lowest": "#000000",
+        "secondary-container": "#636100",
+        "surface-tint": "#f3ffca",
+        "on-surface": "#dde9fb",
+        "tertiary-container": "#fce047",
+        "primary-dim": "#beee00",
+        "surface-container": "#0b1b2a",
+        "background": "#040f1b",
+        "tertiary-dim": "#edd13a",
+        "surface-container-high": "#102131",
+        "outline": "#6a7686",
+        "on-surface-variant": "#a0acbd",
+        "outline-variant": "#3d4957",
+        "surface-container-low": "#061422",
+        "secondary": "#ece856",
+        "surface-container-highest": "#152739",
       },
       fontFamily: {
         headline: ["Inter", "sans-serif"],
         body: ["Inter", "sans-serif"],
+        label: ["Inter", "sans-serif"],
       },
       fontSize: {
         "ultra-kpi": ["5.5rem", { lineHeight: "1", letterSpacing: "-0.05em", fontWeight: "900" }],
       },
       borderRadius: {
-        "3xl": "1.5rem",
-        "4xl": "2rem",
-        full: "9999px",
+        "DEFAULT": "1rem",
+        "lg": "2rem",
+        "xl": "3rem",
+        "full": "9999px",
       },
       boxShadow: {
         "luxe": "0 10px 40px -10px rgba(0,0,0,0.5)",
@@ -64,6 +57,7 @@ const config: Config = {
       animation: {
         "luxe": "luxeFade 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
         "float": "float 3s ease-in-out infinite",
+        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       keyframes: {
         luxeFade: {

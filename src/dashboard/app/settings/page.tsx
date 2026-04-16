@@ -9,12 +9,11 @@ import type { AutonomyLevel, UserRole } from "@/types";
 // ──────────────────────────────────────────────────────────────────────────────
 type TabId = "profile" | "companies" | "modules" | "apikeys" | "rules" | "users" | "autonomy";
 
-
 interface TabDef {
   id: TabId;
   label: string;
   icon: string;
-  ownerOnly?: boolean; // solo visible para owner
+  ownerOnly?: boolean; 
 }
 
 interface BusinessProfile {
@@ -35,7 +34,6 @@ interface Company {
   es_principal: boolean;
   activa: boolean;
 }
-
 
 interface BusinessRules {
   ml_margin: number;
@@ -67,13 +65,12 @@ interface AutonomyConfig {
 
 const TABS: TabDef[] = [
   { id: "profile",   label: "Perfil",       icon: "business" },
-  { id: "companies", label: "Mis empresas", icon: "domain" },
+  { id: "companies", label: "Empresas",     icon: "domain" },
   { id: "modules",   label: "Módulos",      icon: "widgets",       ownerOnly: true },
-
-  { id: "apikeys",  label: "API Keys",     icon: "key" },
-  { id: "rules",    label: "Reglas",       icon: "tune" },
-  { id: "users",    label: "Usuarios",     icon: "group" },
-  { id: "autonomy", label: "Autonomía",    icon: "smart_toy" },
+  { id: "apikeys",   label: "API Keys",     icon: "key" },
+  { id: "rules",     label: "Reglas",       icon: "tune" },
+  { id: "users",     label: "Usuarios",     icon: "group" },
+  { id: "autonomy",  label: "Autonomía",    icon: "smart_toy" },
 ];
 
 const MARGIN_MINIMUMS: Record<string, number> = {
@@ -90,11 +87,10 @@ const MARGIN_LABELS: Record<string, string> = {
   b2b_margin: "B2B",
 };
 
-/** Definición de API keys agrupadas por plataforma */
 const API_KEY_GROUPS = [
   {
     platform: "Mercado Libre",
-    color: "#FFE600",
+    color: "#ccff00",
     icon: "shopping_bag",
     keys: [
       { name: "ml_access_token", label: "Access Token" },
@@ -104,7 +100,7 @@ const API_KEY_GROUPS = [
   },
   {
     platform: "Amazon SP-API",
-    color: "#FF9900",
+    color: "#ff9900",
     icon: "inventory_2",
     keys: [
       { name: "amazon_sp_api_key", label: "API Key" },
@@ -123,15 +119,6 @@ const API_KEY_GROUPS = [
     ],
   },
   {
-    platform: "Meta (WhatsApp/IG)",
-    color: "#0084FF",
-    icon: "chat",
-    keys: [
-      { name: "meta_access_token", label: "Access Token" },
-      { name: "meta_app_secret", label: "App Secret" },
-    ],
-  },
-  {
     platform: "FacturAPI",
     color: "#22C55E",
     icon: "description",
@@ -143,17 +130,17 @@ const API_KEY_GROUPS = [
 ];
 
 const MODULES_LIST = [
-  { id: "ecommerce", name: "Ecommerce", description: "ML, Amazon, Shopify — catálogo, órdenes, reseñas", icon: "storefront", color: "#3B82F6" },
-  { id: "erp",       name: "ERP",       description: "Almacén, CFDI, compras, logística, fiscal",       icon: "account_tree", color: "#CCFF00" },
-  { id: "crm",       name: "CRM",       description: "Leads, pipeline B2B, WhatsApp, Instagram, NPS",   icon: "group",        color: "#F59E0B" },
+  { id: "ecommerce", name: "Ecommerce", description: "Ventas multicanal e inventario", icon: "storefront", color: "#ccff00" },
+  { id: "erp",       name: "ERP",       description: "Operación, logística y CFDI",    icon: "account_tree", color: "#ccff00" },
+  { id: "crm",       name: "CRM",       description: "Leads y servicio al cliente",    icon: "group",        color: "#ccff00" },
 ];
 
 const AUTONOMY_LEVELS: { value: AutonomyLevel; label: string; desc: string; color: string }[] = [
-  { value: "FULL",           label: "Completa",     desc: "El agente actúa sin intervención humana",          color: "#22C55E" },
-  { value: "NOTIFY",         label: "Notificar",    desc: "Actúa y notifica después",                        color: "#3B82F6" },
-  { value: "SUPERVISED",     label: "Supervisado",  desc: "Requiere aprobación para acciones importantes",    color: "#F59E0B" },
-  { value: "HUMAN_REQUIRED", label: "Manual",       desc: "Solo ejecuta con aprobación explícita",            color: "#EF4444" },
-  { value: "PAUSED",         label: "Pausado",      desc: "Módulo desactivado temporalmente",                  color: "#506584" },
+  { value: "FULL",           label: "FULL",         desc: "IA autónoma total",           color: "#ccff00" },
+  { value: "NOTIFY",         label: "NOTIFY",       desc: "IA actúa y reporta",           color: "#ccff00" },
+  { value: "SUPERVISED",     label: "SUPERVISED",   desc: "Requiere autorización",        color: "#ccff00" },
+  { value: "HUMAN_REQUIRED", label: "MANUAL",       desc: "Solo ejecución humana",        color: "#ffffff" },
+  { value: "PAUSED",         label: "PAUSED",       desc: "Sistemas suspendidos",         color: "#ef4444" },
 ];
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
@@ -171,12 +158,10 @@ const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
 // Helpers
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Mostrar valor enmascarado */
 function maskValue(hasValue: boolean): string {
-  return hasValue ? "●●●●●●●●●●●●" : "";
+  return hasValue ? "••••••••••••••••" : "";
 }
 
-/** Toast de éxito temporal */
 function useToast() {
   const [msg, setMsg] = useState<string | null>(null);
   const show = useCallback((text: string) => {
@@ -190,7 +175,6 @@ function useToast() {
 // Componente principal
 // ──────────────────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
-  // userRole starts as "viewer" (safe default — no tabs visible until auth resolves)
   const [userRole, setUserRole] = useState<UserRole>("viewer");
 
   useEffect(() => {
@@ -215,37 +199,24 @@ export default function SettingsPage() {
 
   const visibleTabs = TABS.filter(t => !t.ownerOnly || userRole === "owner");
 
-  // ── Estado: Perfil ────────────────────────────────────────────
   const [profile, setProfile] = useState<BusinessProfile>({
     business_name: "", rfc: "", tax_regime: "", postal_code: "", logo_url: "",
   });
-
-  // ── Estado: API Keys ──────────────────────────────────────────
   const [vaultStatus, setVaultStatus] = useState<Record<string, boolean>>({});
   const [keyInputs, setKeyInputs] = useState<Record<string, string>>({});
   const [savingKeys, setSavingKeys] = useState<Set<string>>(new Set());
-
-  // ── Estado: Reglas de negocio ──────────────────────────────────
   const [rules, setRules] = useState<BusinessRules | null>(null);
   const [savingRules, setSavingRules] = useState(false);
-
-  // ── Estado: Usuarios ──────────────────────────────────────────
   const [users, setUsers] = useState<TenantUserRow[]>([]);
   const [changingRole, setChangingRole] = useState<string | null>(null);
-
-  // ── Estado: Autonomía ─────────────────────────────────────────
   const [autonomy, setAutonomy] = useState<AutonomyConfig>({
     ecommerce: "FULL", erp: "NOTIFY", crm: "SUPERVISED",
   });
   const [savingAutonomy, setSavingAutonomy] = useState(false);
-
-  // ── Estado: Empresas ──────────────────────────────────────────
   const [companies, setCompanies] = useState<Company[]>([]);
   const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
   const [savingCompany, setSavingCompany] = useState<string | null>(null);
 
-
-  // ── Cargar todos los datos al montar ──────────────────────────
   useEffect(() => {
     async function loadAll() {
       setLoading(true);
@@ -268,7 +239,6 @@ export default function SettingsPage() {
         if (companiesRes.status === "fulfilled") {
           const list = companiesRes.value.companies || [];
           setCompanies(list);
-          // Cargar empresa activa de localStorage
           const savedId = localStorage.getItem("active_company_id");
           if (savedId && list.some((c: Company) => c.id === savedId)) {
             setActiveCompanyId(savedId);
@@ -277,18 +247,15 @@ export default function SettingsPage() {
             setActiveCompanyId(principal ? principal.id : list[0].id);
           }
         }
-
       } catch {
-        setError("Error cargando configuración");
+        setError("Operational error: System sync failed.");
       } finally {
         setLoading(false);
       }
     }
     loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Guardar perfil ────────────────────────────────────────────
   async function saveProfile() {
     try {
       const res = await fetch("/api/settings/profile", {
@@ -297,17 +264,15 @@ export default function SettingsPage() {
         body: JSON.stringify(profile),
       });
       if (!res.ok) throw new Error("Error guardando perfil");
-      toast.show("Perfil guardado correctamente");
+      toast.show("Profile synchronized.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
+      setError(err instanceof Error ? err.message : "Error");
     }
   }
 
-  // ── Guardar API key individual ────────────────────────────────
   async function saveApiKey(keyName: string) {
     const value = keyInputs[keyName];
     if (!value?.trim()) return;
-
     setSavingKeys(prev => new Set(prev).add(keyName));
     try {
       const res = await fetch("/api/settings/vault", {
@@ -318,9 +283,9 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error("Error guardando key");
       setVaultStatus(prev => ({ ...prev, [keyName]: true }));
       setKeyInputs(prev => ({ ...prev, [keyName]: "" }));
-      toast.show(`${keyName} actualizado correctamente`);
+      toast.show(`${keyName} stored.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
+      setError(err instanceof Error ? err.message : "Error");
     } finally {
       setSavingKeys(prev => {
         const next = new Set(prev);
@@ -330,11 +295,9 @@ export default function SettingsPage() {
     }
   }
 
-  // ── Guardar reglas de negocio ─────────────────────────────────
   async function saveRules(e: React.FormEvent) {
     e.preventDefault();
     if (!rules) return;
-
     setSavingRules(true);
     try {
       const res = await fetch("/api/settings/business-rules", {
@@ -342,17 +305,15 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(rules),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error guardando reglas");
-      toast.show("Reglas de negocio guardadas");
+      if (!res.ok) throw new Error("Error guardando reglas");
+      toast.show("Operational rules updated.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
+      setError(err instanceof Error ? err.message : "Error");
     } finally {
       setSavingRules(false);
     }
   }
 
-  // ── Cambiar rol de usuario ────────────────────────────────────
   async function changeUserRole(userId: string, newRole: UserRole) {
     setChangingRole(userId);
     try {
@@ -361,18 +322,16 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, role: newRole }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error cambiando rol");
+      if (!res.ok) throw new Error("Error cambiando rol");
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-      toast.show("Rol actualizado correctamente");
+      toast.show("User RBAC synchronized.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
+      setError(err instanceof Error ? err.message : "Error");
     } finally {
       setChangingRole(null);
     }
   }
 
-  // ── Guardar autonomía ─────────────────────────────────────────
   async function saveAutonomy() {
     setSavingAutonomy(true);
     try {
@@ -382,778 +341,408 @@ export default function SettingsPage() {
         body: JSON.stringify(autonomy),
       });
       if (!res.ok) throw new Error("Error guardando autonomía");
-      toast.show("Niveles de autonomía guardados");
+      toast.show("Autonomy matrix updated.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
+      setError(err instanceof Error ? err.message : "Error");
     } finally {
       setSavingAutonomy(false);
     }
   }
 
-  // ── Acciones Empresas ─────────────────────────────────────────
   async function selectActiveCompany(id: string) {
     localStorage.setItem("active_company_id", id);
     setActiveCompanyId(id);
-    toast.show("Empresa activa para la sesión actualizada");
+    toast.show("Active company set for this session.");
   }
 
   async function setPrincipalCompany(id: string) {
     setSavingCompany(id);
     try {
-      const res = await fetch("/api/settings/companies", {
+      await fetch("/api/settings/companies", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, es_principal: true }),
       });
-      if (!res.ok) throw new Error("Error actualizando principal");
       setCompanies(prev => prev.map(c => ({ ...c, es_principal: c.id === id })));
-      toast.show("Empresa principal actualizada");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      toast.show("Principal company updated.");
+    } catch {
+      setError("Error");
     } finally {
       setSavingCompany(null);
     }
   }
 
-  async function addCompany() {
-    const nombre = prompt("Nombre / Razón Social:");
-    const rfc = prompt("RFC:");
-    if (!nombre || !rfc) return;
-    
-    try {
-      const res = await fetch("/api/settings/companies", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombre,
-          rfc,
-          regimen_fiscal: "601",
-          cp_expedicion: "00000",
-          es_principal: companies.length === 0
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error agregando empresa");
-      setCompanies(prev => [...prev, data.company]);
-      toast.show("Empresa agregada");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
-    }
-  }
-
-
-  // ── Loading skeleton ──────────────────────────────────────────
   if (loading) {
     return (
-      <div className="px-4 md:px-8 py-6 max-w-4xl mx-auto space-y-4">
-        <div className="h-10 w-48 bg-white/[0.04] rounded-xl animate-pulse" />
-        <div className="h-12 bg-white/[0.04] rounded-xl animate-pulse" />
-        {[1, 2, 3].map(i => (
-          <div key={i} className="h-24 bg-white/[0.04] rounded-xl animate-pulse" />
-        ))}
+      <div className="flex flex-col items-center justify-center h-full space-y-4 animate-pulse">
+        <div className="w-12 h-12 rounded-full border-2 border-[#ccff00]/20 border-t-[#ccff00] animate-spin" />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ccff00]">Syncing Matrix...</p>
       </div>
     );
   }
 
   return (
-    <div className="px-4 md:px-8 py-6 max-w-4xl mx-auto space-y-6">
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <header>
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center">
-            <span className="material-symbols-outlined text-[#A8E63D] text-lg">settings</span>
+    <div className="max-w-6xl mx-auto space-y-12 animate-luxe pb-24">
+      
+      {/* Dynamic Header */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 py-2">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-2xl bg-[#ccff00]/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#ccff00] text-xl">settings</span>
+             </div>
+             <div>
+                <h1 className="text-3xl font-black tracking-tighter text-white uppercase">System Config</h1>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ccff00]/60 italic">Neural Operational Center</p>
+             </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-headline font-bold text-[#E8EAF0]">
-              Configuración
-            </h1>
-            <p className="text-[12px] text-[#8DA4C4]">
-              Administra tu empresa, integraciones y permisos
-            </p>
-          </div>
+        </div>
+
+        {/* Luxe Tabs */}
+        <div className="bg-white/5 p-1 rounded-2xl border border-white/5 flex gap-1 overflow-x-auto scrollbar-none max-w-full">
+          {visibleTabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`
+                flex items-center gap-2 px-5 py-2.5 rounded-xl
+                text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300
+                whitespace-nowrap flex-shrink-0
+                ${activeTab === tab.id
+                  ? "bg-[#ccff00] text-black shadow-[0_0_15px_#ccff0044] italic"
+                  : "text-white/30 hover:text-white hover:bg-white/5"
+                }
+              `}
+            >
+              <span className="material-symbols-outlined text-[14px]">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
         </div>
       </header>
 
-      {/* ── Toast de éxito ───────────────────────────────────────── */}
-      {toast.msg && (
-        <div className="fixed top-20 right-6 z-50 animate-in bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] rounded-xl px-4 py-2.5 text-sm font-medium shadow-lg flex items-center gap-2">
-          <span className="material-symbols-outlined text-base">check_circle</span>
-          {toast.msg}
-        </div>
-      )}
-
-      {/* ── Error banner ─────────────────────────────────────────── */}
-      {error && (
-        <div
-          className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl px-4 py-2.5 text-sm flex items-center justify-between"
-          role="alert"
-        >
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">error</span>
-            {error}
+      {/* Success/Error Notifs */}
+      <div className="fixed top-24 right-8 z-[100] space-y-4">
+        {toast.msg && (
+          <div className="glass-card px-6 py-4 rounded-2xl border border-[#ccff00]/20 flex items-center gap-4 animate-luxe shadow-volt">
+            <span className="material-symbols-outlined text-[#ccff00]">check_circle</span>
+            <span className="text-[11px] font-black text-white uppercase tracking-widest">{toast.msg}</span>
           </div>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
-            <span className="material-symbols-outlined text-base">close</span>
-          </button>
-        </div>
-      )}
-
-      {/* ── Tabs ─────────────────────────────────────────────────── */}
-      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none border-b border-white/[0.06]">
-        {visibleTabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`
-              flex items-center gap-2 px-4 py-2.5 rounded-t-xl
-              text-[12px] font-bold uppercase tracking-wider
-              transition-all duration-200 whitespace-nowrap
-              ${activeTab === tab.id
-                ? "bg-white/[0.06] text-[#A8E63D] border-b-2 border-[#A8E63D]"
-                : "text-[#8DA4C4] hover:text-[#E8EAF0] hover:bg-white/[0.03]"
-              }
-            `}
-          >
-            <span className="material-symbols-outlined text-base" aria-hidden="true">
-              {tab.icon}
-            </span>
-            {tab.label}
-          </button>
-        ))}
+        )}
+        {error && (
+          <div className="glass-card px-6 py-4 rounded-2xl border border-red-500/20 flex items-center gap-4 animate-luxe shadow-xl bg-red-500/5">
+            <span className="material-symbols-outlined text-red-500">error</span>
+            <span className="text-[11px] font-black text-red-500 uppercase tracking-widest">{error}</span>
+            <button onClick={() => setError(null)} className="ml-2 hover:opacity-50 transition-opacity">
+               <span className="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-          TAB 1: Perfil de empresa
-          ═══════════════════════════════════════════════════════════ */}
-      {activeTab === "profile" && (
-        <section className="space-y-4 animate-in">
-          <SectionCard title="Perfil de Empresa" icon="business" color="#A8E63D">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FieldInput
-                label="Nombre de empresa"
-                value={profile.business_name}
-                onChange={v => setProfile(p => ({ ...p, business_name: v }))}
-                placeholder="Mi Empresa S.A. de C.V."
-              />
-              <FieldInput
-                label="RFC"
-                value={profile.rfc}
-                onChange={v => setProfile(p => ({ ...p, rfc: v.toUpperCase() }))}
-                placeholder="XAXX010101000"
-                maxLength={13}
-              />
-              <FieldInput
-                label="Régimen fiscal"
-                value={profile.tax_regime}
-                onChange={v => setProfile(p => ({ ...p, tax_regime: v }))}
-                placeholder="601 - General de Ley"
-              />
-              <FieldInput
-                label="Código postal"
-                value={profile.postal_code}
-                onChange={v => setProfile(p => ({ ...p, postal_code: v }))}
-                placeholder="44100"
-                maxLength={5}
-              />
-            </div>
-            <FieldInput
-              label="URL del logo"
-              value={profile.logo_url}
-              onChange={v => setProfile(p => ({ ...p, logo_url: v }))}
-              placeholder="https://..."
-            />
-
-            {/* Vista previa del logo */}
-            {profile.logo_url && (
-              <div className="mt-3 flex items-center gap-3">
-                <div className="w-16 h-16 rounded-xl bg-white/[0.04] border border-white/[0.06] overflow-hidden flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={profile.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
-                </div>
-                <span className="text-[11px] text-[#8DA4C4]">Vista previa</span>
-              </div>
-            )}
-
-            <SaveButton onClick={saveProfile} label="Guardar perfil" />
-          </SectionCard>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════
-          TAB 2: Mis Empresas
-          ═══════════════════════════════════════════════════════════ */}
-      {activeTab === "companies" && (
-        <section className="space-y-4 animate-in">
-          <SectionCard title="Gestión de Empresas / Razones Sociales" icon="domain" color="#3B82F6">
-            <div className="flex justify-between items-center mb-6">
-              <p className="text-[12px] text-[#8DA4C4]">
-                Registra tus razones sociales para facturación y reportes fiscales independientes.
-              </p>
-              {userRole === "owner" && (
-                <button 
-                  onClick={addCompany}
-                  className="px-4 py-2 bg-[#A8E63D]/10 border border-[#A8E63D]/20 text-[#A8E63D] rounded-xl text-[11px] font-bold uppercase tracking-wider hover:bg-[#A8E63D]/20 transition-all"
-                >
-                  + Nueva Empresa
-                </button>
-              )}
-            </div>
-
-            <div className="space-y-3">
-              {companies.map(emp => (
-                <div 
-                  key={emp.id}
-                  className={`flex items-center justify-between p-4 rounded-xl border transition-all ${activeCompanyId === emp.id ? "bg-[#3B82F6]/5 border-[#3B82F6]/30" : "bg-white/[0.03] border-white/[0.06]"}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${emp.es_principal ? "bg-[#A8E63D]/10 text-[#A8E63D]" : "bg-white/[0.05] text-[#8DA4C4]"}`}>
-                      <span className="material-symbols-outlined">{emp.es_principal ? "verified" : "business"}</span>
+      {/* Content Canvas */}
+      <main className="px-4">
+        
+        {/* Profile */}
+        {activeTab === "profile" && (
+           <div className="space-y-8 animate-luxe">
+              <SectionCard title="Identity Core" icon="business" color="#ccff00">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <FieldInput label="Entity Name" value={profile.business_name} onChange={v => setProfile(p => ({ ...p, business_name: v }))} placeholder="Atollom Operational Corp" />
+                    <FieldInput label="Tax ID (RFC)" value={profile.rfc} onChange={v => setProfile(p => ({ ...p, rfc: v.toUpperCase() }))} maxLength={13} />
+                    <FieldInput label="Tax Regime" value={profile.tax_regime} onChange={v => setProfile(p => ({ ...p, tax_regime: v }))} />
+                    <FieldInput label="Identity Pin (CP)" value={profile.postal_code} onChange={v => setProfile(p => ({ ...p, postal_code: v }))} maxLength={5} />
+                 </div>
+                 <div className="mt-8">
+                    <FieldInput label="Brand Core (Logo URL)" value={profile.logo_url} onChange={v => setProfile(p => ({ ...p, logo_url: v }))} />
+                 </div>
+                 {profile.logo_url && (
+                    <div className="mt-8 flex items-center gap-6 p-4 rounded-2xl border border-white/5 bg-white/5">
+                       <div className="w-24 h-24 rounded-xl bg-black flex items-center justify-center overflow-hidden">
+                          <img src={profile.logo_url} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
+                       </div>
+                       <div>
+                          <p className="text-[10px] font-black text-[#ccff00] uppercase tracking-widest italic">Identity Sync Active</p>
+                          <p className="text-[9px] text-white/30 uppercase mt-1">Live Preview Module</p>
+                       </div>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-[#E8EAF0]">{emp.nombre}</p>
-                        {emp.es_principal && <span className="bg-[#A8E63D]/10 text-[#A8E63D] text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Principal</span>}
-                        {activeCompanyId === emp.id && <span className="bg-[#3B82F6]/10 text-[#3B82F6] text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Activa en sesión</span>}
-                      </div>
-                      <p className="text-[11px] text-[#8DA4C4]">{emp.rfc} • CP {emp.cp_expedicion}</p>
-                    </div>
-                  </div>
+                 )}
+                 <div className="mt-12 flex justify-end">
+                    <SaveButton onClick={saveProfile} label="Commit Identity Sync" />
+                 </div>
+              </SectionCard>
+           </div>
+        )}
 
-                  <div className="flex items-center gap-2">
-                    {activeCompanyId !== emp.id && (
-                      <button 
-                        onClick={() => selectActiveCompany(emp.id)}
-                        className="p-2 hover:bg-white/[0.05] rounded-lg text-[#8DA4C4] hover:text-[#3B82F6] transition-all"
-                        title="Seleccionar para esta sesión"
-                      >
-                        <span className="material-symbols-outlined text-lg">login</span>
-                      </button>
-                    )}
-                    {userRole === "owner" && !emp.es_principal && (
-                      <button 
-                        onClick={() => setPrincipalCompany(emp.id)}
-                        disabled={savingCompany === emp.id}
-                        className="p-2 hover:bg-white/[0.05] rounded-lg text-[#8DA4C4] hover:text-[#A8E63D] transition-all"
-                        title="Marcar como principal"
-                      >
-                        <span className="material-symbols-outlined text-lg">star</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
+        {/* Companies */}
+        {activeTab === "companies" && (
+           <div className="space-y-8 animate-luxe">
+              <SectionCard title="Entity Sub-Grid" icon="domain" color="#ccff00">
+                 <div className="grid gap-4">
+                    {companies.map(emp => (
+                       <div key={emp.id} className={`glass-card p-6 rounded-3xl border transition-all duration-300 flex items-center justify-between ${activeCompanyId === emp.id ? 'border-[#ccff00]/30 shadow-volt' : 'border-white/5 hover:border-white/10'}`}>
+                          <div className="flex items-center gap-6">
+                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${emp.es_principal ? 'bg-[#ccff00]/10 text-[#ccff00]' : 'bg-white/5 text-white/20'}`}>
+                                <span className="material-symbols-outlined text-xl">{emp.es_principal ? 'verified' : 'business'}</span>
+                             </div>
+                             <div>
+                                <div className="flex items-center gap-3">
+                                   <h3 className="text-sm font-black text-white uppercase tracking-widest">{emp.nombre}</h3>
+                                   {emp.es_principal && <span className="text-[8px] font-black text-[#ccff00] border border-[#ccff00]/30 bg-[#ccff00]/5 px-2 py-0.5 rounded italic">CORE</span>}
+                                </div>
+                                <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1">{emp.rfc} • {emp.cp_expedicion}</p>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                             {activeCompanyId !== emp.id && (
+                                <button onClick={() => selectActiveCompany(emp.id)} className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-white/10 transition-all text-white/40 hover:text-white" title="Select for Session">
+                                   <span className="material-symbols-outlined text-lg">login</span>
+                                </button>
+                             )}
+                             {userRole === "owner" && !emp.es_principal && (
+                                <button onClick={() => setPrincipalCompany(emp.id)} disabled={savingCompany === emp.id} className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center hover:bg-white/10 transition-all text-white/40 hover:text-[#ccff00]" title="Mark as Core">
+                                   <span className="material-symbols-outlined text-lg">star</span>
+                                </button>
+                             )}
+                          </div>
+                       </div>
+                    ))}
+                 </div>
+              </SectionCard>
+           </div>
+        )}
+
+        {/* API Keys */}
+        {activeTab === "apikeys" && (
+           <div className="space-y-8 animate-luxe">
+              {API_KEY_GROUPS.map(group => (
+                 <SectionCard key={group.platform} title={group.platform} icon={group.icon} color="#ccff00">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       {group.keys.map(keyDef => {
+                          const hasValue = vaultStatus[keyDef.name] || false;
+                          const isSaving = savingKeys.has(keyDef.name);
+                          const inputVal = keyInputs[keyDef.name] || "";
+                          return (
+                             <div key={keyDef.name} className="space-y-3">
+                                <div className="flex items-center justify-between px-1">
+                                   <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">{keyDef.label}</label>
+                                   {hasValue && (
+                                      <span className="text-[8px] font-black text-[#ccff00] uppercase tracking-widest flex items-center gap-2">
+                                         <span className="w-1 h-1 rounded-full bg-[#ccff00] shadow-[0_0_5px_#ccff00]" />
+                                         Encrypted
+                                      </span>
+                                   )}
+                                </div>
+                                <div className="flex gap-4">
+                                   <div className="flex-1">
+                                      <input 
+                                         type="password" 
+                                         value={inputVal || (hasValue ? maskValue(hasValue) : "")}
+                                         onChange={e => setKeyInputs(prev => ({ ...prev, [keyDef.name]: e.target.value }))}
+                                         placeholder={hasValue ? "REDACTED" : "Input Cipher..."}
+                                         className="w-full h-12 bg-white/5 border border-white/5 rounded-xl px-4 text-sm text-white focus:border-[#ccff00]/30 outline-none transition-all placeholder:text-white/10"
+                                      />
+                                   </div>
+                                   <button 
+                                      onClick={() => saveApiKey(keyDef.name)}
+                                      disabled={isSaving || !inputVal.trim()}
+                                      className={`h-12 w-12 rounded-xl flex items-center justify-center transition-all ${inputVal.trim() && !isSaving ? 'bg-[#ccff00] text-black shadow-volt' : 'bg-white/5 text-white/10'}`}
+                                   >
+                                      <span className="material-symbols-outlined text-lg">{isSaving ? 'sync' : 'key_vertical'}</span>
+                                   </button>
+                                </div>
+                             </div>
+                          );
+                       })}
+                    </div>
+                 </SectionCard>
               ))}
-              {companies.length === 0 && (
-                <div className="text-center py-8 bg-white/[0.02] border border-dashed border-white/[0.06] rounded-xl">
-                  <p className="text-[#506584] text-[11px] uppercase tracking-widest font-bold">No hay empresas registradas</p>
-                </div>
-              )}
-            </div>
-          </SectionCard>
-        </section>
-      )}
+           </div>
+        )}
 
-      {/* ═══════════════════════════════════════════════════════════
-          TAB 3: Módulos activos (solo owner)
-          ═══════════════════════════════════════════════════════════ */}
+        {/* Rules */}
+        {activeTab === "rules" && rules && (
+           <form onSubmit={saveRules} className="space-y-8 animate-luxe">
+              <SectionCard title="Margin Parameters" icon="sell" color="#ccff00">
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    {Object.entries(MARGIN_MINIMUMS).map(([field, min]) => {
+                       const val = rules[field as keyof BusinessRules] as number;
+                       const isBelow = val < min;
+                       return (
+                          <div key={field} className="space-y-3">
+                             <label className="text-[10px] font-black text-white/30 uppercase tracking-widest leading-none block">
+                                {MARGIN_LABELS[field]}
+                             </label>
+                             <div className="relative">
+                                <input 
+                                   type="number" step="0.01" min={min} value={val}
+                                   onChange={e => setRules(r => r ? { ...r, [field]: parseFloat(e.target.value) || 0 } : r)}
+                                   className={`w-full h-12 bg-white/5 border rounded-xl px-4 text-sm font-black transition-all outline-none ${isBelow ? 'border-red-500/40 text-red-500' : 'border-white/5 text-[#ccff00]'}`}
+                                />
+                                {isBelow && <p className="text-[8px] font-black text-red-500 uppercase mt-2 italic">Alert: Min {min}</p>}
+                             </div>
+                          </div>
+                       );
+                    })}
+                 </div>
+              </SectionCard>
 
-      {activeTab === "modules" && userRole === "owner" && (
-        <section className="space-y-4 animate-in">
-          <SectionCard title="Módulos Contratados" icon="widgets" color="#A8E63D">
-            <p className="text-[12px] text-[#8DA4C4] mb-4">
-              Módulos activos en tu plan actual. Contacta a soporte para activar módulos adicionales.
-            </p>
-            <div className="space-y-3">
-              {MODULES_LIST.map(mod => (
-                <div
-                  key={mod.id}
-                  className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.03] border border-white/[0.06]"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: `${mod.color}15` }}
-                    >
-                      <span className="material-symbols-outlined text-lg" style={{ color: mod.color }}>
-                        {mod.icon}
-                      </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <SectionCard title="Inventory Umbras" icon="warehouse" color="#ccff00">
+                    <div className="grid grid-cols-2 gap-6">
+                       <FieldInput type="number" label="Warning (Days)" value={rules.stock_safety_days.toString()} onChange={v => setRules(r => r ? { ...r, stock_safety_days: parseInt(v) || 0 } : r)} />
+                       <FieldInput type="number" label="Critical (Days)" value={rules.stock_critical_days.toString()} onChange={v => setRules(r => r ? { ...r, stock_critical_days: parseInt(v) || 0 } : r)} />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-[#E8EAF0]">{mod.name}</p>
-                      <p className="text-[11px] text-[#8DA4C4]">{mod.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#22C55E]" />
-                    <span className="text-[11px] font-bold text-[#22C55E] uppercase">Activo</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════
-          TAB 3: API Keys
-          ═══════════════════════════════════════════════════════════ */}
-      {activeTab === "apikeys" && (
-        <section className="space-y-4 animate-in">
-          {API_KEY_GROUPS.map(group => (
-            <SectionCard key={group.platform} title={group.platform} icon={group.icon} color={group.color}>
-              <div className="space-y-3">
-                {group.keys.map(keyDef => {
-                  const hasValue = vaultStatus[keyDef.name] || false;
-                  const isSaving = savingKeys.has(keyDef.name);
-                  const inputVal = keyInputs[keyDef.name] || "";
-
-                  return (
-                    <div key={keyDef.name} className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <label
-                          htmlFor={`key-${keyDef.name}`}
-                          className="text-[11px] font-bold text-[#8DA4C4] uppercase tracking-wider"
-                        >
-                          {keyDef.label}
-                        </label>
-                        {hasValue && (
-                          <span className="text-[10px] text-[#22C55E] font-bold flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
-                            Configurado
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2">
-                        {/* Valor enmascarado o input para nuevo valor */}
-                        <div className="flex-1 relative">
-                          <input
-                            id={`key-${keyDef.name}`}
-                            type="password"
-                            value={inputVal || (hasValue ? maskValue(hasValue) : "")}
-                            onChange={e => setKeyInputs(prev => ({ ...prev, [keyDef.name]: e.target.value }))}
-                            onFocus={() => {
-                              // Limpiar el valor enmascarado al hacer focus
-                              if (!inputVal && hasValue) {
-                                setKeyInputs(prev => ({ ...prev, [keyDef.name]: "" }));
-                              }
-                            }}
-                            placeholder={hasValue ? "Ingresa nuevo valor para actualizar" : "Ingresa el valor"}
-                            className="
-                              w-full bg-white/[0.03] border border-white/[0.08]
-                              rounded-lg px-3 py-2 text-sm text-[#E8EAF0]
-                              placeholder:text-[#506584]
-                              focus:border-[#A8E63D]/30 focus:outline-none
-                              transition-colors
-                            "
-                          />
-                        </div>
-
-                        <button
-                          onClick={() => saveApiKey(keyDef.name)}
-                          disabled={isSaving || !inputVal.trim()}
-                          className={`
-                            px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider
-                            transition-all duration-200
-                            ${inputVal.trim() && !isSaving
-                              ? "bg-[#A8E63D] text-[#0D1B3E] hover:shadow-[0_0_12px_#A8E63D40]"
-                              : "bg-white/[0.04] text-[#506584] cursor-not-allowed"
-                            }
-                          `}
-                        >
-                          {isSaving ? (
-                            <span className="material-symbols-outlined text-sm animate-spin">sync</span>
-                          ) : (
-                            "Actualizar"
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                 </SectionCard>
+                 <SectionCard title="NPS Cooldown" icon="star" color="#ccff00">
+                    <FieldInput type="number" label="Interval (Days)" value={rules.nps_cooldown_days.toString()} onChange={v => setRules(r => r ? { ...r, nps_cooldown_days: parseInt(v) || 90 } : r)} />
+                 </SectionCard>
               </div>
-            </SectionCard>
-          ))}
-        </section>
-      )}
 
-      {/* ═══════════════════════════════════════════════════════════
-          TAB 4: Reglas de negocio
-          ═══════════════════════════════════════════════════════════ */}
-      {activeTab === "rules" && rules && (
-        <section className="animate-in">
-          <form onSubmit={saveRules} className="space-y-4">
-            {/* Márgenes */}
-            <SectionCard title="Márgenes de Ganancia" icon="sell" color="#A8E63D">
-              <p className="text-[11px] text-[#8DA4C4] mb-3">
-                Mínimo: ML ≥1.20 · Amazon ≥1.25 · Shopify ≥1.30 · B2B ≥1.18
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {Object.entries(MARGIN_MINIMUMS).map(([field, min]) => {
-                  const val = rules[field as keyof BusinessRules] as number;
-                  const isBelow = val < min;
-                  return (
-                    <div key={field}>
-                      <label
-                        htmlFor={`rule-${field}`}
-                        className="text-[11px] font-bold text-[#8DA4C4] uppercase tracking-wider block mb-1"
-                      >
-                        {MARGIN_LABELS[field]}
-                        {isBelow && (
-                          <span className="ml-2 text-red-400 text-[9px] normal-case">
-                            ↓ mínimo {min}
-                          </span>
-                        )}
-                      </label>
-                      <input
-                        id={`rule-${field}`}
-                        type="number"
-                        step="0.01"
-                        min={min}
-                        value={val}
-                        onChange={e => setRules(r => r ? { ...r, [field]: parseFloat(e.target.value) || 0 } : r)}
-                        className={`
-                          w-full bg-white/[0.03] border rounded-lg px-3 py-2 text-sm text-[#E8EAF0]
-                          focus:outline-none transition-colors
-                          ${isBelow ? "border-red-500/40 focus:border-red-500/60" : "border-white/[0.08] focus:border-[#A8E63D]/30"}
-                        `}
-                      />
-                    </div>
-                  );
-                })}
+              <div className="flex justify-end pt-8">
+                 <SaveButton onClick={() => {}} label="Sync Operational Rules" />
               </div>
-            </SectionCard>
+           </form>
+        )}
 
-            {/* Umbrales de almacén */}
-            <SectionCard title="Umbrales de Almacén" icon="warehouse" color="#CCFF00">
-              {rules.stock_critical_days >= rules.stock_safety_days && (
-                <p className="text-red-400 text-[11px] mb-2 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">error</span>
-                  stock_critical_days debe ser menor que stock_safety_days
-                </p>
-              )}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="rule-safety" className="text-[11px] font-bold text-[#8DA4C4] uppercase tracking-wider block mb-1">
-                    Días preventivo (Warning)
-                  </label>
-                  <input
-                    id="rule-safety"
-                    type="number"
-                    min={rules.stock_critical_days + 1}
-                    value={rules.stock_safety_days}
-                    onChange={e => setRules(r => r ? { ...r, stock_safety_days: parseInt(e.target.value) || 0 } : r)}
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#E8EAF0] focus:border-[#A8E63D]/30 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="rule-critical" className="text-[11px] font-bold text-[#8DA4C4] uppercase tracking-wider block mb-1">
-                    Días crítico (Critical)
-                  </label>
-                  <input
-                    id="rule-critical"
-                    type="number"
-                    min={1}
-                    max={rules.stock_safety_days - 1}
-                    value={rules.stock_critical_days}
-                    onChange={e => setRules(r => r ? { ...r, stock_critical_days: parseInt(e.target.value) || 0 } : r)}
-                    className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#E8EAF0] focus:border-[#A8E63D]/30 focus:outline-none"
-                  />
-                </div>
+        {/* Users */}
+        {activeTab === "users" && (
+           <div className="space-y-8 animate-luxe">
+              <SectionCard title="Human Matrix (RBAC)" icon="group" color="#ccff00">
+                 <div className="grid gap-4">
+                    {users.map(user => (
+                       <div key={user.id} className="glass-card p-6 rounded-3xl border border-white/5 hover:border-white/10 transition-all flex items-center justify-between">
+                          <div className="flex items-center gap-6">
+                             <div className="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
+                                <span className="text-sm font-black text-white">{(user.full_name || user.email).charAt(0).toUpperCase()}</span>
+                             </div>
+                             <div>
+                                <h3 className="text-sm font-black text-white uppercase tracking-widest">{user.full_name || "Unknown Op"}</h3>
+                                <p className="text-[10px] text-white/30 uppercase mt-1">{user.email}</p>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-6">
+                             {userRole === "owner" ? (
+                                <select 
+                                   value={user.role} 
+                                   onChange={e => changeUserRole(user.id, e.target.value as UserRole)}
+                                   disabled={user.role === 'owner' || changingRole === user.id}
+                                   className="h-10 bg-white/5 border border-white/10 rounded-xl px-4 text-[10px] font-black text-[#ccff00] uppercase tracking-widest outline-none focus:border-[#ccff00]/30 transition-all appearance-none cursor-pointer text-center min-w-[140px]"
+                                >
+                                   {ROLE_OPTIONS.map(opt => <option key={opt.value} value={opt.value} className="bg-black text-white">{opt.label}</option>)}
+                                </select>
+                             ) : (
+                                <span className="text-[10px] font-black text-[#ccff00] border border-[#ccff00]/30 bg-[#ccff00]/5 px-4 py-2 rounded-xl uppercase tracking-[0.2em] italic">
+                                   {ROLE_OPTIONS.find(r => r.value === user.role)?.label || user.role}
+                                </span>
+                             )}
+                          </div>
+                       </div>
+                    ))}
+                 </div>
+              </SectionCard>
+           </div>
+        )}
+
+        {/* Autonomy */}
+        {activeTab === "autonomy" && (
+           <div className="space-y-8 animate-luxe">
+              <SectionCard title="Neural Autonomy Matrix" icon="smart_toy" color="#ccff00">
+                 <div className="space-y-12">
+                    {MODULES_LIST.map(mod => {
+                       const currentLevel = autonomy[mod.id as keyof AutonomyConfig];
+                       return (
+                          <div key={mod.id} className="space-y-6">
+                             <div className="flex items-center justify-between px-2">
+                                <div className="flex items-center gap-4">
+                                   <div className="w-8 h-8 rounded-lg bg-[#ccff00]/10 flex items-center justify-center text-[#ccff00]">
+                                      <span className="material-symbols-outlined text-lg">{mod.icon}</span>
+                                   </div>
+                                   <div>
+                                      <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">{mod.name}</h3>
+                                      <p className="text-[9px] text-white/30 uppercase mt-1 tracking-widest">{mod.description}</p>
+                                   </div>
+                                </div>
+                                <div className="text-right">
+                                   <p className="text-[10px] font-black text-[#ccff00] uppercase italic tracking-widest">Active Level: {currentLevel}</p>
+                                </div>
+                             </div>
+
+                             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                {AUTONOMY_LEVELS.map(level => {
+                                   const isSelected = currentLevel === level.value;
+                                   return (
+                                      <button 
+                                         key={level.value}
+                                         onClick={() => setAutonomy(prev => ({ ...prev, [mod.id]: level.value }))}
+                                         className={`relative p-6 rounded-[2rem] border transition-all duration-500 text-center space-y-3 group ${isSelected ? 'bg-[#ccff00]/10 border-[#ccff00]/40 shadow-volt' : 'bg-white/5 border-white/5 hover:border-white/10'}`}
+                                      >
+                                         <p className={`text-[11px] font-black uppercase tracking-widest leading-none ${isSelected ? 'text-[#ccff00]' : 'text-white/40'}`}>{level.label}</p>
+                                         <p className="text-[8px] text-white/30 uppercase tracking-widest leading-none transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100">{level.desc}</p>
+                                         {isSelected && <div className="absolute top-2 right-4 w-1 h-1 rounded-full bg-[#ccff00] shadow-[0_0_5px_#ccff00]" />}
+                                      </button>
+                                   );
+                                })}
+                             </div>
+                          </div>
+                       );
+                    })}
+                 </div>
+              </SectionCard>
+              <div className="flex justify-end pt-8">
+                 <SaveButton onClick={saveAutonomy} label="Update Neural Matrix" saving={savingAutonomy} />
               </div>
-            </SectionCard>
+           </div>
+        )}
 
-            {/* NPS */}
-            <SectionCard title="NPS & Encuestas" icon="star" color="#F59E0B">
-              <div>
-                <label htmlFor="rule-nps" className="text-[11px] font-bold text-[#8DA4C4] uppercase tracking-wider block mb-1">
-                  Cooldown entre encuestas (días)
-                </label>
-                <input
-                  id="rule-nps"
-                  type="number"
-                  min={1}
-                  value={rules.nps_cooldown_days}
-                  onChange={e => setRules(r => r ? { ...r, nps_cooldown_days: parseInt(e.target.value) || 90 } : r)}
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#E8EAF0] focus:border-[#A8E63D]/30 focus:outline-none"
-                />
-              </div>
-            </SectionCard>
+      </main>
 
-            <button
-              type="submit"
-              disabled={savingRules || rules.stock_critical_days >= rules.stock_safety_days}
-              className="
-                w-full py-3 rounded-xl text-[12px] font-bold uppercase tracking-wider
-                bg-[#A8E63D] text-[#0D1B3E]
-                hover:shadow-[0_0_15px_#A8E63D40]
-                disabled:opacity-40 disabled:cursor-not-allowed
-                transition-all duration-200
-                flex items-center justify-center gap-2
-              "
-            >
-              {savingRules && <span className="material-symbols-outlined text-sm animate-spin">sync</span>}
-              {savingRules ? "Guardando…" : "Guardar reglas de negocio"}
-            </button>
-          </form>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════
-          TAB 5: Usuarios
-          ═══════════════════════════════════════════════════════════ */}
-      {activeTab === "users" && (
-        <section className="animate-in">
-          <SectionCard title="Usuarios del Tenant" icon="group" color="#3B82F6">
-            {users.length === 0 ? (
-              <p className="text-[#8DA4C4] text-sm text-center py-8">
-                No se encontraron usuarios
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {users.map(user => (
-                  <div
-                    key={user.id}
-                    className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      {/* Avatar con inicial */}
-                      <div className="w-9 h-9 rounded-full bg-white/[0.06] flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-[#E8EAF0]">
-                          {(user.full_name || user.email || "?").charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-[#E8EAF0] truncate">
-                          {user.full_name || "Sin nombre"}
-                        </p>
-                        <p className="text-[11px] text-[#8DA4C4] truncate">{user.email}</p>
-                      </div>
-                    </div>
-
-                    {/* Selector de rol */}
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                      {userRole === "owner" ? (
-                        <select
-                          value={user.role}
-                          onChange={e => changeUserRole(user.id, e.target.value as UserRole)}
-                          disabled={changingRole === user.id || user.role === "owner"}
-                          className="
-                            bg-white/[0.04] border border-white/[0.08]
-                            rounded-lg px-3 py-1.5 text-[12px] text-[#E8EAF0]
-                            focus:border-[#A8E63D]/30 focus:outline-none
-                            disabled:opacity-50 disabled:cursor-not-allowed
-                            appearance-none cursor-pointer
-                          "
-                          title={user.role === "owner" ? "No se puede cambiar el rol del propietario" : "Cambiar rol"}
-                        >
-                          {ROLE_OPTIONS.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span className="text-[12px] font-bold text-[#8DA4C4] bg-white/[0.04] px-3 py-1.5 rounded-lg">
-                          {ROLE_OPTIONS.find(r => r.value === user.role)?.label || user.role}
-                        </span>
-                      )}
-
-                      {changingRole === user.id && (
-                        <span className="material-symbols-outlined text-sm text-[#A8E63D] animate-spin">sync</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {userRole !== "owner" && (
-              <p className="text-[11px] text-[#506584] text-center mt-4">
-                Solo el propietario puede cambiar roles de usuario
-              </p>
-            )}
-          </SectionCard>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════
-          TAB 6: Autonomía de agentes
-          ═══════════════════════════════════════════════════════════ */}
-      {activeTab === "autonomy" && (
-        <section className="space-y-4 animate-in">
-          <SectionCard title="Autonomía de Agentes" icon="smart_toy" color="#A8E63D">
-            <p className="text-[11px] text-[#8DA4C4] mb-4">
-              Define qué nivel de autonomía tienen los agentes IA en cada módulo.
-              Un nivel más bajo requiere más intervención humana.
-            </p>
-
-            <div className="space-y-6">
-              {MODULES_LIST.map(mod => {
-                const currentLevel = autonomy[mod.id as keyof AutonomyConfig];
-                return (
-                  <div key={mod.id} className="space-y-3">
-                    {/* Encabezado del módulo */}
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center"
-                        style={{ backgroundColor: `${mod.color}15` }}
-                      >
-                        <span className="material-symbols-outlined text-sm" style={{ color: mod.color }}>
-                          {mod.icon}
-                        </span>
-                      </div>
-                      <span className="text-sm font-bold text-[#E8EAF0]">{mod.name}</span>
-                    </div>
-
-                    {/* Opciones de autonomía */}
-                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-                      {AUTONOMY_LEVELS.map(level => {
-                        const isSelected = currentLevel === level.value;
-                        return (
-                          <button
-                            key={level.value}
-                            type="button"
-                            onClick={() => setAutonomy(prev => ({
-                              ...prev,
-                              [mod.id]: level.value,
-                            }))}
-                            className={`
-                              relative py-2.5 px-3 rounded-xl text-center
-                              transition-all duration-200
-                              ${isSelected
-                                ? "bg-white/[0.08] border-2"
-                                : "bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04]"
-                              }
-                            `}
-                            style={{
-                              borderColor: isSelected ? level.color : undefined,
-                              boxShadow: isSelected ? `0 0 12px ${level.color}20` : undefined,
-                            }}
-                            title={level.desc}
-                          >
-                            <p
-                              className="text-[11px] font-bold"
-                              style={{ color: isSelected ? level.color : "#8DA4C4" }}
-                            >
-                              {level.label}
-                            </p>
-                            <p className="text-[9px] text-[#506584] mt-0.5 hidden sm:block">
-                              {level.value}
-                            </p>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Descripción del nivel seleccionado */}
-                    <p className="text-[11px] text-[#8DA4C4] italic pl-9">
-                      {AUTONOMY_LEVELS.find(l => l.value === currentLevel)?.desc}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </SectionCard>
-
-          <SaveButton onClick={saveAutonomy} label="Guardar niveles de autonomía" saving={savingAutonomy} />
-        </section>
-      )}
     </div>
   );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Sub-componentes reutilizables
+// Sub-componentes
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Tarjeta de sección con título e ícono */
-function SectionCard({
-  title,
-  icon,
-  color,
-  children,
-}: {
-  title: string;
-  icon: string;
-  color: string;
-  children: React.ReactNode;
-}) {
+function SectionCard({ title, icon, color, children }: { title: string; icon: string; color: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 md:p-6 space-y-4">
-      <h2 className="flex items-center gap-2 text-sm font-headline font-bold text-[#E8EAF0]">
-        <span className="material-symbols-outlined text-lg" style={{ color }} aria-hidden="true">
-          {icon}
-        </span>
-        {title}
-      </h2>
+    <div className="glass-card rounded-[3rem] p-10 border border-white/5 relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#ccff00]/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-[#ccff00]/10 transition-all duration-700" />
+      <div className="flex items-center gap-4 mb-10 pb-6 border-b border-white/5">
+        <span className="material-symbols-outlined text-2xl" style={{ color }}>{icon}</span>
+        <h2 className="text-xl font-black text-white uppercase tracking-[0.3em] font-headline">{title}</h2>
+      </div>
       {children}
     </div>
   );
 }
 
-/** Input de campo con label */
-function FieldInput({
-  label,
-  value,
-  onChange,
-  placeholder,
-  maxLength,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  maxLength?: number;
-  type?: string;
-}) {
+function FieldInput({ label, value, onChange, placeholder, maxLength, type = "text" }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; maxLength?: number; type?: string }) {
   return (
-    <div>
-      <label className="text-[11px] font-bold text-[#8DA4C4] uppercase tracking-wider block mb-1">
-        {label}
-      </label>
+    <div className="space-y-3">
+      <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] leading-none block px-1">{label}</label>
       <input
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
-        className="
-          w-full bg-white/[0.03] border border-white/[0.08]
-          rounded-lg px-3 py-2 text-sm text-[#E8EAF0]
-          placeholder:text-[#506584]
-          focus:border-[#A8E63D]/30 focus:outline-none
-          transition-colors
-        "
+        className="w-full h-14 bg-white/5 border border-white/5 rounded-2xl px-6 text-[14px] text-white font-medium outline-none focus:border-[#ccff00]/30 transition-all placeholder:text-white/10"
       />
     </div>
   );
 }
 
-/** Botón de guardar reutilizable */
-function SaveButton({
-  onClick,
-  label,
-  saving = false,
-}: {
-  onClick: () => void;
-  label: string;
-  saving?: boolean;
-}) {
+function SaveButton({ onClick, label, saving = false }: { onClick: () => void; label: string; saving?: boolean }) {
   return (
     <button
-      type="button"
       onClick={onClick}
       disabled={saving}
-      className="
-        w-full py-3 rounded-xl text-[12px] font-bold uppercase tracking-wider
-        bg-[#A8E63D] text-[#0D1B3E]
-        hover:shadow-[0_0_15px_#A8E63D40]
-        disabled:opacity-40 disabled:cursor-not-allowed
-        transition-all duration-200
-        flex items-center justify-center gap-2
-      "
+      className="h-14 px-10 rounded-2xl bg-[#ccff00] text-black text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-4 hover:scale-105 active:scale-95 transition-all shadow-volt disabled:opacity-40 disabled:cursor-not-allowed group"
     >
-      {saving && <span className="material-symbols-outlined text-sm animate-spin">sync</span>}
-      {saving ? "Guardando…" : label}
+      {saving ? <span className="material-symbols-outlined text-lg animate-spin">sync</span> : <span className="material-symbols-outlined text-lg group-hover:rotate-12 transition-transform">bolt</span>}
+      {saving ? "Processing..." : label}
     </button>
   );
 }

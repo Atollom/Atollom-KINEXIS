@@ -32,10 +32,10 @@ export function PrintButton({ orderId, externalId, onPrinted }: PrintButtonProps
   }
 
   const configs: Record<PrintState, { label: string; icon: string; cls: string }> = {
-    idle:     { label: "IMPRIMIR",  icon: "print",           cls: "btn-volt" },
-    printing: { label: "ENVIANDO…", icon: "hourglass_empty", cls: "btn-glass opacity-70 cursor-not-allowed" },
-    done:     { label: "IMPRESO",   icon: "check_circle",    cls: "bg-success/15 text-success border border-success/25 rounded-lg px-4 py-3 label-sm cursor-default" },
-    error:    { label: "ERROR",     icon: "error",           cls: "bg-error/15 text-error border border-error/25 rounded-lg px-4 py-3 label-sm" },
+    idle:     { label: "GENERATE PRINT",  icon: "print",           cls: "bg-white text-black hover:bg-[#ccff00] hover:shadow-volt" },
+    printing: { label: "TRANSMITTING...", icon: "hourglass_empty", cls: "bg-white/5 text-white/20 cursor-not-allowed border border-white/5" },
+    done:     { label: "LABEL SECURED",   icon: "check_circle",    cls: "bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/30 cursor-default" },
+    error:    { label: "LINK ERROR",      icon: "error",           cls: "bg-red-500/10 text-red-500 border border-red-500/30" },
   };
 
   const { label, icon, cls } = configs[state];
@@ -44,10 +44,14 @@ export function PrintButton({ orderId, externalId, onPrinted }: PrintButtonProps
     <button
       onClick={handlePrint}
       disabled={state === "printing" || state === "done"}
-      className={`flex items-center gap-2 px-4 py-3 ${cls} transition-all active:scale-95`}
-      aria-label={`${label} etiqueta para orden ${externalId}`}
+      className={`
+         h-14 px-8 rounded-2xl flex items-center justify-center gap-4
+         text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-300
+         ${cls}
+         shadow-xl active:scale-95
+      `}
     >
-      <span className="material-symbols-outlined text-base" aria-hidden="true">{icon}</span>
+      <span className="material-symbols-outlined text-xl" aria-hidden="true">{icon}</span>
       {label}
     </button>
   );

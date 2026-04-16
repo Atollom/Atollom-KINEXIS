@@ -1,14 +1,14 @@
 {
   "project": "KINEXIS",
-  "phase": "Stripe Integration + Design Consistency",
-  "status": "IN_PROGRESS",
+  "phase": "LUXE UI REDESIGN",
+  "status": "COMPLETED",
   "visual_identity": {
-    "theme": "Deep Dark",
-    "surface": "#040f1b",
-    "accent": "#CCFF00 / #cafd00 (Electric Lime)",
-    "typography": "Inter, Ultra-KPI (5.5rem, 900, -0.05em)",
-    "glass_blur": "12px dark / 20px light",
-    "design_system": "aligned with Stitch Luxury Kinexis"
+    "theme": "Neural Commander (Neural Luxe)",
+    "surface": "#000000 (Deep Obsidian)",
+    "accent": "#ccff00 (Neon Volt)",
+    "typography": "Inter (400-900), Tight-tracking, Italic Headers",
+    "glass_blur": "40px (High-Fidelity Glassmorphism)",
+    "design_system": "Neural Luxe Design System"
   },
   "modules": {
     "erp": {
@@ -27,7 +27,7 @@
     },
     "atollom_central": {
       "type": "Admin Mission Control",
-      "route": "/atollom/central",
+      "route": "/atollom",
       "features": ["43-Agent Grid", "Latency Monitoring", "SaaS Economics"]
     }
   },
@@ -41,28 +41,12 @@
     },
     "migration": "038_stripe_fields.sql"
   },
-  "samantha_chat": {
-    "status": "FIXED",
-    "fixes": [
-      "context parameter now used in API route",
-      "history sent from all chat components (last 20 messages)",
-      "stripe_downgrade_subscription still mocked - needs real API"
-    ]
-  },
-  "design_fixes": {
+  "luxe_ui_redesign": {
     "status": "COMPLETED",
-    "components_fixed": [
-      "SamanthaChat.tsx - replaced #A8E63D with primary-container",
-      "SamanthaFAB.tsx - replaced all hardcoded colors with CSS variables",
-      "LoginForm.tsx - replaced hardcoded colors",
-      "ExcelUploadComponent.tsx - replaced #CCFF00",
-      "NotificationPanel.tsx - use semantic color tokens"
-    ]
-  },
-  "module_gating": {
-    "status": "IMPLEMENTED",
-    "middleware": "active_modules check ready",
-    "note": "UI-level gating in DashboardShell, server-level via RBAC"
+    "date": "2026-04-16",
+    "pages_redesigned": 11,
+    "components_redesigned": 20,
+    "aesthetic": "Neural / Apple-grade Luxe"
   },
   "critical_rules": [
     "Strict agent scoping per marketplace",
@@ -76,10 +60,6 @@
   },
   "vercel_deployment": {
     "root_directory": "src/dashboard",
-    "fixes": [
-      "vercel.json now includes rootDirectory",
-      "removed duplicate .vercel at root",
-      "removed empty package.json at root"
-    ]
+    "status": "Production Ready"
   }
 }

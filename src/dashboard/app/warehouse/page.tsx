@@ -89,94 +89,122 @@ export default function WarehousePage() {
   const shopifyCount = tasks.filter((t) => t.platform === "shopify" && t.status !== "confirmed").length;
 
   return (
-    <div className="px-4 md:px-6 py-6 max-w-2xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-12 animate-luxe pb-24">
+      
+      {/* ── Dynamic Header ─────────────────────────────────────────── */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-2xl bg-[#ccff00]/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#ccff00] text-xl">warehouse</span>
+             </div>
+             <div>
+                <h1 className="text-3xl font-black tracking-tighter text-white uppercase leading-none">Logistics Ops</h1>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ccff00]/60 italic mt-1">Warehouse Neural Commander</p>
+             </div>
+          </div>
+        </div>
 
-      {/* ── Header ─────────────────────────────────────────────────── */}
-      <header>
-        <h1 className="font-headline text-4xl font-black tracking-tight text-on-surface uppercase">
-          ALMACÉN
-        </h1>
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-on-surface-variant">Buenos días, Carlos</p>
-          <p className="label-sm text-outline">
-            {now.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })}
-            {" · "}
-            {now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })} CDMX
-          </p>
+        <div className="text-right">
+           <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">
+             {now.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })}
+           </p>
+           <p className="text-xl font-black text-[#ccff00] uppercase tracking-tighter mt-1">
+             {now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })} <span className="text-[10px] text-white/20">GMT-6</span>
+           </p>
         </div>
       </header>
 
-      {/* ── ML Cutoff alert ─────────────────────────────────────────── */}
-      <CutoffAlert />
+      {/* ── ML Cutoff Alert ─────────────────────────────────────────── */}
+      <div className="px-4">
+        <CutoffAlert />
+      </div>
 
-      {/* ── Day summary chips ────────────────────────────────────────── */}
-      <section className="grid grid-cols-3 gap-3" aria-label="Resumen del día">
-        <div className="bg-surface-container-low rounded-xl p-4 text-center">
-          <p className="text-2xl font-headline font-bold text-[#ffe600]">{mlCount}</p>
-          <p className="label-sm text-on-surface-variant mt-1">ML</p>
+      {/* ── Mission Critical Summary ─────────────────────────────────── */}
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-6 px-4">
+        <div className="glass-card p-6 rounded-[2rem] border border-white/5 flex flex-col items-center text-center group cursor-default">
+           <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mb-4">Total Pending</span>
+           <span className="text-4xl font-black text-white group-hover:text-[#ccff00] transition-colors">{pending}</span>
+           <div className="w-8 h-1 bg-white/5 rounded-full mt-4" />
         </div>
-        <div className="bg-surface-container-low rounded-xl p-4 text-center">
-          <p className="text-2xl font-headline font-bold text-[#ff9900]">{amazonCount}</p>
-          <p className="label-sm text-on-surface-variant mt-1">Amazon</p>
+
+        <div className="glass-card p-6 rounded-[2rem] border border-white/5 flex flex-col items-center text-center hover:shadow-volt transition-all">
+           <div className="w-10 h-10 rounded-xl bg-[#ccff00]/5 flex items-center justify-center mb-3">
+              <span className="material-symbols-outlined text-[#ccff00] text-lg">shopping_bag</span>
+           </div>
+           <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em]">ML Queue</span>
+           <span className="text-2xl font-black text-white mt-1">{mlCount}</span>
         </div>
-        <div className="bg-surface-container-low rounded-xl p-4 text-center">
-          <p className="text-2xl font-headline font-bold text-[#96bf48]">{shopifyCount}</p>
-          <p className="label-sm text-on-surface-variant mt-1">Shopify</p>
+
+        <div className="glass-card p-6 rounded-[2rem] border border-white/5 flex flex-col items-center text-center hover:shadow-volt transition-all">
+           <div className="w-10 h-10 rounded-xl bg-[#ff9900]/5 flex items-center justify-center mb-3">
+              <span className="material-symbols-outlined text-[#ff9900] text-lg">inventory_2</span>
+           </div>
+           <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em]">Amazon SP</span>
+           <span className="text-2xl font-black text-white mt-1">{amazonCount}</span>
+        </div>
+
+        <div className="glass-card p-6 rounded-[2rem] border border-white/5 flex flex-col items-center text-center hover:shadow-volt transition-all">
+           <div className="w-10 h-10 rounded-xl bg-[#96bf48]/5 flex items-center justify-center mb-3">
+              <span className="material-symbols-outlined text-[#96bf48] text-lg">shopping_cart</span>
+           </div>
+           <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em]">Shopify Core</span>
+           <span className="text-2xl font-black text-white mt-1">{shopifyCount}</span>
         </div>
       </section>
 
-      {/* ── Progress bar ─────────────────────────────────────────────── */}
-      <div className="bg-surface-container-low rounded-xl p-4">
-        <div className="flex items-center justify-between mb-2">
-          <p className="label-sm text-on-surface-variant">
-            PROGRESO DEL DÍA
-          </p>
-          <p className="label-sm text-primary-container">
-            {confirmed}/{tasks.length} COMPLETADOS
-          </p>
-        </div>
-        <div className="h-2 w-full bg-surface-container-lowest rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary-container rounded-full transition-all duration-500"
-            style={{
-              width: `${tasks.length > 0 ? (confirmed / tasks.length) * 100 : 0}%`,
-              boxShadow: confirmed > 0 ? "0 0 6px #cafd00" : "none",
-            }}
-            role="progressbar"
-            aria-valuenow={confirmed}
-            aria-valuemin={0}
-            aria-valuemax={tasks.length}
-            aria-label={`${confirmed} de ${tasks.length} órdenes completadas`}
-          />
-        </div>
-      </div>
+      {/* ── Deployment Progress ───────────────────────────────────────── */}
+      <section className="px-4">
+         <div className="glass-card p-8 rounded-[2.5rem] border border-white/5 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#ccff00]/5 rounded-full blur-[100px] pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-6">
+               <div>
+                  <h3 className="text-[11px] font-black text-white uppercase tracking-[0.4em]">Daily Mission Progress</h3>
+                  <p className="text-[9px] text-white/20 uppercase mt-1">Operational Sync Status</p>
+               </div>
+               <div className="text-right">
+                  <span className="text-xl font-black text-[#ccff00]">{confirmed}</span>
+                  <span className="text-[10px] font-black text-white/20 mx-2 uppercase">of</span>
+                  <span className="text-xl font-black text-white/40">{tasks.length}</span>
+               </div>
+            </div>
 
-      {/* ── Task list ────────────────────────────────────────────────── */}
-      <section
-        className="space-y-4"
-        aria-label={`${pending} órdenes pendientes`}
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="label-sm text-on-surface-variant">
-            ÓRDENES PENDIENTES ({pending})
-          </h2>
-        </div>
+            <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden p-1 shadow-inner">
+               <div 
+                  className="h-full bg-[#ccff00] rounded-full transition-all duration-1000 shadow-volt"
+                  style={{ width: `${tasks.length > 0 ? (confirmed / tasks.length) * 100 : 0}%` }}
+               />
+            </div>
+         </div>
+      </section>
 
-        {tasks.map((task) => (
-          <TaskCard key={task.order_id} task={task} onConfirm={handleConfirm} />
-        ))}
+      {/* ── Operational Queue ─────────────────────────────────────────── */}
+      <section className="px-4 space-y-6">
+         <div className="flex items-center justify-between px-2">
+            <h2 className="text-[11px] font-black text-white uppercase tracking-[0.5em] flex items-center gap-3">
+               <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] shadow-volt animate-pulse" />
+               Pending Deployment Matrix ({pending})
+            </h2>
+         </div>
 
-        {pending === 0 && (
-          <div className="py-12 text-center bg-surface-container-high rounded-xl">
-            <span className="material-symbols-outlined text-4xl text-primary-container block mb-3">
-              check_circle
-            </span>
-            <p className="font-headline font-bold text-xl text-on-surface">¡Todo surtido!</p>
-            <p className="label-sm text-on-surface-variant mt-2">
-              {confirmed} órdenes completadas hoy
-            </p>
-          </div>
-        )}
+         <div className="grid gap-6">
+            {tasks.map((task, i) => (
+               <div key={task.order_id} className="animate-luxe" style={{ animationDelay: `${i * 100}ms` }}>
+                  <TaskCard task={task} onConfirm={handleConfirm} />
+               </div>
+            ))}
+         </div>
+
+         {pending === 0 && (
+           <div className="glass-card py-24 rounded-[3rem] border border-white/5 flex flex-col items-center justify-center text-center border-dashed">
+              <div className="w-16 h-16 rounded-full bg-[#ccff00]/10 flex items-center justify-center mb-6 shadow-volt">
+                 <span className="material-symbols-outlined text-[#ccff00] text-3xl">verified</span>
+              </div>
+              <h3 className="text-xl font-black text-white uppercase tracking-widest">Awaiting New Orders</h3>
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-2 italic">Neural Matrix fully synchronized</p>
+           </div>
+         )}
       </section>
 
     </div>

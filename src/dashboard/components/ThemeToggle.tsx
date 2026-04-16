@@ -11,7 +11,7 @@ export function ThemeToggle() {
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return <div className="w-9 h-9 rounded-xl bg-white/[0.03] border border-white/[0.05]" />;
+    return <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5" />;
   }
 
   const isDark = resolvedTheme === "dark";
@@ -20,28 +20,34 @@ export function ThemeToggle() {
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className="
-        relative w-9 h-9 rounded-xl 
+        relative w-10 h-10 rounded-xl 
         flex items-center justify-center
-        bg-white/[0.03] border border-white/[0.05]
-        text-on-surface-variant hover:text-primary
-        transition-all duration-300 active:scale-95
-        group
+        bg-white/[0.03] border border-white/5
+        transition-all duration-500 active:scale-90
+        group overflow-hidden
       "
-      aria-label="Cambiar tema"
+      aria-label="Toggle Interface Mode"
     >
-      <span 
-        className={`material-symbols-outlined text-[20px] transition-all duration-500 ${isDark ? "rotate-0 opacity-100" : "rotate-90 opacity-0 absolute"}`}
-      >
-        dark_mode
-      </span>
-      <span 
-        className={`material-symbols-outlined text-[20px] transition-all duration-500 ${!isDark ? "rotate-0 opacity-100" : "-rotate-90 opacity-0 absolute"}`}
-      >
-        light_mode
-      </span>
+      {/* Dynamic Background */}
+      <div className={`absolute inset-0 transition-opacity duration-700 ${isDark ? 'bg-[#ccff00]/5 opacity-100' : 'bg-black/5 opacity-100'}`} />
       
-      {/* Subtle glow on hover */}
-      <div className="absolute inset-0 rounded-xl bg-primary/0 group-hover:bg-primary/5 transition-colors duration-300" />
+      {/* Icons */}
+      <div className="relative z-10">
+        <span 
+          className={`material-symbols-outlined text-lg transition-all duration-700 shadow-volt-text ${isDark ? "rotate-0 text-[#ccff00]" : "rotate-90 opacity-0 absolute"}`}
+        >
+          near_me
+        </span>
+        <span 
+          className={`material-symbols-outlined text-lg transition-all duration-700 ${!isDark ? "rotate-0 text-black" : "-rotate-90 opacity-0 absolute"}`}
+        >
+          lightbulb
+        </span>
+      </div>
+
+      {/* Hover Pulse */}
+      <div className={`absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/5 transition-all duration-500`} />
+      <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-t-full transition-all duration-500 ${isDark ? 'bg-[#ccff00] shadow-volt' : 'bg-black/20'}`} />
     </button>
   );
 }

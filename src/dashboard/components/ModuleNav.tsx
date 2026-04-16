@@ -31,8 +31,8 @@ const ROLE_VISIBLE_MODULES: Record<UserRole, string[] | "all"> = {
   owner: "all",
   admin: "all",
   socia: "all",
-  warehouse: ["erp"],
-  almacenista: ["erp"],
+  warehouse: ["erp", "warehouse"],
+  almacenista: ["erp", "warehouse"],
   contador: ["erp"],
   agente: ["crm"],
   viewer: ["ecommerce", "erp", "crm"],
@@ -61,7 +61,7 @@ export function ModuleNav({ modules, userRole }: ModuleNavProps) {
   };
 
   return (
-    <nav className="flex flex-col gap-1" aria-label="Módulos">
+    <nav className="flex flex-col gap-3" aria-label="Neural Modules">
       {modules.map((mod) => {
         if (!canSeeModule(userRole, mod.id)) return null;
 
@@ -71,44 +71,50 @@ export function ModuleNav({ modules, userRole }: ModuleNavProps) {
         );
 
         return (
-          <div key={mod.id} className="mb-2">
+          <div key={mod.id} className="space-y-2">
             <button
               onClick={() => !mod.locked && toggleModule(mod.id)}
               disabled={mod.locked}
               className={`
-                w-full flex items-center gap-3 px-4 py-3 rounded-2xl
-                transition-all duration-300 group
+                w-full flex items-center gap-4 px-6 h-14 rounded-2xl
+                transition-all duration-500 group relative
                 ${mod.locked 
-                  ? "opacity-30 cursor-not-allowed" 
+                  ? "opacity-20 cursor-not-allowed" 
                   : isModuleActive 
-                    ? "bg-primary/10 text-on-surface" 
-                    : "hover:bg-white/[0.04] text-on-surface-variant hover:text-on-surface"
+                    ? "bg-white/10 text-white shadow-xl" 
+                    : "hover:bg-white/[0.03] text-white/30 hover:text-white"
                 }
               `}
             >
+              {isModuleActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-[#ccff00] rounded-r-full shadow-volt" />
+              )}
+              
               <span 
-                className={`material-symbols-outlined text-[20px] ${isModuleActive ? "text-primary" : ""}`}
+                className={`material-symbols-outlined text-[20px] italic font-black ${isModuleActive ? "text-[#ccff00]" : "opacity-40 group-hover:opacity-100 transition-opacity"}`}
                 aria-hidden="true"
               >
                 {mod.icon}
               </span>
-              <span className="flex-1 text-left text-[13px] font-bold tight-tracking">
+              
+              <span className="flex-1 text-left text-[11px] font-black uppercase tracking-[0.2em] italic">
                 {mod.name}
               </span>
+              
               {!mod.locked && (
                 <span 
-                  className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+                  className={`material-symbols-outlined text-[16px] transition-all duration-500 opacity-20 group-hover:opacity-100 ${isExpanded ? "rotate-180 text-[#ccff00]" : ""}`}
                 >
                   expand_more
                 </span>
               )}
               {mod.locked && (
-                <span className="material-symbols-outlined text-[16px]">lock</span>
+                <span className="material-symbols-outlined text-[16px] opacity-20">lock</span>
               )}
             </button>
 
             {isExpanded && !mod.locked && (
-              <div className="mt-1 ml-4 pl-4 border-l border-outline-variant/30 space-y-1">
+              <div className="ml-10 space-y-1 animate-in slide-in-from-top-2 duration-500">
                 {mod.items.map((item) => {
                   const isActive = pathname === item.href;
                   return (
@@ -116,11 +122,11 @@ export function ModuleNav({ modules, userRole }: ModuleNavProps) {
                       key={item.id}
                       href={item.href}
                       className={`
-                        flex items-center gap-3 px-4 py-2 rounded-xl
-                        text-[12px] font-medium transition-all duration-200
+                        flex items-center gap-4 px-6 h-11 rounded-xl
+                        text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 italic
                         ${isActive 
-                          ? "bg-primary text-background shadow-lg shadow-primary/20" 
-                          : "text-on-surface-variant hover:text-on-surface hover:bg-white/[0.04]"
+                          ? "bg-[#ccff00] text-black shadow-volt" 
+                          : "text-white/20 hover:text-white hover:bg-white/[0.04]"
                         }
                       `}
                     >

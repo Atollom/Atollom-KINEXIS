@@ -3,7 +3,8 @@ agent_contracts_done: 43/43
 migraciones: 032/N
 tests_totales: 104 passing ✅  (77 previos + 10 atollom-panel + 15 samantha-chat-tools + 12 facturapi-provision)
 
-ESTADO: PRODUCTION_READY
+ESTADO: LUXE_UI_DEPLOYED ✅
+last_update: 2026-04-16
 claude_approved_date: 2026-04-13
 hardening_sessions: BLOQUE1 + BLOQUE2 + BLOQUE3 + BLOQUE4 + BLOQUE5 + BLOQUE6 + BLOQUE7 (completo)
 

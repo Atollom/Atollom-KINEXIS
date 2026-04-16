@@ -18,9 +18,8 @@ const CONTEXTS: { value: ChatContext; label: string; icon: string }[] = [
 export function ContextSelector({ value, onChange }: ContextSelectorProps) {
   return (
     <div
-      className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none"
+      className="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar-hidden"
       role="tablist"
-      aria-label="Contexto del agente"
     >
       {CONTEXTS.map((ctx) => {
         const active = ctx.value === value;
@@ -31,19 +30,19 @@ export function ContextSelector({ value, onChange }: ContextSelectorProps) {
             aria-selected={active}
             onClick={() => onChange(ctx.value)}
             className={`
-              flex items-center gap-1.5
-              px-3 py-1.5 rounded-full
-              label-sm transition-all duration-200
+              flex items-center gap-2
+              px-5 py-2.5 rounded-xl
+              text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300
               whitespace-nowrap flex-shrink-0
               ${active
-                ? "bg-primary-container text-[#3a4a00] font-bold"
-                : "text-on-surface-variant hover:bg-surface-container"
+                ? "bg-[#ccff00] text-black shadow-[0_0_15px_#ccff0044] italic"
+                : "text-white/30 hover:text-white hover:bg-white/5"
               }
             `}
           >
             <span
               className="material-symbols-outlined"
-              style={{ fontSize: "13px" }}
+              style={{ fontSize: "14px" }}
               aria-hidden="true"
             >
               {ctx.icon}

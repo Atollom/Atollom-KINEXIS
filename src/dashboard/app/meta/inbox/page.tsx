@@ -87,8 +87,8 @@ export default function WhatsAppInbox() {
         if (newMsg.direction === "inbound") {
           playNewMessageSound();
           if (document.hidden) {
-            new Notification("Nuevo WhatsApp de " + newMsg.from_number, {
-              body: newMsg.message_text || "Archivo multimedia",
+            new Notification("New Signal from " + newMsg.from_number, {
+              body: newMsg.message_text || "Attachment received",
             });
           }
         }
@@ -148,95 +148,120 @@ export default function WhatsAppInbox() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-120px)] overflow-hidden rounded-3xl border border-outline-variant bg-surface/30 backdrop-blur-2xl">
-      {/* Sessions List */}
-      <div className="w-[350px] border-r border-outline-variant flex flex-col bg-surface-container/50">
-        <div className="p-6 border-b border-outline-variant">
-          <h1 className="text-xl font-black tight-tracking mb-4">Neural Inbox</h1>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-3 text-on-surface-variant text-sm">search</span>
+    <div className="flex h-[calc(100vh-140px)] overflow-hidden rounded-[3rem] border border-white/5 bg-black/40 backdrop-blur-2xl animate-luxe shadow-2xl relative">
+      
+      {/* Sessions Sidebar */}
+      <div className="w-[380px] border-r border-white/5 flex flex-col bg-white/[0.02] relative z-10">
+        <div className="p-8 border-b border-white/5 space-y-6">
+          <div className="flex items-center gap-4">
+             <div className="w-10 h-10 rounded-xl bg-[#ccff00]/10 flex items-center justify-center border border-[#ccff00]/20">
+                <span className="material-symbols-outlined text-[#ccff00] text-xl shadow-volt">satellite_alt</span>
+             </div>
+             <h1 className="text-xl font-black uppercase tracking-tighter text-white">Neural Hub</h1>
+          </div>
+          
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-white/20 text-lg group-focus-within:text-[#ccff00] transition-colors">search</span>
             <input 
               type="text" 
-              placeholder="Buscar..."
-              className="w-full bg-surface-bright border border-outline-variant rounded-2xl py-2.5 pl-11 pr-4 text-[13px] outline-none focus:ring-1 focus:ring-primary transition-all font-medium"
+              placeholder="Scan frequencies..."
+              className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-14 pr-6 text-[12px] font-black uppercase tracking-widest outline-none focus:border-[#ccff00]/30 transition-all placeholder:text-white/10 italic"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-          {filteredSessions.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSelectedPhone(s.from_number)}
-              className={`
-                w-full px-6 py-4 flex items-start gap-4 transition-all text-left border-b border-outline-variant/30
-                ${selectedPhone === s.from_number ? "bg-primary/10" : "hover:bg-white/[0.04]"}
-              `}
-            >
-              <div className="w-12 h-12 rounded-2xl bg-surface-bright flex items-center justify-center flex-shrink-0 border border-outline-variant">
-                <span className="material-symbols-outlined text-lg text-primary">person</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline mb-1">
-                  <span className="font-bold text-[14px] truncate">{s.from_number}</span>
-                  <span className="text-[10px] text-on-surface-variant font-black">{formatTime(s.last_message_at || "")}</span>
-                </div>
-                <div className="flex items-center gap-2">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
+          {filteredSessions.length === 0 ? (
+             <div className="py-12 text-center opacity-20">
+                <p className="text-[10px] font-black uppercase tracking-widest italic">No signals found</p>
+             </div>
+          ) : (
+            filteredSessions.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setSelectedPhone(s.from_number)}
+                className={`
+                  w-full px-6 py-6 rounded-[2rem] flex items-start gap-5 transition-all duration-500 text-left relative overflow-hidden group
+                  ${selectedPhone === s.from_number ? "bg-white/10 border-white/10 shadow-xl" : "hover:bg-white/[0.04] border border-transparent"}
+                `}
+              >
+                {selectedPhone === s.from_number && (
+                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#ccff00] shadow-volt" />
+                )}
+                
+                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center flex-shrink-0 relative group-hover:border-[#ccff00]/30 transition-all">
+                  <span className="material-symbols-outlined text-xl text-white/30 group-hover:text-[#ccff00]">person</span>
                   {s.samantha_active && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]" />
+                    <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#ccff00] animate-pulse shadow-volt" />
                   )}
-                  <p className="text-[12px] text-on-surface-variant truncate font-medium">
-                    {s.last_message || "Multimedia"}
-                  </p>
                 </div>
-              </div>
-            </button>
-          ))}
+
+                <div className="flex-1 min-w-0 pt-1">
+                  <div className="flex justify-between items-baseline mb-1">
+                    <span className="font-black text-[13px] text-white uppercase tracking-tighter truncate">{s.from_number}</span>
+                    <span className="text-[9px] text-white/20 font-black italic">{formatTime(s.last_message_at || "")}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[11px] text-white/40 truncate italic font-medium">
+                      {s.last_message || "Multimedia transmission"}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
         </div>
       </div>
 
-      {/* Chat Panel */}
-      <div className="flex-1 flex flex-col relative bg-surface-container/20">
+      {/* Neural Bridge View */}
+      <div className="flex-1 flex flex-col relative bg-gradient-to-br from-black to-white/[0.02]">
         {selectedPhone ? (
           <>
-            <div className="h-20 px-8 border-b border-outline-variant flex items-center justify-between bg-surface-container/40">
-              <div className="flex items-center gap-4">
-                <div className="font-black text-[15px] tight-tracking">{selectedPhone}</div>
-                <div className={`flex items-center gap-2 px-3 py-1 rounded-full border border-outline-variant ${activeSession?.samantha_active ? 'bg-primary/10 border-primary/20' : ''}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${activeSession?.samantha_active ? 'bg-primary animate-pulse' : 'bg-on-surface-variant'}`} />
-                  <span className={`text-[9px] font-black uppercase tracking-widest ${activeSession?.samantha_active ? 'text-primary' : 'text-on-surface-variant'}`}>
-                    {activeSession?.samantha_active ? 'IA Activa' : 'Manual'}
+            {/* Bridge Info Bar */}
+            <div className="h-24 px-10 border-b border-white/5 flex items-center justify-between bg-white/[0.02] backdrop-blur-3xl relative z-10">
+              <div className="flex items-center gap-6">
+                <div className="text-lg font-black text-white uppercase tracking-tighter italic">{selectedPhone}</div>
+                <div className={`flex items-center gap-3 px-4 py-1.5 rounded-full border transition-all duration-500 ${activeSession?.samantha_active ? 'bg-[#ccff00]/10 border-[#ccff00]/20 text-[#ccff00]' : 'bg-white/5 border-white/5 text-white/20'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${activeSession?.samantha_active ? 'bg-[#ccff00] animate-pulse shadow-volt' : 'bg-white/20 font-black'}`} />
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] italic">
+                    {activeSession?.samantha_active ? 'SAMANTHA ACTIVE' : 'MANUAL OVERRIDE'}
                   </span>
                 </div>
               </div>
+              
               <button 
                 onClick={() => toggleAI(!activeSession?.samantha_active)}
                 className={`
-                  px-5 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all
+                  h-12 px-8 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all italic
                   ${activeSession?.samantha_active 
-                    ? "bg-on-surface-variant/10 text-on-surface hover:bg-on-surface-variant/20" 
-                    : "bg-primary text-background shadow-lg shadow-primary/20 hover:scale-105 active:scale-95"}
+                    ? "bg-white/5 text-white/40 border border-white/5 hover:text-white" 
+                    : "bg-[#ccff00] text-black shadow-volt hover:scale-105 active:scale-95"}
                 `}
               >
-                {activeSession?.samantha_active ? "Tomar Control" : "Activar IA"}
+                {activeSession?.samantha_active ? "Assume Control" : "Engage Neural AI"}
               </button>
             </div>
 
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
+            {/* Neural Canvas */}
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-10 py-10 space-y-10 custom-scrollbar relative z-0">
+               {/* Background Glow */}
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[#ccff00]/2 rounded-full blur-[120px] pointer-events-none" />
+               
               {messages.map((m) => (
                 <MessageItem key={m.id} message={m} />
               ))}
             </div>
 
-            <div className="p-6 border-t border-outline-variant bg-surface-container/30">
-              <form onSubmit={handleSend} className="flex gap-4 max-w-5xl mx-auto items-end">
-                <div className="flex-1 relative">
+            {/* Neural Control Deck */}
+            <div className="p-10 border-t border-white/5 bg-black/40 relative z-10">
+              <form onSubmit={handleSend} className="flex gap-6 max-w-5xl mx-auto items-center">
+                <div className="flex-1 relative group">
                   <textarea 
                     rows={1}
-                    placeholder={activeSession?.samantha_active ? "IA activa..." : "Escribe un mensaje..."}
-                    className="w-full bg-surface-bright border border-outline-variant rounded-2xl py-4 px-6 text-[14px] outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium resize-none max-h-32"
+                    placeholder={activeSession?.samantha_active ? "Neural link locked..." : "Transmit data..."}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-[14px] text-white font-medium outline-none focus:border-[#ccff00]/40 transition-all resize-none max-h-32 placeholder:text-white/10 italic"
                     value={messageInput}
                     onChange={e => setMessageInput(e.target.value)}
                     disabled={activeSession?.samantha_active}
@@ -248,26 +273,31 @@ export default function WhatsAppInbox() {
                     }}
                   />
                   {activeSession?.samantha_active && (
-                    <div className="absolute inset-0 bg-background/20 backdrop-blur-[1px] rounded-2xl cursor-not-allowed" />
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] rounded-2xl cursor-not-allowed flex items-center justify-center">
+                       <span className="text-[9px] font-black text-[#ccff00] uppercase tracking-[0.4em] italic animate-pulse">Neural Synchronization in Progress</span>
+                    </div>
                   )}
                 </div>
                 <button 
                   type="submit"
                   disabled={isSending || activeSession?.samantha_active || !messageInput.trim()}
-                  className="w-14 h-14 rounded-2xl bg-primary text-background flex items-center justify-center disabled:opacity-30 transition-all shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 flex-shrink-0"
+                  className="w-16 h-16 rounded-2xl bg-[#ccff00] text-black flex items-center justify-center disabled:opacity-10 transition-all shadow-volt hover:scale-105 active:scale-95 flex-shrink-0"
                 >
-                  <span className="material-symbols-outlined font-black">send</span>
+                  <span className="material-symbols-outlined font-black italic">send</span>
                 </button>
               </form>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center opacity-20">
-            <span className="material-symbols-outlined text-[80px] mb-6">chat_bubble</span>
-            <p className="text-[12px] font-black uppercase tracking-[0.4em]">Neural Inbox Ready</p>
+          <div className="flex-1 flex flex-col items-center justify-center space-y-8">
+            <div className="w-24 h-24 rounded-full bg-white/5 border border-white/5 flex items-center justify-center opacity-10">
+               <span className="material-symbols-outlined text-[40px]">cell_tower</span>
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 italic">Awaiting Signal Acquisition</p>
           </div>
         )}
       </div>
+
     </div>
   );
 }
@@ -276,31 +306,33 @@ function MessageItem({ message }: { message: WhatsAppMessage }) {
   const isOutbound = message.direction === "outbound";
   
   return (
-    <div className={`flex ${isOutbound ? "justify-end" : "justify-start"}`}>
+    <div className={`flex ${isOutbound ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-500`}>
       <div className={`
-        max-w-[75%] rounded-3xl p-4 shadow-xl flex flex-col gap-2 relative group
+        max-w-[70%] rounded-[2rem] p-6 flex flex-col gap-4 relative group transition-all duration-300
         ${isOutbound 
-          ? "bg-primary text-background rounded-tr-none shadow-primary/10" 
-          : "bg-surface-bright text-on-surface rounded-tl-none border border-outline-variant shadow-black/5"}
+          ? "bg-[#ccff00] text-black rounded-tr-none shadow-volt/20" 
+          : "bg-white/5 text-white rounded-tl-none border border-white/5 hover:border-white/10 shadow-2xl backdrop-blur-3xl"}
       `}>
         {message.message_type === "text" && message.message_text && (
-          <p className="text-[14px] leading-relaxed font-medium whitespace-pre-wrap">{message.message_text}</p>
+          <p className="text-[14px] leading-relaxed font-semibold whitespace-pre-wrap">{message.message_text}</p>
         )}
 
         {message.message_type === "image" && message.media_url && (
-          <div className="rounded-2xl overflow-hidden border border-white/5">
-            <img src={message.media_url} alt="WhatsApp content" className="max-w-full h-auto cursor-zoom-in" />
+          <div className="rounded-2xl overflow-hidden border border-black/10 shadow-2xl">
+            <img src={message.media_url} alt="Transmission content" className="max-w-full h-auto cursor-zoom-in hover:scale-105 transition-transform duration-700" />
           </div>
         )}
 
         {message.message_type === "audio" && message.media_url && (
-          <div className="space-y-3 min-w-[240px]">
-            <audio controls className="h-10 w-full invert brightness-0 dark:invert-0">
-              <source src={message.media_url} type="audio/mpeg" />
-            </audio>
+          <div className="space-y-4 min-w-[280px]">
+            <div className="h-10 rounded-xl bg-black/10 flex items-center px-4">
+               <audio controls className={`h-8 w-full ${isOutbound ? '' : 'invert'}`}>
+                 <source src={message.media_url} type="audio/mpeg" />
+               </audio>
+            </div>
             {message.transcript && (
-              <p className={`text-[12px] italic opacity-70 border-t pt-2 ${isOutbound ? 'border-background/20' : 'border-outline-variant'}`}>
-                {message.transcript}
+              <p className={`text-[12px] italic font-medium opacity-60 border-t pt-4 ${isOutbound ? 'border-black/10 text-black' : 'border-white/10 text-white'}`}>
+                &ldquo;{message.transcript}&rdquo;
               </p>
             )}
           </div>
@@ -310,18 +342,19 @@ function MessageItem({ message }: { message: WhatsAppMessage }) {
           <a 
             href={message.media_url} 
             target="_blank" 
-            className={`flex items-center gap-3 p-3 rounded-2xl transition-all ${isOutbound ? 'bg-background/10 hover:bg-background/20' : 'bg-surface-container hover:bg-surface-container-high'}`}
+            className={`flex items-center gap-4 p-5 rounded-2xl transition-all border ${isOutbound ? 'bg-black/5 border-black/10 hover:bg-black/10' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
           >
-            <span className="material-symbols-outlined">description</span>
-            <span className="text-xs font-bold truncate">Archivo recibo</span>
+            <span className={`material-symbols-outlined ${isOutbound ? 'text-black' : 'text-[#ccff00]'}`}>description</span>
+            <div className="flex flex-col">
+               <span className="text-[11px] font-black uppercase tracking-wider truncate">Digital Fragment</span>
+               <span className="text-[9px] opacity-40 uppercase font-black">Open Link</span>
+            </div>
           </a>
         )}
 
-        <div className={`text-[9px] font-black uppercase tracking-tighter self-end opacity-40`}>
+        <div className={`text-[9px] font-black uppercase tracking-tighter self-end opacity-30 italic mt-2`}>
           {formatTime(message.created_at)}
         </div>
-        
-        <div className={`absolute top-0 ${isOutbound ? '-right-1' : '-left-1'} w-2 h-4 ${isOutbound ? 'bg-primary' : 'bg-surface-bright'} clip-path-triangle`} />
       </div>
     </div>
   );

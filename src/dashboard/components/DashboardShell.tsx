@@ -103,6 +103,7 @@ interface DashboardShellProps {
 }
 
 import { Sidebar } from "./Sidebar";
+import { SamanthaPanel } from "./SamanthaPanel";
 
 export function DashboardShell({
   children,
@@ -137,16 +138,18 @@ export function DashboardShell({
   ];
 
   return (
-    <div className="min-h-screen bg-background text-on-surface transition-colors duration-500">
+    <div className="min-h-screen bg-[#040f1b] text-white flex overflow-x-hidden selection:bg-[#ccff00] selection:text-black">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-[60] md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* ──────────────────────────────────────────────────────────────────────────────
+          1. Sidebar (Fixed Left: 280px)
+         ────────────────────────────────────────────────────────────────────────────── */}
       <Sidebar 
         modules={modules} 
         userRole={userRole} 
@@ -157,22 +160,24 @@ export function DashboardShell({
         planId={planId}
       />
 
-      {/* Header */}
-      <Header onMenuToggle={() => setSidebarOpen((o) => !o)} />
+      {/* ──────────────────────────────────────────────────────────────────────────────
+          2. Main Layout Area (Central)
+         ────────────────────────────────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col min-w-0 md:pl-[280px] xl:pr-[360px]">
+        {/* Header */}
+        <Header onMenuToggle={() => setSidebarOpen((o) => !o)} />
 
-      {/* Main content */}
-      <main
-        className="
-          md:ml-[320px]
-          pt-28
-          pb-24 md:pb-8
-          min-h-screen
-        "
-      >
-        <div className="px-6 md:px-12 py-6 animate-luxe">
-          {children}
-        </div>
-      </main>
+        <main className="flex-1 pt-16 min-h-screen">
+          <div className="px-6 md:px-10 py-10 animate-luxe max-w-[1400px] mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* ──────────────────────────────────────────────────────────────────────────────
+          3. Samantha Panel (Fixed Right: 360px)
+         ────────────────────────────────────────────────────────────────────────────── */}
+      <SamanthaPanel />
     </div>
   );
 }

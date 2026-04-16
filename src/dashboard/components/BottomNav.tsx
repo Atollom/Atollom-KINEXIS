@@ -10,10 +10,10 @@ interface BottomItem {
 }
 
 const BOTTOM_ITEMS: BottomItem[] = [
-  { href: "/",         label: "Guardian", icon: "gpp_good" },
-  { href: "/status",   label: "Status",   icon: "data_exploration" },
-  { href: "/search",   label: "Search",   icon: "search" },
-  { href: "/health",   label: "Health",   icon: "sensors" },
+  { href: "/",         label: "Core",    icon: "gpp_good" },
+  { href: "/status",   label: "Status",  icon: "data_exploration" },
+  { href: "/search",   label: "Search",  icon: "search" },
+  { href: "/health",   label: "Nodes",   icon: "sensors" },
 ];
 
 export function BottomNav() {
@@ -21,17 +21,19 @@ export function BottomNav() {
 
   return (
     <nav
-      aria-label="Navegación inferior móvil"
+      aria-label="Neural Mobile Navigation"
       className="
         fixed bottom-0 left-0 right-0 z-50
         flex justify-around items-center
-        h-20 px-4
-        bg-surface-container-low/90 backdrop-blur-xl
-        border-t border-surface-bright
-        shadow-[0_-4px_12px_rgba(202,253,0,0.08)]
-        md:hidden
+        h-24 px-6
+        bg-black/80 backdrop-blur-[40px]
+        border-t border-white/5
+        shadow-[0_-4px_30px_rgba(204,255,0,0.05)]
+        md:hidden overflow-hidden
       "
     >
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-12 bg-[#ccff00]/5 blur-[40px] pointer-events-none" />
+      
       {BOTTOM_ITEMS.map(({ href, label, icon }) => {
         const isActive = pathname === href;
         return (
@@ -40,25 +42,28 @@ export function BottomNav() {
             href={href}
             aria-current={isActive ? "page" : undefined}
             className={`
-              flex flex-col items-center justify-center gap-1
-              px-4 py-1 rounded-xl
-              label-sm
-              transition-all duration-200 active:scale-95
+              flex flex-col items-center justify-center gap-1.5
+              px-6 py-2.5 rounded-2xl
+              transition-all duration-500 active:scale-90 relative
               ${
                 isActive
-                  ? "bg-primary-container text-[#3a4a00]"
-                  : "text-on-surface-variant hover:text-primary"
+                  ? "bg-[#ccff00] text-black shadow-volt"
+                  : "text-white/20 hover:text-white"
               }
             `}
           >
             <span
-              className="material-symbols-outlined text-xl"
-              style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              className={`material-symbols-outlined text-xl italic font-black ${isActive ? 'shadow-volt-text' : ''}`}
               aria-hidden="true"
             >
               {icon}
             </span>
-            {label}
+            <span className="text-[9px] font-black uppercase tracking-widest italic leading-none">
+              {label}
+            </span>
+            {isActive && (
+              <div className="absolute -bottom-1 w-1 h-1 bg-black rounded-full" />
+            )}
           </Link>
         );
       })}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase-browser";
 
@@ -14,7 +13,6 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = createBrowserSupabaseClient();
 
-  // Reset error when switching tabs
   useEffect(() => setError(null), [activeTab]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -28,7 +26,7 @@ export default function LoginPage() {
     });
 
     if (authError) {
-      setError("Credenciales incorrectas. Por favor verifica.");
+      setError("AUTHENTICATION_FAILED: Verification required.");
       setLoading(false);
     } else {
       router.refresh();
@@ -37,117 +35,129 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#040f1b] relative overflow-hidden flex items-center justify-center p-6 selection:bg-primary selection:text-background">
-      {/* ── Background Mesh ────────────────────────────────────── */}
+    <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center p-6 selection:bg-[#ccff00] selection:text-black">
+      
+      {/* ── Neural Atmospheric Background ────────────────────────── */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[120px] rounded-full" />
+        <div className="absolute top-[-20%] left-[-20%] w-[70%] h-[70%] bg-[#ccff00]/5 blur-[160px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-20%] w-[70%] h-[70%] bg-[#00f2ff]/3 blur-[160px] rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02)_0%,transparent_70%)]" />
       </div>
 
-      {/* ── Login Card ─────────────────────────────────────────── */}
-      <div className="relative z-10 w-full max-w-[480px] animate-luxe">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-12 bg-primary text-background px-6 py-2 rounded-full text-xs font-black tracking-widest">
-          ✅ ACTUALIZADO 15 ABRIL 2026
+      {/* ── Terminal Interface ────────────────────────────────────── */}
+      <div className="relative z-10 w-full max-w-[520px] animate-luxe">
+        
+        {/* System Status Badge */}
+        <div className="flex justify-center mb-12">
+           <div className="bg-white/5 border border-white/5 backdrop-blur-3xl px-6 py-2 rounded-full flex items-center gap-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse shadow-volt" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ccff00] italic">Neural Link: Online</span>
+           </div>
         </div>
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-surface/40 backdrop-blur-2xl border border-white/10 shadow-2xl mb-6 group transition-all hover:scale-105 active:scale-95">
-            <span className="material-symbols-outlined text-4xl text-primary drop-shadow-[0_0_8px_var(--primary)] group-hover:rotate-12 transition-transform">
+
+        {/* Brand Core */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2.5rem] bg-white/5 border border-white/10 shadow-2xl mb-8 group transition-all duration-700 hover:rotate-[360deg] hover:border-[#ccff00]/40">
+            <span className="material-symbols-outlined text-5xl text-[#ccff00] shadow-volt italic font-black">
               offline_bolt
             </span>
           </div>
-          <h1 className="text-4xl font-headline font-black text-white tracking-tighter mb-2">
-            KINEXIS <span className="text-primary">OS</span>
+          <h1 className="text-5xl font-black text-white tracking-tighter uppercase mb-3 leading-none italic">
+            Kinexis <span className="text-[#ccff00]">OS</span>
           </h1>
-          <p className="text-on-surface-variant text-sm font-medium tracking-tight opacity-70">
-            Neural Operations Interface — 2026 Edition
+          <p className="text-white/20 text-[10px] uppercase font-black tracking-[0.4em] italic leading-relaxed">
+            Neural Operations Shell · Deployment 2026/A1
           </p>
         </div>
 
-        <div className="bg-surface/30 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] p-10 shadow-2xl shadow-black/50">
-          {/* Tabs */}
-          <div className="flex bg-white/5 p-1.5 rounded-2xl mb-8">
+        {/* Control Cluster */}
+        <div className="glass-card rounded-[3.5rem] border border-white/5 p-12 shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#ccff00]/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-[#ccff00]/10 transition-colors duration-1000" />
+          
+          {/* Module Selector */}
+          <div className="flex bg-white/5 p-1.5 rounded-2xl mb-10 relative z-10">
             <button 
               onClick={() => setActiveTab("login")}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'login' ? 'bg-primary text-background shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-on-surface'}`}
+              className={`flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 italic ${activeTab === 'login' ? 'bg-white text-black shadow-2xl' : 'text-white/20 hover:text-white'}`}
             >
-              Access
+              Access Link
             </button>
             <button 
               onClick={() => setActiveTab("register")}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'register' ? 'bg-primary text-background shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-on-surface'}`}
+              className={`flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 italic ${activeTab === 'register' ? 'bg-white text-black shadow-2xl' : 'text-white/20 hover:text-white'}`}
             >
-              Onboard
+              Init Module
             </button>
           </div>
 
           {activeTab === "login" ? (
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Authentication ID</label>
-                <div className="relative group">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm transition-colors group-focus-within:text-primary">alternate_email</span>
+            <form onSubmit={handleLogin} className="space-y-8 relative z-10">
+              <div className="space-y-3">
+                <label className="text-[9px] font-black uppercase tracking-[0.4em] text-white/30 ml-2 italic">Neural Identity Key</label>
+                <div className="relative group/input">
+                  <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-white/10 text-xl transition-all duration-500 group-focus-within/input:text-[#ccff00] group-focus-within/input:shadow-volt">alternate_email</span>
                   <input 
                     type="email" 
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@atollom.com"
-                    className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl py-4 pl-12 pr-6 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 focus:bg-white/[0.05] transition-all"
+                    placeholder="IDENTITY@ATOLLOM.NET"
+                    className="w-full h-16 bg-white/[0.03] border border-white/5 rounded-2xl pl-16 pr-8 text-sm text-white placeholder:text-white/5 outline-none focus:border-[#ccff00]/30 transition-all font-medium uppercase tracking-tight italic"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Security Key</label>
-                <div className="relative group">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm transition-colors group-focus-within:text-primary">key</span>
+              <div className="space-y-3">
+                <label className="text-[9px] font-black uppercase tracking-[0.4em] text-white/30 ml-2 italic">Security Sequence</label>
+                <div className="relative group/input">
+                  <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-white/10 text-xl transition-all duration-500 group-focus-within/input:text-[#ccff00] group-focus-within/input:shadow-volt">shield_lock</span>
                   <input 
                     type="password" 
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-white/[0.03] border border-white/[0.05] rounded-2xl py-4 pl-12 pr-6 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 focus:bg-white/[0.05] transition-all"
+                    placeholder="••••••••••••"
+                    className="w-full h-16 bg-white/[0.03] border border-white/5 rounded-2xl pl-16 pr-8 text-sm text-white placeholder:text-white/5 outline-none focus:border-[#ccff00]/30 transition-all font-medium italic"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="p-4 rounded-2xl bg-error/10 border border-error/20 flex items-center gap-3 animate-shake">
-                  <span className="material-symbols-outlined text-error text-lg">error</span>
-                  <p className="text-[11px] font-bold text-error uppercase tracking-tight">{error}</p>
+                <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-4 animate-shake">
+                  <span className="material-symbols-outlined text-red-500 text-xl italic font-black">warning</span>
+                  <p className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">{error}</p>
                 </div>
               )}
 
               <button 
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary text-background h-14 rounded-2xl font-black uppercase tracking-[0.15em] text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+                className="w-full h-16 bg-[#ccff00] text-black rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] shadow-volt hover:scale-[1.03] active:scale-[0.97] transition-all duration-500 disabled:opacity-20 flex items-center justify-center gap-3 italic"
               >
                 {loading ? (
-                  <div className="w-5 h-5 border-2 border-background/20 border-t-background rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-3 border-black/20 border-t-black rounded-full animate-spin" />
                 ) : (
                   <>
-                    Initialize Session
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    Initialize Core
+                    <span className="material-symbols-outlined text-lg">bolt</span>
                   </>
                 )}
               </button>
             </form>
           ) : (
-            <div className="py-8 text-center space-y-6 animate-in">
-              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="material-symbols-outlined text-primary text-3xl">verified_user</span>
+            <div className="py-12 text-center space-y-8 animate-luxe relative z-10">
+              <div className="w-20 h-20 rounded-full bg-white/5 border border-white/5 flex items-center justify-center mx-auto transition-all duration-700 hover:shadow-volt hover:border-[#ccff00]/20">
+                <span className="material-symbols-outlined text-[#ccff00] text-4xl italic">diversity_3</span>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">Join the Ecosystem</h3>
-                <p className="text-sm text-on-surface-variant leading-relaxed">
-                  KINEXIS deployment is currently limited to selected pilot clients. Contact our concierge to initialize your neural instance.
+              <div className="space-y-4">
+                <h3 className="text-xl font-black text-white uppercase tracking-tighter italic">Join the Cluster</h3>
+                <p className="text-[11px] text-white/20 uppercase tracking-[0.2em] leading-relaxed font-bold max-w-[280px] mx-auto italic">
+                  Neural deployment limited to whitelisted node instances. Contact system admin for allocation.
                 </p>
               </div>
               <button 
                 onClick={() => setActiveTab('login')}
-                className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ccff00] italic underline underline-offset-8 decoration-[#ccff00]/20 hover:decoration-[#ccff00] transition-all"
               >
                 Return to Access
               </button>
@@ -155,31 +165,16 @@ export default function LoginPage() {
           )}
         </div>
 
-        {/* Footer info */}
-        <div className="mt-12 text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant opacity-30">
-            System Identity: KINEXIS-A1-2026
+        {/* Temporal Synchrony */}
+        <div className="mt-16 text-center space-y-2 opacity-20">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white italic">
+            OS Identity: Kinexis-Core_A16
+          </p>
+          <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white italic">
+            Encrypted End-to-End Terminal Link
           </p>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes luxeFade {
-          0% { opacity: 0; transform: translateY(20px) scale(0.95); }
-          100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .animate-luxe {
-          animation: luxeFade 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-4px); }
-          75% { transform: translateX(4px); }
-        }
-        .animate-shake {
-          animation: shake 0.4s ease-in-out;
-        }
-      `}</style>
     </div>
   );
 }

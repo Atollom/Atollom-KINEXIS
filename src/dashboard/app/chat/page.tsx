@@ -44,7 +44,7 @@ export default function ChatPage() {
         body: JSON.stringify({ 
           message: text, 
           context,
-          history: messages.filter(m => m.role !== 'system').slice(-20) // últimos 20 mensajes
+          history: messages.filter(m => m.role !== 'system').slice(-20) 
         }),
       });
 
@@ -70,7 +70,7 @@ export default function ChatPage() {
             accumulated += parsed.text;
             setStreamingText(accumulated);
           } catch {
-            // skip malformed chunk
+            // skip
           }
         }
       }
@@ -95,95 +95,78 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] max-w-3xl mx-auto">
-
-      {/* ── Header ─────────────────────────────────────────────── */}
-      <header className="px-4 md:px-6 pt-6 pb-4 space-y-4 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <AgentAvatar name="guardian" size="md" />
-          <div>
-            <h1 className="font-headline text-2xl font-black tracking-tight text-on-surface uppercase leading-none">
-              KINEXIS
-              <span className="ml-2 font-headline text-sm font-medium italic text-primary-container align-middle">
-                Neural Core
-              </span>
-            </h1>
-            <p className="text-[10px] text-on-surface-variant/60 mt-0.5 uppercase tracking-widest">
-              43 agentes · Contexto:{" "}
-              <span className="text-primary-container">
-                {context === "full" ? "Completo" : context.toUpperCase()}
-              </span>
-            </p>
+    <div className="flex flex-col h-[calc(100vh-100px)] max-w-4xl mx-auto space-y-6 animate-luxe">
+      
+      {/* Dynamic Header */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 py-2">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-2xl bg-[#ccff00]/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#ccff00] text-xl">hub</span>
+             </div>
+             <div>
+                <h1 className="text-3xl font-black tracking-tighter text-white">Neural Core</h1>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ccff00]/60 italic">Live Intelligence Interface</p>
+             </div>
           </div>
         </div>
 
-        <ContextSelector value={context} onChange={setContext} />
+        <div className="bg-white/5 p-1 rounded-2xl border border-white/5">
+          <ContextSelector value={context} onChange={setContext} />
+        </div>
       </header>
 
-      {/* ── Messages ────────────────────────────────────────────── */}
-      <div
-        className="flex-1 overflow-y-auto px-4 md:px-6 space-y-4 py-4"
-        role="log"
-        aria-live="polite"
-        aria-label="Conversación con KINEXIS"
-      >
-        {messages.map((msg, i) => {
-          const prevMsg = messages[i - 1];
-          const showSeparator =
-            i > 0 &&
-            prevMsg.role === "user" &&
-            msg.role === "assistant";
+      {/* Messages Window */}
+      <div className="flex-1 min-h-0 glass-card rounded-[2.5rem] border border-white/5 overflow-hidden flex flex-col shadow-2xl relative">
+        <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-[#040f1b] to-transparent z-10 pointer-events-none" />
+        
+        <div 
+          className="flex-1 overflow-y-auto px-6 py-12 space-y-8 custom-scrollbar relative z-0"
+          role="log"
+          aria-live="polite"
+        >
+          {messages.map((msg, i) => {
+            const prevMsg = messages[i - 1];
+            const showSeparator = i > 0 && prevMsg.role === "user" && msg.role === "assistant";
 
-          return (
-            <div key={i}>
-              {showSeparator && <GuardianSeparator label="KINEXIS responde" />}
-              <MessageBubble message={msg} agentName="KINEXIS" />
-            </div>
-          );
-        })}
-
-        {/* Live streaming bubble */}
-        {streaming && streamingText && (
-          <div>
-            <GuardianSeparator label="KINEXIS responde" />
-            <MessageBubble
-              message={{
-                role: "assistant",
-                content: streamingText,
-                ts: new Date().toISOString(),
-              }}
-              agentName="KINEXIS"
-              isStreaming
-            />
-          </div>
-        )}
-
-        {/* Loading dots if no text yet */}
-        {streaming && !streamingText && (
-          <div>
-            <GuardianSeparator label="KINEXIS responde" />
-            <div className="flex gap-3 items-center">
-              <AgentAvatar name="guardian" size="sm" />
-              <div className="flex gap-1.5 py-3 px-4 bg-surface-container-high rounded-2xl">
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="w-1.5 h-1.5 rounded-full bg-primary-container/60 animate-bounce"
-                    style={{ animationDelay: `${i * 150}ms` }}
-                  />
-                ))}
+            return (
+              <div key={i} className="animate-luxe" style={{ animationDelay: `${i * 100}ms` }}>
+                {showSeparator && <GuardianSeparator label="KINEXIS Response Sync" />}
+                <MessageBubble message={msg} agentName="KINEXIS" />
               </div>
+            );
+          })}
+
+          {streaming && (
+            <div className="animate-pulse">
+              <GuardianSeparator label="KINEXIS Analysis In-Progress" />
+              <MessageBubble
+                message={{
+                  role: "assistant",
+                  content: streamingText || "Procesando matriz de datos...",
+                  ts: new Date().toISOString(),
+                }}
+                agentName="KINEXIS"
+                isStreaming
+              />
             </div>
-          </div>
-        )}
+          )}
+          <div ref={bottomRef} className="h-4" />
+        </div>
 
-        <div ref={bottomRef} />
+        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#040f1b] to-transparent z-10 pointer-events-none" />
       </div>
 
-      {/* ── Input ────────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 px-4 md:px-6 pb-6 pt-2 border-t border-outline-variant/10">
-        <CommandInput onSend={handleSend} disabled={streaming} />
+      {/* Input Module */}
+      <div className="px-2">
+         <div className="glass-card p-6 rounded-[2rem] border border-white/5 shadow-volt">
+            <CommandInput onSend={handleSend} disabled={streaming} />
+         </div>
+         <p className="text-center text-[9px] font-black text-white/20 uppercase tracking-[0.4em] mt-4">
+           Secure encrypted session / Operation controlled by Atollom Neural Core
+         </p>
       </div>
+
     </div>
   );
 }

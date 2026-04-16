@@ -4,13 +4,12 @@ import "./globals.css";
 import { createClient } from "@/lib/supabase";
 import { DashboardShell } from "@/components/DashboardShell";
 import { getAuthenticatedTenant } from "@/lib/auth";
-import type { UserRole } from "@/types";
 
 export const metadata: Metadata = {
-  title: "KINEXIS — Centro de Operaciones",
+  title: "KINEXIS — Neural Control Terminal",
   description:
-    "Plataforma de automatización multi-agente para e-commerce. 43 agentes IA operando en tiempo real.",
-  keywords: ["kinexis", "ecommerce", "ai", "agents", "dashboard"],
+    "Autonomous multi-agent orchestration shell. 43 active IA nodes operating in global realtime.",
+  keywords: ["kinexis", "neural", "ai", "agents", "luxe", "dashboard"],
 };
 
 import { Providers } from "@/components/Providers";
@@ -22,7 +21,7 @@ export default async function RootLayout({
   const userData = await getAuthenticatedTenant(supabase);
 
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="dark selection:bg-[#ccff00] selection:text-black">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -31,15 +30,15 @@ export default async function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap"
           rel="stylesheet"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,200,0,0&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,900,1,0&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased bg-black text-white neural-gradient min-h-screen custom-scrollbar selection:bg-[#ccff00] selection:text-black">
         <Providers>
           {userData ? (
             <DashboardShell 

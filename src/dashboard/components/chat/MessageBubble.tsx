@@ -23,35 +23,37 @@ export function MessageBubble({
 
   if (isAssistant) {
     return (
-      <div className="flex gap-3 items-start max-w-[85%]">
-        <AgentAvatar name={agentName} size="sm" />
+      <div className="flex gap-6 items-start max-w-[90%] group">
+        <div className="flex-shrink-0 mt-1">
+           <AgentAvatar name={agentName} size="md" />
+        </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2 mb-1">
-            <span className="label-sm text-primary-container font-bold uppercase tracking-wider">
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-black text-[#ccff00] uppercase tracking-[0.2em] italic">
               {agentName}
             </span>
-            <span className="text-[10px] text-on-surface-variant/50 font-mono">
+            <span className="w-1 h-1 rounded-full bg-white/10" />
+            <span className="text-[9px] font-black text-white/20 uppercase tracking-widest font-mono">
               {formatTime(message.ts)}
             </span>
           </div>
 
           <div
             className="
-              bg-surface-container-high
-              border border-outline-variant/20
-              rounded-t-none rounded-br-2xl rounded-bl-2xl rounded-tr-2xl
-              px-4 py-3
-              text-sm text-on-surface leading-relaxed
-              whitespace-pre-wrap
+              glass-card rounded-[2rem] rounded-tl-none
+              px-8 py-6
+              text-[13px] text-white leading-[1.8] font-medium
+              whitespace-pre-wrap shadow-xl border border-white/5
             "
           >
             {message.content}
             {isStreaming && (
-              <span
-                className="inline-block w-2 h-4 ml-0.5 bg-primary-container align-middle animate-pulse rounded-sm"
-                aria-label="Escribiendo..."
-              />
+              <span className="inline-flex items-center gap-1 ml-2">
+                 <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse" />
+                 <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse delay-75" />
+                 <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse delay-150" />
+              </span>
             )}
           </div>
         </div>
@@ -59,32 +61,31 @@ export function MessageBubble({
     );
   }
 
-  /* ── User bubble (right-aligned) ── */
+  /* ── User bubble ── */
   return (
-    <div className="flex gap-3 items-start max-w-[85%] ml-auto flex-row-reverse">
-      {/* User avatar */}
-      <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0" aria-hidden="true">
-        <span className="material-symbols-outlined text-sm text-[#3a4a00]">person</span>
+    <div className="flex gap-6 items-start max-w-[80%] ml-auto flex-row-reverse group">
+      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10" aria-hidden="true">
+        <span className="material-symbols-outlined text-white/20">person</span>
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-2 mb-1 flex-row-reverse">
-          <span className="label-sm text-on-surface-variant font-bold uppercase tracking-wider">
-            Tú
-          </span>
-          <span className="text-[10px] text-on-surface-variant/50 font-mono">
+      <div className="flex-1 min-w-0 space-y-2 text-right">
+        <div className="flex items-center gap-3 justify-end">
+          <span className="text-[9px] font-black text-white/20 uppercase tracking-widest font-mono">
             {formatTime(message.ts)}
+          </span>
+          <span className="w-1 h-1 rounded-full bg-white/10" />
+          <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] italic">
+            Operator
           </span>
         </div>
 
         <div
           className="
-            bg-surface-container
-            border border-outline-variant/10
-            rounded-t-none rounded-bl-2xl rounded-br-2xl rounded-tl-2xl
-            px-4 py-3
-            text-sm text-on-surface leading-relaxed
-            whitespace-pre-wrap
+            bg-white/5 border border-white/5
+            rounded-[2rem] rounded-tr-none
+            px-8 py-5
+            text-[13px] text-white/80 leading-relaxed font-medium
+            whitespace-pre-wrap italic opacity-90
           "
         >
           {message.content}
@@ -94,15 +95,14 @@ export function MessageBubble({
   );
 }
 
-/* ── Guardian separator ── */
 export function GuardianSeparator({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 py-2" role="separator" aria-label={label}>
-      <div className="flex-1 h-px bg-outline-variant/20" />
-      <span className="label-sm text-on-surface-variant/40 uppercase tracking-widest text-[9px]">
+    <div className="flex items-center gap-6 py-8" role="separator">
+      <div className="flex-1 h-px bg-white/5" />
+      <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.5em] italic">
         {label}
       </span>
-      <div className="flex-1 h-px bg-outline-variant/20" />
+      <div className="flex-1 h-px bg-white/5" />
     </div>
   );
 }

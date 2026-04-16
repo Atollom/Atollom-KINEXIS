@@ -1,5 +1,3 @@
-// src/dashboard/app/meta/page.tsx
-// Canales Meta: WhatsApp + Instagram + Estado agentes + Responder
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -25,19 +23,19 @@ type ChannelFilter = "all" | "whatsapp" | "instagram";
 // ──────────────────────────────────────────────────────────────────────────────
 // Constantes
 // ──────────────────────────────────────────────────────────────────────────────
-const INTENT_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  venta:   { label: "Venta",   color: "#A8E63D", bg: "bg-[#A8E63D]/10" },
-  soporte: { label: "Soporte", color: "#F59E0B", bg: "bg-[#F59E0B]/10" },
-  reclamo: { label: "Reclamo", color: "#EF4444", bg: "bg-[#EF4444]/10" },
-  otro:    { label: "Otro",    color: "#506584", bg: "bg-[#506584]/10" },
-  unknown: { label: "Sin clasificar", color: "#506584", bg: "bg-[#506584]/10" },
+const INTENT_CONFIG: Record<string, { label: string; color: string }> = {
+  venta:   { label: "Conversion", color: "#ccff00" },
+  soporte: { label: "Support",    color: "#ffffff" },
+  reclamo: { label: "Critical",   color: "#ef4444" },
+  otro:    { label: "Auxiliary",  color: "#ffffff" },
+  unknown: { label: "Unclassified", color: "#ffffff" },
 };
 
 const AGENT_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  active: { label: "Activo", color: "#22C55E" },
-  idle:   { label: "Inactivo", color: "#F59E0B" },
-  error:  { label: "Error",  color: "#EF4444" },
-  paused: { label: "Pausado", color: "#506584" },
+  active: { label: "ONLINE",  color: "#ccff00" },
+  idle:   { label: "IDLE",    color: "#ffffff" },
+  error:  { label: "FAULT",   color: "#ef4444" },
+  paused: { label: "PAUSED",  color: "#ffffff" },
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -55,7 +53,6 @@ export default function MetaPage() {
 
   const supabase = createBrowserSupabaseClient();
 
-  // Cargar agentes Meta y rol del usuario
   useEffect(() => {
     async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -70,7 +67,6 @@ export default function MetaPage() {
       if (profile?.role) setRole(profile.role as UserRole);
 
       if (profile?.tenant_id) {
-        // Cargar agentes Meta (WhatsApp e Instagram)
         setAgentsLoading(true);
         const { data: agentData } = await supabase
           .from("agent_status")
@@ -79,7 +75,7 @@ export default function MetaPage() {
           .in("module", ["whatsapp", "instagram"]);
 
         if (agentData) {
-          setAgents(agentData.map((a: { agent_id: string; name: string; module: string; agent_status: string; last_run: string; success_rate: number }) => ({
+          setAgents(agentData.map((a: any) => ({
             id: a.agent_id,
             name: a.name,
             channel: a.module as "whatsapp" | "instagram",
@@ -94,10 +90,8 @@ export default function MetaPage() {
     loadData();
   }, [supabase]);
 
-  // Enviar respuesta a conversación
   const handleReply = useCallback(async () => {
     if (!replyText.trim() || !selectedConv) return;
-    // RBAC: solo owner/admin/socia/agente pueden responder mensajes
     if (!["owner", "admin", "socia", "agente"].includes(role ?? "")) return;
     setSending(true);
     try {
@@ -113,13 +107,11 @@ export default function MetaPage() {
       setReplyText("");
       setSelectedConv(null);
     } catch {
-      // Error silencioso — el usuario puede reintentar
     } finally {
       setSending(false);
     }
   }, [replyText, selectedConv, role]);
 
-  // Filtrar conversaciones
   const filtered = (conversations || []).filter((c: ConversationSummary) =>
     channelFilter === "all" || c.channel === channelFilter
   );
@@ -129,260 +121,264 @@ export default function MetaPage() {
   const totalUnread = (conversations || []).reduce((sum: number, c: ConversationSummary) => sum + c.unread_count, 0);
 
   return (
-    <div className="px-4 md:px-6 py-6 h-[calc(100vh-64px)] overflow-hidden flex flex-col">
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <header className="mb-5 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#3B82F6]/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-[#3B82F6] text-lg">forum</span>
-          </div>
-          <div>
-            <h1 className="text-2xl font-headline font-bold text-[#E8EAF0]">Canales Meta</h1>
-            <p className="text-[11px] text-[#8DA4C4]">WhatsApp & Instagram · Conversaciones Unificadas</p>
+    <div className="max-w-7xl mx-auto space-y-8 animate-luxe pb-24 px-4 h-full flex flex-col pt-4">
+      
+      {/* ── Dynamic Header ─────────────────────────────────────────── */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 py-2 flex-shrink-0">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 rounded-2xl bg-[#ccff00]/10 flex items-center justify-center border border-[#ccff00]/20">
+                <span className="material-symbols-outlined text-[#ccff00] text-2xl shadow-volt">forum</span>
+             </div>
+             <div>
+                <h1 className="text-3xl font-black tracking-tighter text-white uppercase leading-none">Omni Channels</h1>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ccff00]/60 italic mt-1">Meta Neural Matrix</p>
+             </div>
           </div>
         </div>
 
-        {/* KPIs rápidos */}
-        <div className="hidden md:flex items-center gap-3">
-          <div className="bg-white/[0.04] rounded-xl px-4 py-2 text-center">
-            <p className="text-[9px] text-[#8DA4C4] uppercase tracking-wider">Sin leer</p>
-            <p className="text-lg font-headline font-bold text-[#EF4444]">{totalUnread}</p>
-          </div>
-          <div className="bg-[#25D366]/10 rounded-xl px-4 py-2 text-center">
-            <p className="text-[9px] text-[#25D366] uppercase tracking-wider">WhatsApp</p>
-            <p className="text-lg font-headline font-bold text-[#25D366]">{whatsappCount}</p>
-          </div>
-          <div className="bg-purple-500/10 rounded-xl px-4 py-2 text-center">
-            <p className="text-[9px] text-purple-400 uppercase tracking-wider">Instagram</p>
-            <p className="text-lg font-headline font-bold text-purple-400">{instagramCount}</p>
-          </div>
-
-          <a 
-            href="/meta/inbox" 
-            className="btn-volt flex items-center gap-2 px-5 py-3 ml-4"
-          >
-            <span className="material-symbols-outlined">forum</span>
-            BANDEJA UNIFICADA
-          </a>
+        <div className="flex items-center gap-4">
+           <div className="bg-white/5 border border-white/5 p-1 rounded-2xl flex gap-1">
+              {(["all", "whatsapp", "instagram"] as ChannelFilter[]).map(ch => (
+                <button
+                  key={ch}
+                  onClick={() => setChannelFilter(ch)}
+                  className={`px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${channelFilter === ch ? 'bg-white text-black shadow-xl italic' : 'text-white/30 hover:text-white'}`}
+                >
+                  {ch === "all" ? "MASTER" : ch}
+                </button>
+              ))}
+           </div>
+           
+           <a 
+              href="/meta/inbox" 
+              className="h-12 px-8 rounded-2xl bg-[#ccff00] text-black text-[11px] font-black uppercase tracking-widest flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-volt"
+            >
+              <span className="material-symbols-outlined text-lg">forum</span>
+              UNIFIED INBOX
+            </a>
         </div>
       </header>
 
-      {/* ── Filtros de canal ─────────────────────────────────────── */}
-      <div className="flex items-center gap-2 mb-4 flex-shrink-0">
-        {(["all", "whatsapp", "instagram"] as ChannelFilter[]).map(ch => (
-          <button
-            key={ch}
-            onClick={() => setChannelFilter(ch)}
-            className={`
-              flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider
-              transition-all duration-200
-              ${channelFilter === ch
-                ? ch === "whatsapp" ? "bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20"
-                  : ch === "instagram" ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                  : "bg-white/[0.06] text-[#E8EAF0] border border-white/[0.08]"
-                : "bg-white/[0.03] text-[#8DA4C4] hover:text-[#E8EAF0] border border-transparent"
-              }
-            `}
-          >
-            <span className="material-symbols-outlined text-sm">
-              {ch === "whatsapp" ? "chat" : ch === "instagram" ? "photo_camera" : "forum"}
-            </span>
-            {ch === "all" ? "Todos" : ch === "whatsapp" ? "WhatsApp" : "Instagram"}
-          </button>
-        ))}
-      </div>
+      {/* ── Neural KPIs ─────────────────────────────────────────────── */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-shrink-0">
+         <KPICard label="Unread Signals" value={totalUnread.toString()} color={totalUnread > 0 ? "#ccff00" : "#ffffff"} />
+         <KPICard label="WhatsApp Nodes" value={whatsappCount.toString()} color="#25D366" />
+         <KPICard label="Insta Fragments" value={instagramCount.toString()} color="#A855F7" />
+      </section>
 
-      <div className="flex-1 overflow-hidden flex gap-5">
-        {/* ── Lista de conversaciones ────────────────────────────── */}
-        <div className={`${selectedConv ? "w-1/2" : "w-full"} overflow-y-auto pr-2 transition-all`}>
-          <div className="grid grid-cols-1 gap-2">
-            {isLoading ? (
-              [1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-white/[0.04] rounded-2xl animate-pulse" />)
-            ) : filtered.length === 0 ? (
-              <div className="py-16 text-center bg-white/[0.02] rounded-2xl border border-dashed border-white/[0.06]">
-                <span className="material-symbols-outlined text-4xl text-[#506584] mb-3 block opacity-40">chat_bubble</span>
-                <p className="text-[12px] text-[#8DA4C4]">Sin conversaciones activas</p>
-              </div>
-            ) : (
-              filtered.map((conv: ConversationSummary) => {
-                const iCfg = INTENT_CONFIG[conv.intent] || INTENT_CONFIG.unknown;
-                const isSelected = selectedConv?.contact === conv.contact;
+      {/* ── Active Matrix Bridge ─────────────────────────────────────── */}
+      <section className="flex-1 overflow-hidden flex gap-8">
+        
+        {/* Signal List */}
+        <div className={`${selectedConv ? "w-1/2" : "w-full"} overflow-y-auto pr-2 space-y-4 scrollbar-none transition-all duration-500`}>
+          {isLoading ? (
+            [1, 2, 3, 4].map(i => <div key={i} className="h-28 glass-card border-white/5 rounded-[2rem] animate-pulse" />)
+          ) : filtered.length === 0 ? (
+            <div className="py-24 text-center glass-card rounded-[3rem] border border-dashed border-white/5">
+              <span className="material-symbols-outlined text-4xl text-white/10 mb-6 block">cell_tower</span>
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] italic">No active signals detected in current branch</p>
+            </div>
+          ) : (
+            filtered.map((conv: ConversationSummary, i: number) => {
+              const iCfg = INTENT_CONFIG[conv.intent] || INTENT_CONFIG.unknown;
+              const isSelected = selectedConv?.contact === conv.contact;
 
-                return (
-                  <button
-                    key={conv.contact}
-                    onClick={() => setSelectedConv(conv)}
-                    className={`
-                      w-full text-left p-4 rounded-2xl flex items-start gap-4
-                      transition-all duration-200 border
-                      ${isSelected
-                        ? "bg-white/[0.06] border-white/[0.1]"
-                        : "bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04]"
-                      }
-                    `}
-                  >
-                    {/* Avatar */}
-                    <div className="relative flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/[0.08] bg-white/[0.04] flex items-center justify-center">
-                        {conv.avatar_url ? (
-                          <Image src={conv.avatar_url} alt={conv.contact} width={48} height={48} className="object-cover" />
-                        ) : (
-                          <span className="material-symbols-outlined text-[#8DA4C4]">person</span>
-                        )}
-                      </div>
-                      {/* Badge de plataforma */}
-                      <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${
-                        conv.channel === "whatsapp" ? "bg-[#25D366]" : "bg-gradient-to-tr from-[#FFDC80] via-[#FD1D1D] to-[#833AB4]"
-                      }`}>
-                        <span className="material-symbols-outlined text-white text-[10px]">
-                          {conv.channel === "whatsapp" ? "chat" : "photo_camera"}
-                        </span>
-                      </div>
-                      {/* Badge sin leer */}
-                      {conv.unread_count > 0 && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#A8E63D] text-[#0D1B3E] text-[9px] font-bold flex items-center justify-center">
-                          {conv.unread_count}
+              return (
+                <button
+                  key={conv.contact}
+                  onClick={() => setSelectedConv(conv)}
+                  className={`
+                    w-full group text-left p-8 rounded-[2.5rem] border transition-all duration-500 flex items-start gap-8 relative overflow-hidden
+                    ${isSelected
+                      ? "bg-white/5 border-white/10 shadow-volt/20"
+                      : "bg-black/40 border-white/5 hover:border-white/10"
+                    }
+                  `}
+                  style={{ animationDelay: `${i * 50}ms` }}
+                >
+                  {/* Identity Glow */}
+                  <div className={`absolute -right-12 -top-12 w-32 h-32 blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-1000 ${conv.channel === 'whatsapp' ? 'bg-[#25D366]' : 'bg-[#A855F7]'}`} />
+                  
+                  {/* Avatar Sphere */}
+                  <div className="relative flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border border-white/10 bg-white/5 p-1 group-hover:border-[#ccff00]/30 transition-all duration-500">
+                      {conv.avatar_url ? (
+                        <img src={conv.avatar_url} alt={conv.contact} className="w-full h-full object-cover rounded-full" />
+                      ) : (
+                        <div className="w-full h-full rounded-full flex items-center justify-center text-white/20 font-black italic">
+                          {conv.contact.charAt(0)}
                         </div>
                       )}
                     </div>
-
-                    {/* Contenido */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-[12px] font-bold text-[#E8EAF0] truncate">{conv.contact}</h3>
-                        <span className="text-[9px] text-[#506584] flex-shrink-0 ml-2">
-                          {new Date(conv.last_activity).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
-                        </span>
+                    {/* Protocol Badge */}
+                    <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border border-black flex items-center justify-center shadow-lg ${
+                      conv.channel === "whatsapp" ? "bg-[#25D366]" : "bg-gradient-to-tr from-[#FFDC80] via-[#FD1D1D] to-[#833AB4]"
+                    }`}>
+                      <span className="material-symbols-outlined text-white text-[10px]">{conv.channel === "whatsapp" ? "chat" : "photo_camera"}</span>
+                    </div>
+                    {/* Attention Burst */}
+                    {conv.unread_count > 0 && (
+                      <div className="absolute -top-1 -right-1 h-5 px-2 rounded-full bg-[#ccff00] text-black text-[9px] font-black italic flex items-center justify-center shadow-volt animate-bounce">
+                        {conv.unread_count}
                       </div>
-                      <p className="text-[11px] text-[#8DA4C4] truncate italic mb-2">{conv.last_message || "Sin mensajes"}</p>
-                      <span
-                        className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                        style={{ color: iCfg.color, backgroundColor: `${iCfg.color}15` }}
-                      >
-                        {iCfg.label}
+                    )}
+                  </div>
+
+                  {/* Signal Content */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-black text-white tracking-tighter uppercase group-hover:text-[#ccff00] transition-colors">{conv.contact}</h3>
+                      <span className="text-[9px] font-black text-white/20 uppercase tracking-widest italic leading-none">
+                        {new Date(conv.last_activity).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
-                  </button>
-                );
-              })
-            )}
-          </div>
+                    <p className="text-[11px] font-medium text-white/40 truncate italic leading-relaxed">{conv.last_message || "Awaiting signal parity..."}</p>
+                    <div className="pt-2">
+                       <span
+                         className="text-[8px] font-black uppercase tracking-[0.3em] px-3 py-1 rounded-lg border italic"
+                         style={{ color: iCfg.color, borderColor: `${iCfg.color}33`, backgroundColor: `${iCfg.color}11` }}
+                       >
+                         {iCfg.label}
+                       </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
 
-        {/* ── Panel de respuesta (detalle conversación) ─────────── */}
+        {/* Neural Bridge Control */}
         {selectedConv && (
-          <div className="w-1/2 bg-white/[0.02] border border-white/[0.04] rounded-2xl flex flex-col animate-in overflow-hidden">
-            {/* Header del hilo */}
-            <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  selectedConv.channel === "whatsapp" ? "bg-[#25D366]/20" : "bg-purple-500/20"
+          <div className="w-1/2 glass-card border-white/10 rounded-[3rem] flex flex-col animate-luxe overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#ccff00]/5 rounded-full blur-[100px] pointer-events-none" />
+            
+            {/* Bridge Header */}
+            <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between flex-shrink-0 bg-white/5 backdrop-blur-3xl relative z-10">
+              <div className="flex items-center gap-6">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-xl border ${
+                  selectedConv.channel === "whatsapp" ? "bg-[#25D366]/10 border-[#25D366]/20 text-[#25D366]" : "bg-[#A855F7]/10 border-[#A855F7]/20 text-[#A855F7]"
                 }`}>
-                  <span className="material-symbols-outlined text-sm" style={{
-                    color: selectedConv.channel === "whatsapp" ? "#25D366" : "#A855F7"
-                  }}>
+                  <span className="material-symbols-outlined text-xl italic font-black">
                     {selectedConv.channel === "whatsapp" ? "chat" : "photo_camera"}
                   </span>
                 </div>
                 <div>
-                  <p className="text-[12px] font-bold text-[#E8EAF0]">{selectedConv.contact}</p>
-                  <p className="text-[10px] text-[#8DA4C4] capitalize">{selectedConv.channel}</p>
+                  <p className="text-sm font-black text-white uppercase tracking-tighter">{selectedConv.contact}</p>
+                  <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] italic">{selectedConv.channel} secure link</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedConv(null)}
-                className="p-1.5 rounded-lg text-[#8DA4C4] hover:text-[#E8EAF0] hover:bg-white/[0.06] transition-all"
+                className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center"
               >
-                <span className="material-symbols-outlined text-sm">close</span>
+                <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
 
-            {/* Área de mensajes (placeholder — historial real se cargará) */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 flex items-center justify-center">
-              <div className="text-center">
-                <span className="material-symbols-outlined text-3xl text-[#506584] mb-2 block opacity-40">chat</span>
-                <p className="text-[11px] text-[#8DA4C4]">Último mensaje:</p>
-                <p className="text-[12px] text-[#E8EAF0] italic mt-1">&ldquo;{selectedConv.last_message || "Sin mensajes"}&rdquo;</p>
+            {/* Neural Memory Canvas */}
+            <div className="flex-1 overflow-y-auto px-10 py-10 flex items-center justify-center relative z-10">
+              <div className="text-center space-y-6">
+                <div className="w-20 h-20 rounded-full bg-white/5 border border-white/5 flex items-center justify-center mx-auto opacity-20">
+                   <span className="material-symbols-outlined text-4xl">inventory_2</span>
+                </div>
+                <div>
+                   <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.5em] mb-4">Latest Transmission</p>
+                   <p className="text-lg font-black text-white/80 uppercase tracking-tighter italic leading-relaxed">&ldquo;{selectedConv.last_message || "SIGNAL_LOST"}&rdquo;</p>
+                </div>
               </div>
             </div>
 
-            {/* Input de respuesta */}
-            <div className="px-4 py-3 border-t border-white/[0.06] flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={replyText}
-                  onChange={e => setReplyText(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
-                  placeholder={`Responder a ${selectedConv.contact}...`}
-                  className="
-                    flex-1 bg-white/[0.03] border border-white/[0.08] rounded-xl
-                    px-4 py-2.5 text-[12px] text-[#E8EAF0]
-                    placeholder:text-[#506584]
-                    focus:border-[#A8E63D]/30 focus:outline-none
-                  "
-                />
+            {/* Neural Command Input */}
+            <div className="p-8 border-t border-white/5 flex-shrink-0 relative z-10 bg-black/40">
+              <div className="flex items-center gap-4">
+                <div className="flex-1 relative">
+                   <input
+                     type="text"
+                     value={replyText}
+                     onChange={e => setReplyText(e.target.value)}
+                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
+                     placeholder={`Transmit response to node...`}
+                     className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl px-8 text-sm text-white font-medium focus:border-[#ccff00]/40 outline-none transition-all placeholder:text-white/10 italic"
+                   />
+                </div>
                 <button
                   onClick={handleReply}
                   disabled={sending || !replyText.trim()}
                   className={`
-                    p-2.5 rounded-xl transition-all duration-200
+                    w-16 h-16 rounded-2xl transition-all duration-500 flex items-center justify-center shadow-xl
                     ${replyText.trim() && !sending
-                      ? "bg-[#A8E63D] text-[#0D1B3E] hover:shadow-[0_0_12px_#A8E63D40]"
-                      : "bg-white/[0.04] text-[#506584] cursor-not-allowed"
+                      ? "bg-[#ccff00] text-black shadow-volt hover:scale-105"
+                      : "bg-white/5 text-white/10 border border-white/5 cursor-not-allowed"
                     }
                   `}
                 >
-                  <span className="material-symbols-outlined text-lg">
-                    {sending ? "sync" : "send"}
+                  <span className="material-symbols-outlined text-2xl font-black italic">
+                    {sending ? "sync" : "bolt"}
                   </span>
                 </button>
               </div>
             </div>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* ── Estado de agentes Meta (footer) ───────────────────────── */}
-      <div className="mt-4 flex-shrink-0">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="material-symbols-outlined text-sm text-[#8DA4C4]">smart_toy</span>
-          <p className="text-[10px] text-[#8DA4C4] uppercase tracking-wider font-bold">Agentes Meta</p>
-        </div>
-        <div className="flex gap-3 overflow-x-auto pb-1">
-          {agentsLoading ? (
-            [1, 2, 3].map(i => <div key={i} className="w-48 h-14 bg-white/[0.04] rounded-xl animate-pulse flex-shrink-0" />)
-          ) : agents.length === 0 ? (
-            <p className="text-[11px] text-[#506584]">Sin agentes Meta configurados</p>
-          ) : (
-            agents.map(agent => {
-              const sCfg = AGENT_STATUS_CONFIG[agent.agent_status] || AGENT_STATUS_CONFIG.idle;
-              return (
-                <div
-                  key={agent.id}
-                  className="flex-shrink-0 bg-white/[0.03] border border-white/[0.04] rounded-xl p-3 flex items-center gap-3 min-w-[200px]"
-                >
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${sCfg.color}15` }}
-                  >
-                    <span className="material-symbols-outlined text-sm" style={{ color: sCfg.color }}>
-                      {agent.channel === "whatsapp" ? "chat" : "photo_camera"}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold text-[#E8EAF0] truncate">{agent.name}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: sCfg.color }} />
-                      <span className="text-[9px]" style={{ color: sCfg.color }}>{sCfg.label}</span>
-                      <span className="text-[9px] text-[#506584]">{agent.success_rate}%</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
+      {/* ── Neural Agent Status Footer ─────────────────────────────── */}
+      <footer className="flex-shrink-0 pt-6 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+         <div className="flex items-center gap-4">
+            <span className="material-symbols-outlined text-[#ccff00] text-lg animate-pulse">smart_toy</span>
+            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">Active Meta Sub-Agents</p>
+         </div>
+         
+         <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-none">
+           {agentsLoading ? (
+             [1, 2].map(i => <div key={i} className="w-56 h-14 glass-card border-white/5 rounded-2xl animate-pulse flex-shrink-0" />)
+           ) : agents.length === 0 ? (
+             <p className="text-[9px] font-black text-white/10 uppercase tracking-widest italic">Awaiting Agent Allocation...</p>
+           ) : (
+             agents.map(agent => {
+               const sCfg = AGENT_STATUS_CONFIG[agent.agent_status] || AGENT_STATUS_CONFIG.idle;
+               return (
+                 <div
+                   key={agent.id}
+                   className="flex-shrink-0 glass-card border border-white/5 rounded-2xl px-6 py-3 flex items-center gap-4 min-w-[240px] group hover:border-white/10 transition-all"
+                 >
+                   <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 border border-white/5 group-hover:border-[#ccff00]/20 transition-all">
+                     <span className="material-symbols-outlined text-base" style={{ color: agent.channel === 'whatsapp' ? '#25D366' : '#A855F7' }}>
+                       {agent.channel === "whatsapp" ? "chat" : "photo_camera"}
+                     </span>
+                   </div>
+                   <div className="flex-1 min-w-0">
+                     <p className="text-[10px] font-black text-white uppercase tracking-tighter truncate leading-none">{agent.name}</p>
+                     <div className="flex items-center gap-3 mt-1.5 leading-none">
+                       <span className="w-1.5 h-1.5 rounded-full shadow-lg" style={{ backgroundColor: sCfg.color, boxShadow: `0 0 5px ${sCfg.color}` }} />
+                       <span className="text-[9px] font-black uppercase tracking-widest leading-none" style={{ color: sCfg.color }}>{sCfg.label}</span>
+                       <span className="text-[9px] font-black text-white/20 uppercase tracking-tighter ml-auto italic">IDX: {agent.success_rate}%</span>
+                     </div>
+                   </div>
+                 </div>
+               );
+             })
+           )}
+         </div>
+      </footer>
+
     </div>
   );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Sub-componentes
+// ──────────────────────────────────────────────────────────────────────────────
+
+function KPICard({ label, value, color }: { label: string; value: string; color: string }) {
+   return (
+      <div className="glass-card p-8 rounded-[2.5rem] border border-white/5 group hover:border-white/10 transition-all duration-500 relative overflow-hidden">
+         <div className="absolute top-0 right-0 w-32 h-32 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 blur-[40px] pointer-events-none" style={{ backgroundColor: `${color}11` }} />
+         <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.4em] mb-4 block leading-none">{label}</span>
+         <span className="text-3xl font-black uppercase tracking-tighter italic leading-none" style={{ color }}>{value}</span>
+         <div className="w-8 h-1 bg-white/5 rounded-full mt-6" />
+      </div>
+   );
 }
