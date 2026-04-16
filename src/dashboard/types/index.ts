@@ -82,7 +82,7 @@ export interface DashboardKPIs {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
   ts: string;
   attachments?: string[];

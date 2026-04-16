@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // Tipos
 // ──────────────────────────────────────────────────────────────────────────────
 interface ChatMessage {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
   ts: string;
 }
@@ -81,7 +81,7 @@ function MessageBubble({
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} gap-2`}>
       {/* Avatar de Samantha (solo en mensajes del asistente) */}
       {!isUser && (
-        <div className="flex-shrink-0 w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-[#A8E63D]/20 to-[#A8E63D]/5 border border-[#A8E63D]/20 flex items-center justify-center mt-0.5">
+        <div className="flex-shrink-0 w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-primary-container/20 to-primary-container/5 border border-primary-container/20 flex items-center justify-center mt-0.5">
           <Image
             src="/ATOLLOM_AI_ICON.png"
             alt="Samantha"
@@ -96,8 +96,8 @@ function MessageBubble({
         className={`
           max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed
           ${isUser
-            ? "bg-[#A8E63D] text-[#0D1B3E] rounded-br-md font-medium"
-            : "bg-white/[0.06] text-[#E8EAF0] rounded-bl-md"
+            ? "bg-primary-container text-background rounded-br-md font-medium"
+            : "bg-white/[0.06] text-on-surface rounded-bl-md"
           }
           ${isStreaming ? "animate-pulse" : ""}
         `}
@@ -121,7 +121,7 @@ function MessageBubble({
 function TypingIndicator() {
   return (
     <div className="flex justify-start gap-2">
-      <div className="flex-shrink-0 w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-[#A8E63D]/20 to-[#A8E63D]/5 border border-[#A8E63D]/20 flex items-center justify-center">
+      <div className="flex-shrink-0 w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-primary-container/20 to-primary-container/5 border border-primary-container/20 flex items-center justify-center">
         <Image
           src="/ATOLLOM_AI_ICON.png"
           alt="Samantha"
@@ -134,7 +134,7 @@ function TypingIndicator() {
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className="w-1.5 h-1.5 rounded-full bg-[#A8E63D]/60 animate-bounce"
+            className="w-1.5 h-1.5 rounded-full bg-[primary-container]/60 animate-bounce"
             style={{ animationDelay: `${i * 150}ms` }}
           />
         ))}
@@ -232,7 +232,11 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, context: "full", plan_id: planId }),
+        body: JSON.stringify({ 
+          message: text, 
+          context: "full",
+          history: messages.filter(m => m.role !== 'system').slice(-20)
+        }),
         signal: controller.signal,
       });
 
@@ -377,7 +381,7 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
           <div className="flex items-center gap-3 px-4 md:px-5 py-3.5 border-b border-white/[0.06] flex-shrink-0">
             {/* Avatar */}
             <div className="relative">
-              <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-[#A8E63D]/20 to-[#A8E63D]/5 border border-[#A8E63D]/25 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-[primary-container]/20 to-[primary-container]/5 border border-[primary-container]/25 flex items-center justify-center">
                 <Image
                   src="/ATOLLOM_AI_ICON.png"
                   alt="Samantha"
@@ -387,15 +391,15 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
                 />
               </div>
               {/* Indicador online */}
-              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#A8E63D] border-2 border-[#0A1628]" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[primary-container] border-2 border-[#0A1628]" />
             </div>
 
             {/* Nombre y subtítulo */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-headline font-bold text-[#E8EAF0]">
+              <p className="text-sm font-headline font-bold text-on-surface">
                 Samantha
               </p>
-              <p className="text-[11px] text-[#8DA4C4]">
+              <p className="text-[11px] text-on-surface-variant">
                 Tu asistente Kinexis
               </p>
             </div>
@@ -405,7 +409,7 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
               {/* Limpiar historial */}
               <button
                 onClick={handleClear}
-                className="p-1.5 rounded-lg text-[#8DA4C4] hover:text-[#E8EAF0] hover:bg-white/[0.06] transition-all duration-150"
+                className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/[0.06] transition-all duration-150"
                 aria-label="Limpiar conversación"
                 title="Limpiar conversación"
               >
@@ -417,7 +421,7 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
               {/* Cerrar */}
               <button
                 onClick={handleClose}
-                className="p-1.5 rounded-lg text-[#8DA4C4] hover:text-[#E8EAF0] hover:bg-white/[0.06] transition-all duration-150"
+                className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/[0.06] transition-all duration-150"
                 aria-label="Cerrar chat"
               >
                 <span className="material-symbols-outlined text-base">
@@ -466,7 +470,7 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
                 px-4 py-2.5
                 border transition-colors duration-200
                 ${inputRef.current === document.activeElement
-                  ? "border-[#A8E63D]/30"
+                  ? "border-[primary-container]/30"
                   : "border-transparent"
                 }
               `}
@@ -480,8 +484,8 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
                 disabled={streaming}
                 placeholder="Escribe un mensaje..."
                 className="
-                  flex-1 bg-transparent text-sm text-[#E8EAF0]
-                  placeholder:text-[#506584]
+                  flex-1 bg-transparent text-sm text-on-surface
+                  placeholder:text-on-surface-variant
                   outline-none
                   disabled:opacity-50
                 "
@@ -495,8 +499,8 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
                 className={`
                   p-1.5 rounded-lg transition-all duration-200
                   ${inputValue.trim() && !streaming
-                    ? "text-[#A8E63D] hover:bg-[#A8E63D]/10 hover:scale-105 active:scale-95"
-                    : "text-[#506584] cursor-not-allowed"
+                    ? "text-[primary-container] hover:bg-[primary-container]/10 hover:scale-105 active:scale-95"
+                    : "text-on-surface-variant/80 cursor-not-allowed"
                   }
                 `}
                 aria-label="Enviar mensaje"
@@ -508,7 +512,7 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
             </div>
 
             {/* Disclaimer sutil */}
-            <p className="text-[9px] text-[#506584] text-center mt-2 select-none">
+            <p className="text-[9px] text-on-surface-variant/80 text-center mt-2 select-none">
               Samantha puede cometer errores · Verifica la información importante
             </p>
           </div>
@@ -520,21 +524,21 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
           ═══════════════════════════════════════════════════════════ */}
       {showIntervention && !open && (
         <div className="fixed bottom-24 right-6 z-[60] w-72 animate-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-[#0A1628]/95 backdrop-blur-xl border border-[#A8E63D]/30 p-5 rounded-2xl shadow-2xl relative">
+          <div className="bg-surface/95 backdrop-blur-xl border border-[primary-container]/30 p-5 rounded-2xl shadow-2xl relative">
             {/* Close button */}
             <button 
               onClick={() => setShowIntervention(false)}
-              className="absolute top-2 right-2 text-[#506584] hover:text-white"
+              className="absolute top-2 right-2 text-on-surface-variant/80 hover:text-white"
             >
               <span className="material-symbols-outlined text-sm">close</span>
             </button>
 
             <div className="flex items-start gap-4 mb-4">
-              <div className="w-10 h-10 rounded-full bg-[#A8E63D]/10 flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-[#A8E63D]">smart_toy</span>
+              <div className="w-10 h-10 rounded-full bg-[primary-container]/10 flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined text-[primary-container]">smart_toy</span>
               </div>
               <div>
-                <p className="text-[13px] text-[#E8EAF0] leading-relaxed">
+                <p className="text-[13px] text-on-surface leading-relaxed">
                   Llevas un momento en silencio. ¿En qué puedo ayudarte hoy?
                 </p>
               </div>
@@ -546,7 +550,7 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
                   const text = await navigator.clipboard.readText();
                   handleAnalyzeContext(text);
                 }}
-                className="w-full py-2 bg-[#A8E63D]/10 hover:bg-[#A8E63D]/20 text-[#A8E63D] text-[11px] font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                className="w-full py-2 bg-[primary-container]/10 hover:bg-[primary-container]/20 text-[primary-container] text-[11px] font-bold rounded-xl transition-all flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-sm">content_paste_search</span>
                 Analizar texto de pantalla
@@ -572,7 +576,7 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
             </div>
 
             {/* Pointer arrow */}
-            <div className="absolute -bottom-1 right-6 w-3 h-3 bg-[#0A1628] border-r border-b border-[#A8E63D]/30 rotate-45" />
+            <div className="absolute -bottom-1 right-6 w-3 h-3 bg-surface border-r border-b border-[primary-container]/30 rotate-45" />
           </div>
         </div>
       )}
@@ -585,10 +589,10 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
         className={`
           fixed bottom-6 right-6 z-[60]
           w-14 h-14 rounded-full
-          bg-gradient-to-br from-[#A8E63D] to-[#6BBF00]
+          bg-gradient-to-br from-[primary-container] to-[#6BBF00]
           flex items-center justify-center
-          shadow-lg shadow-[#A8E63D]/20
-          hover:shadow-xl hover:shadow-[#A8E63D]/30
+          shadow-lg shadow-[primary-container]/20
+          hover:shadow-xl hover:shadow-[primary-container]/30
           hover:scale-105
           active:scale-95
           transition-all duration-200
@@ -600,7 +604,7 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
       >
         {/* Icono: isotipo o close */}
         {open ? (
-          <span className="material-symbols-outlined text-[#0D1B3E] text-2xl">
+          <span className="material-symbols-outlined text-on-primary-container text-2xl">
             close
           </span>
         ) : (
@@ -620,7 +624,7 @@ export function SamanthaFAB({ tenantId = "default", planId = "enterprise" }: Sam
         {!open && (
           <span
             className="absolute inset-0 rounded-full animate-ping opacity-20"
-            style={{ backgroundColor: "#A8E63D" }}
+            style={{ backgroundColor: "primary-container" }}
             aria-hidden="true"
           />
         )}

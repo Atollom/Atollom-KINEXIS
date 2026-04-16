@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // Tipos
 // ──────────────────────────────────────────────────────────────────────────────
 interface ChatMessage {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
   ts: string;
 }
@@ -81,7 +81,7 @@ function MessageBubble({
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} gap-2`}>
       {/* Avatar de Samantha (solo en mensajes del asistente) */}
       {!isUser && (
-        <div className="flex-shrink-0 w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-[#A8E63D]/20 to-[#A8E63D]/5 border border-[#A8E63D]/20 flex items-center justify-center mt-0.5">
+        <div className="flex-shrink-0 w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-primary-container/20 to-primary-container/5 border border-primary-container/20 flex items-center justify-center mt-0.5">
           <Image
             src="/ATOLLOM_AI_ICON.png"
             alt="Samantha"
@@ -121,7 +121,7 @@ function MessageBubble({
 function TypingIndicator() {
   return (
     <div className="flex justify-start gap-2">
-      <div className="flex-shrink-0 w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-[#A8E63D]/20 to-[#A8E63D]/5 border border-[#A8E63D]/20 flex items-center justify-center">
+      <div className="flex-shrink-0 w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-primary-container/20 to-primary-container/5 border border-primary-container/20 flex items-center justify-center">
         <Image
           src="/ATOLLOM_AI_ICON.png"
           alt="Samantha"
@@ -231,7 +231,11 @@ export function SamanthaChat({ tenantId = "default", planId = "enterprise" }: Sa
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, context: "full", plan_id: planId }),
+        body: JSON.stringify({ 
+          message: text, 
+          context: "full",
+          history: messages.filter(m => m.role !== 'system').slice(-20)
+        }),
         signal: controller.signal,
       });
 
