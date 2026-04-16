@@ -41,7 +41,11 @@ export default function ChatPage() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, context }),
+        body: JSON.stringify({ 
+          message: text, 
+          context,
+          history: messages.filter(m => m.role !== 'system').slice(-20) // últimos 20 mensajes
+        }),
       });
 
       if (!res.ok || !res.body) throw new Error("Error del servidor");

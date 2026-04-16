@@ -67,7 +67,7 @@ export function ExcelUploadComponent() {
                 className={`
                   flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all w-28
                   ${category === cat.id 
-                    ? "bg-[#CCFF00]/10 border-[#CCFF00] text-[#CCFF00]" 
+                    ? "bg-[primary-container]/10 border-[primary-container] text-[primary-container]" 
                     : "bg-white/[0.02] border-white/[0.06] text-on-surface-variant hover:bg-white/[0.04]"
                   }
                 `}
@@ -83,7 +83,7 @@ export function ExcelUploadComponent() {
           <div 
             className={`
               border-2 border-dashed rounded-[1.8rem] p-12 text-center transition-all duration-300
-              ${dragActive ? "border-[#CCFF00] bg-[#CCFF00]/5 scale-[0.99]" : "border-white/[0.08] hover:border-white/20"}
+              ${dragActive ? "border-[primary-container] bg-[primary-container]/5 scale-[0.99]" : "border-white/[0.08] hover:border-white/20"}
             `}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -94,16 +94,16 @@ export function ExcelUploadComponent() {
               simulateAnalysis();
             }}
           >
-            <div className="w-16 h-16 bg-[#CCFF00]/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <span className="material-symbols-outlined text-[#CCFF00] text-3xl">upload_file</span>
+            <div className="w-16 h-16 bg-[primary-container]/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <span className="material-symbols-outlined text-[primary-container] text-3xl">upload_file</span>
             </div>
-            <h3 className="text-xl font-headline font-bold text-white mb-2">Sincronización Samantha</h3>
+            <h3 className="text-xl font-headline font-bold text-on-surface mb-2">Sincronización Samantha</h3>
             <p className="text-on-surface-variant text-sm max-w-xs mx-auto mb-8">
               Arrastra tu reporte de almacén (Excel/CSV) para una auditoría instantánea con el ecosistema KINEXIS.
             </p>
             <button 
               onClick={simulateAnalysis}
-              className="bg-[#CCFF00] text-black px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:shadow-[0_0_20px_rgba(204,255,0,0.4)] transition-all active:scale-95"
+              className="bg-[primary-container] text-black px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:shadow-[0_0_20px_rgba(204,255,0,0.4)] transition-all active:scale-95"
             >
               Seleccionar Archivo
             </button>
@@ -111,22 +111,22 @@ export function ExcelUploadComponent() {
         ) : analyzing ? (
           <div className="py-20 text-center">
             <div className="relative w-20 h-20 mx-auto mb-8">
-              <div className="absolute inset-0 border-4 border-[#CCFF00]/10 rounded-full" />
-              <div className="absolute inset-0 border-4 border-[#CCFF00] rounded-full border-t-transparent animate-spin" />
+              <div className="absolute inset-0 border-4 border-[primary-container]/10 rounded-full" />
+              <div className="absolute inset-0 border-4 border-[primary-container] rounded-full border-t-transparent animate-spin" />
             </div>
-            <p className="text-[#CCFF00] font-headline font-bold text-lg animate-pulse tracking-tight">Samantha está analizando discrepancias...</p>
+            <p className="text-[primary-container] font-headline font-bold text-lg animate-pulse tracking-tight">Samantha está analizando discrepancias...</p>
             <p className="text-on-surface-variant text-xs mt-2 uppercase tracking-[0.2em]">Cotejando Agentes #32 y #5</p>
           </div>
         ) : (
           <div className="animate-in">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="text-xl font-headline font-bold text-white">Análisis de Discrepancias</h3>
+                <h3 className="text-xl font-headline font-bold text-on-surface">Análisis de Discrepancias</h3>
                 <p className="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Comparativa Sistema vs. Reporte Externo</p>
               </div>
               <button 
                 onClick={() => setAnalysis(null)}
-                className="text-on-surface-variant hover:text-white transition-colors"
+                className="text-on-surface-variant hover:text-on-surface transition-colors"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -147,13 +147,13 @@ export function ExcelUploadComponent() {
                   {analysis?.map((item) => (
                     <tr key={item.sku} className="group hover:bg-white/[0.01]">
                       <td className="py-5 px-2">
-                        <p className="text-sm font-bold text-white group-hover:text-[#CCFF00] transition-colors">{item.name}</p>
+                        <p className="text-sm font-bold text-on-surface group-hover:text-[primary-container] transition-colors">{item.name}</p>
                         <p className="text-[10px] text-on-surface-variant font-mono">{item.sku}</p>
                       </td>
-                      <td className="py-5 px-2 text-center font-mono text-white opacity-40">{item.systemStock}</td>
-                      <td className="py-5 px-2 text-center font-mono text-white font-bold">{item.excelStock}</td>
+                      <td className="py-5 px-2 text-center font-mono text-on-surface opacity-40">{item.systemStock}</td>
+                      <td className="py-5 px-2 text-center font-mono text-on-surface font-bold">{item.excelStock}</td>
                       <td className="py-5 px-2 text-center">
-                        <span className={`text-xs font-bold ${item.predictedDays < 7 ? "text-[#FF3333]" : "text-[#CCFF00]"}`}>
+                        <span className={`text-xs font-bold ${item.predictedDays < 7 ? "text-[#FF3333]" : "text-[primary-container]"}`}>
                           {item.predictedDays} días
                         </span>
                       </td>
@@ -161,7 +161,7 @@ export function ExcelUploadComponent() {
                         {item.systemStock !== item.excelStock ? (
                           <span className="bg-[#FF3333]/10 text-[#FF3333] text-[9px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider">Discrepancia</span>
                         ) : (
-                          <span className="bg-[#CCFF00]/10 text-[#CCFF00] text-[9px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider">Sincronizado</span>
+                          <span className="bg-[primary-container]/10 text-[primary-container] text-[9px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider">Sincronizado</span>
                         )}
                       </td>
                     </tr>
@@ -177,7 +177,7 @@ export function ExcelUploadComponent() {
               >
                 Descartar
               </button>
-              <button className="bg-[#CCFF00] text-black px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:shadow-[0_0_15px_rgba(204,255,0,0.3)] transition-all">
+              <button className="bg-[primary-container] text-black px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:shadow-[0_0_15px_rgba(204,255,0,0.3)] transition-all">
                 Sincronizar Almacén
               </button>
             </div>

@@ -28,11 +28,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { message, history = [] } = await req.json();
+    const { message, history = [], context } = await req.json();
 
     if (!message) {
       return NextResponse.json({ error: 'Mensaje es requerido' }, { status: 400 });
     }
+
+    // Validar y usar context si viene
+    const validContexts = ['full', 'ecommerce', 'meta', 'erp', 'crm'];
+    const selectedContext = validContexts.includes(context) ? context : 'full';
 
     // Langfuse trace per request
     const trace = langfuse.trace({

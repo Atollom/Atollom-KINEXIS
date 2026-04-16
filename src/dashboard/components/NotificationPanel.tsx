@@ -13,10 +13,10 @@ const MODULE_LABELS: Record<NotificationModule, string> = {
 };
 
 const MODULE_COLORS: Record<NotificationModule, string> = {
-  ecommerce: "#3B82F6",
-  erp:       "#22C55E",
-  crm:       "#F59E0B",
-  sistema:   "#A8E63D",
+  ecommerce: "tertiary",
+  erp:       "success",
+  crm:       "warning",
+  sistema:   "primary",
 };
 
 // ── Priority / type icon config ───────────────────────────────────────────────

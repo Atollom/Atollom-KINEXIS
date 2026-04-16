@@ -57,25 +57,25 @@ export function LoginForm() {
   return (
     <form onSubmit={handleLogin} className="space-y-6">
       <div className="space-y-1">
-        <label className="text-[10px] text-[#96adcc] uppercase tracking-wider ml-1">Email</label>
+        <label className="text-[10px] text-on-surface-variant uppercase tracking-wider ml-1">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full bg-[#0a1a2f] border-b border-white/10 focus:border-[#cafd00] focus:ring-0 text-white px-4 py-3 transition-all duration-300 outline-none"
+          className="w-full bg-surface border-b border-white/10 focus:border-primary-container focus:ring-0 text-on-surface px-4 py-3 transition-all duration-300 outline-none"
           placeholder="nombre@kinexis.app"
         />
       </div>
 
       <div className="space-y-1">
-        <label className="text-[10px] text-[#96adcc] uppercase tracking-wider ml-1">Password</label>
+        <label className="text-[10px] text-on-surface-variant uppercase tracking-wider ml-1">Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full bg-[#0a1a2f] border-b border-white/10 focus:border-[#cafd00] focus:ring-0 text-white px-4 py-3 transition-all duration-300 outline-none"
+          className="w-full bg-surface border-b border-white/10 focus:border-primary-container focus:ring-0 text-on-surface px-4 py-3 transition-all duration-300 outline-none"
           placeholder="••••••••"
         />
       </div>
@@ -89,7 +89,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-[#cafd00] hover:bg-[#d9ff40] text-[#000f21] font-bold py-4 rounded-xl transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(202,253,0,0.3)]"
+        className="w-full bg-primary-container hover:bg-primary-container/90 text-on-primary-container font-bold py-4 rounded-xl transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(202,253,0,0.3)]"
       >
         {loading ? 'AUTENTICANDO...' : 'INICIAR SESIÓN'}
       </button>
