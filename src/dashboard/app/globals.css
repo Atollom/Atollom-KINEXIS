@@ -2,55 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: #040f1b;
-    --foreground: #f0f0f0;
-    --primary: #CCFF00;
-  }
+/* KINEXIS DESIGN SYSTEM - LUXE/PRISTINE V3 */
+:root {
+  /* Colors */
+  --kinexis-navy: #040f1b;
+  --kinexis-neon: #CCFF00;
+  --kinexis-glass: rgba(255, 255, 255, 0.05);
+  
+  /* Borders PROHIBIDOS - Solo sombras */
+  --shadow-ambient: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 24px rgba(204, 255, 0, 0.12);
+  
+  /* Geometry */
+  --radius-card: 3.5rem;
+  --radius-pill: 9999px;
 }
 
-/* RESET ATÓMICO: Muerte absoluta a las líneas y bordes */
+/* RESET AGRESIVO: Muerte a los bordes de principiante */
 * {
   border: none !important;
   outline: none !important;
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
 body {
-  background-color: #040f1b;
+  background: var(--kinexis-navy);
   color: #f0f0f0;
-  font-family: 'Inter', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
   letter-spacing: -0.02em;
-  min-height: 100dvh;
 }
 
-/* SISTEMA LUXE/PRISTINE (SOLO SOMBRAS Y TONOS) */
-.luxe-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(50px);
-  -webkit-backdrop-filter: blur(50px);
-  border-radius: 3.5rem;
-  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8) !important;
+/* Custom Utilities for V3 */
+.luxe-shadow {
+  box-shadow: var(--shadow-ambient) !important;
 }
 
-.pill-button {
-  border-radius: 9999px !important;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.neon-glow {
+  box-shadow: var(--shadow-glow) !important;
 }
 
-.crystal-bubble {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(80px);
-  -webkit-backdrop-filter: blur(80px);
-  border-radius: 9999px !important;
-  box-shadow: 0 40px 80px -10px rgba(0, 0, 0, 0.6) !important;
+.glass-morphism {
+  background: var(--kinexis-glass);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
 }
 
-/* SCROLLBAR LUXE */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
 }
