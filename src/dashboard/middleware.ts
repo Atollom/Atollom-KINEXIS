@@ -82,7 +82,7 @@ export const config = {
     '/settings/:path*',
     '/warehouse/:path*',
     '/atollom/:path*',
-    '/onboarding/:path*',
+    '/dashboard/:path*',
     '/login',
     '/api/:path*',
   ]

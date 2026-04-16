@@ -1,7 +1,7 @@
 // components/dashboard/SamanthaPanel.tsx
 'use client'
 
-import { Sparkles, Send, Bell, Receipt, Package, Activity, Target } from 'lucide-react'
+import { Send, Bell, Receipt, Package, Activity, Target } from 'lucide-react'
 import { UserRole } from '@/app/dashboard/DashboardShell'
 
 interface SamanthaPanelProps {
@@ -40,11 +40,16 @@ export function SamanthaPanel({ userRole }: SamanthaPanelProps) {
   return (
     <aside className="w-[320px] h-full flex flex-col bg-[#040f1b] relative z-20 border-l border-white/5">
       
-      {/* Header: Zero Border Pristine */}
+      {/* Header: Definitive Atollom Identity */}
       <div className="p-8 pb-4">
         <div className="flex items-center gap-4 bg-white/5 backdrop-blur-3xl p-5 rounded-[2rem] shadow-ambient">
-          <div className="w-12 h-12 rounded-full bg-[#CCFF00]/10 flex items-center justify-center animate-pulse">
-            <Sparkles className="w-6 h-6 text-[#CCFF00]" />
+          <div className="relative">
+             <div className="absolute inset-0 bg-[#CCFF00]/20 blur-lg rounded-full animate-pulse" />
+             <img 
+               src="/branding/atollom-icon.png" 
+               alt="Atollom AI" 
+               className="w-12 h-12 object-contain relative z-10"
+             />
           </div>
           <div>
             <h3 className="text-sm font-black text-white uppercase tracking-widest leading-none mb-1">Samantha</h3>
