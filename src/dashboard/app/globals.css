@@ -2,60 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* KINEXIS DESIGN SYSTEM - LUXE/PRISTINE V3 */
-:root {
-  /* Colors */
-  --kinexis-navy: #040f1b;
-  --kinexis-neon: #CCFF00;
-  --kinexis-glass: rgba(255, 255, 255, 0.05);
-  
-  /* Borders PROHIBIDOS - Solo sombras */
-  --shadow-ambient: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 24px rgba(204, 255, 0, 0.12);
-  
-  /* Geometry */
-  --radius-card: 3.5rem;
-  --radius-pill: 9999px;
-}
-
-/* RESET AGRESIVO: Muerte a los bordes de principiante */
+/* RESET ATÓMICO KINEXIS */
 * {
-  border: none !important;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border: none !important; /* Prohibición absoluta de líneas */
   outline: none !important;
   box-shadow: none;
 }
 
 body {
-  background: var(--kinexis-navy);
-  color: #f0f0f0;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.02em;
-}
-
-/* Custom Utilities for V3 */
-.luxe-shadow {
-  box-shadow: var(--shadow-ambient) !important;
-}
-
-.neon-glow {
-  box-shadow: var(--shadow-glow) !important;
-}
-
-.glass-morphism {
-  background: var(--kinexis-glass);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  background-color: #040f1b; /* Deep Navy Innegociable */
+  color: #ffffff;
+  min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
