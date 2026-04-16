@@ -1,7 +1,6 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "rootDirectory": "src/dashboard",
   "regions": ["iad1"],
   "buildCommand": "cd src/dashboard && npm run build",
   "devCommand": "cd src/dashboard && npm run dev",
