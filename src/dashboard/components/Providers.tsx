@@ -7,8 +7,8 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider 
       attribute="class" 
-      defaultTheme="system" 
-      enableSystem={true}
+      defaultTheme="dark" 
+      enableSystem={false}
       disableTransitionOnChange={false} // Allow the duration-500 transition
     >
       {children}
