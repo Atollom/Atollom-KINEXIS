@@ -1,52 +1,62 @@
+// components/dashboard/SidebarNav.tsx
 'use client'
+
 import { useState } from 'react'
-import { ChevronDown, ShoppingBag, Users, Warehouse, ShieldCheck, Cpu, Database } from 'lucide-react'
+import { 
+  ChevronDown, 
+  LayoutDashboard, 
+  ShoppingCart, 
+  Users, 
+  BarChart3, 
+  Settings, 
+  Package, 
+  ShieldCheck, 
+  Terminal,
+  Zap
+} from 'lucide-react'
 import { UserRole } from '@/app/dashboard/DashboardShell'
 
 interface NavModule {
-  label: string;
-  icon: any;
-  items: string[];
-  requiresPlan?: string[];
-  allowedRoles?: UserRole[];
+  label: string
+  icon: any
+  items: string[]
+  roles: UserRole[]
 }
 
 const MODULES: Record<string, NavModule> = {
   ecommerce: {
     label: 'Ecommerce',
-    icon: ShoppingBag,
-    items: ['Catálogo', 'Órdenes', 'Logística'],
-    allowedRoles: ['ADMIN', 'ALMACEN'] 
+    icon: ShoppingCart,
+    items: ['Catálogo de Productos', 'Gestión de Órdenes', 'Fulfillment / Envíos'],
+    roles: ['ADMIN', 'ALMACEN']
   },
   crm: {
-    label: 'CRM',
+    label: 'CRM Alpha',
     icon: Users,
-    items: ['Inbox', 'Pipeline', 'Audiencias'],
-    allowedRoles: ['ADMIN', 'VENTAS']
+    items: ['Bandeja de Entrada', 'Pipeline de Ventas', 'Audiencias Meta'],
+    roles: ['ADMIN', 'VENTAS']
   },
   erp: {
-    label: 'ERP',
-    icon: Warehouse,
-    items: ['Finanzas', 'SAT', 'Inventario'],
-    requiresPlan: ['pro', 'enterprise'],
-    allowedRoles: ['ADMIN'] // ERP core es admin
-  },
-  stock_erp: {
     label: 'ERP Inventario',
-    icon: Database,
-    items: ['Stock Físico', 'Surtido'],
-    allowedRoles: ['ALMACEN'] // Módulo específico para Almacén
+    icon: Package,
+    items: ['Stock de Almacén', 'Movimientos SAT', 'Suministros Core'],
+    roles: ['ADMIN', 'ALMACEN']
   },
   sistema: {
-    label: 'Sistema',
-    icon: Cpu,
-    items: ['Agentes IA', 'Configuración'],
-    allowedRoles: ['ADMIN']
+    label: 'Neural System',
+    icon: Terminal,
+    items: ['Agentes de IA (43)', 'Mission Control', 'Configuración'],
+    roles: ['ADMIN']
   }
 }
 
-export function SidebarNav({ planId, userRole }: { planId: string, userRole: UserRole }) {
-  const [expanded, setExpanded] = useState(['ecommerce', 'crm', 'stock_erp'])
+interface SidebarNavProps {
+  planId: string
+  userRole: UserRole
+}
+
+export function SidebarNav({ planId, userRole }: SidebarNavProps) {
+  const [expanded, setExpanded] = useState<string[]>(['ecommerce', 'crm', 'erp', 'sistema'])
   
   const toggleModule = (key: string) => {
     setExpanded(prev => 
@@ -54,49 +64,64 @@ export function SidebarNav({ planId, userRole }: { planId: string, userRole: Use
     )
   }
 
-  return (
-    <div className="flex flex-col gap-4 overflow-y-auto px-4 custom-scrollbar">
-      {Object.entries(MODULES).map(([key, module]) => {
-        // TENANCY GATING: ERP oculto en plan Starter
-        if (module.requiresPlan && !module.requiresPlan.includes(planId)) {
-          return null
-        }
+  // Filtrado de módulos según el rol (RBAC V4)
+  const availableModules = Object.entries(MODULES).filter(([_, mod]) => 
+    mod.roles.includes(userRole)
+  )
 
-        // ROLE-BASED FILTERING (V4)
-        if (module.allowedRoles && !module.allowedRoles.includes(userRole)) {
-          return null
-        }
-        
-        const isExpanded = expanded.includes(key)
-        const Icon = module.icon
-        
-        return (
-          <div key={key} className="flex flex-col gap-2">
-            <button
-              onClick={() => toggleModule(key)}
-              className="w-full flex items-center justify-between px-5 py-3.5 
-                rounded-full bg-white/5 backdrop-blur-3xl
-                hover:bg-white/10 transition-all duration-200 group"
-            >
-              <div className="flex items-center gap-3">
-                <Icon className="w-4 h-4 text-[#CCFF00] opacity-60 group-hover:opacity-100 transition-opacity" />
-                <span className="text-sm font-bold text-white/90 uppercase tracking-widest">{module.label}</span>
-              </div>
-              <ChevronDown className={`w-4 h-4 text-white/40 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-            </button>
-            
-            {isExpanded && (
-              <div className="flex flex-col gap-1 px-4 animate-in slide-in-from-top-2 duration-300">
-                {module.items.map(item => (
-                  <div key={item} className="px-10 py-2.5 text-[10px] font-bold text-white/30 hover:text-[#CCFF00] hover:bg-white/5 rounded-full cursor-pointer transition-all uppercase tracking-[0.2em]">
-                    {item}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
-    </div>
+  return (
+    <nav className="flex-1 px-6 space-y-6 overflow-y-auto custom-scrollbar pb-10">
+      
+      <div className="space-y-2">
+         <p className="text-[10px] font-black text-white/10 uppercase tracking-[0.4em] mb-4 ml-4">Módulos de Comando</p>
+         
+         {availableModules.map(([key, mod]) => (
+           <div key={key} className="space-y-1">
+              <button 
+                onClick={() => toggleModule(key)}
+                className={`w-full flex items-center justify-between p-4 rounded-[1.5rem] transition-all duration-300 group ${
+                  expanded.includes(key) ? 'bg-white/5 shadow-inner' : 'hover:bg-white/5'
+                }`}
+              >
+                 <div className="flex items-center gap-4">
+                    <mod.icon className={`w-4 h-4 transition-colors ${expanded.includes(key) ? 'text-[#CCFF00]' : 'text-white/20 group-hover:text-white'}`} />
+                    <span className={`text-[11px] font-black uppercase tracking-widest ${expanded.includes(key) ? 'text-white' : 'text-white/40'}`}>
+                       {mod.label}
+                    </span>
+                 </div>
+                 <ChevronDown className={`w-3 h-3 text-white/10 transition-transform duration-500 ${expanded.includes(key) ? 'rotate-180 text-[#CCFF00]' : ''}`} />
+              </button>
+              
+              {expanded.includes(key) && (
+                <div className="pl-12 pr-4 py-2 space-y-3">
+                   {mod.items.map(item => (
+                     <div key={item} className="flex items-center gap-3 cursor-pointer group/item">
+                        <div className="w-1.5 h-1.5 rounded-full bg-white/5 group-hover/item:bg-[#CCFF00] group-hover/item:shadow-glow transition-all" />
+                        <span className="text-[10px] font-bold text-white/20 group-hover/item:text-white transition-colors tracking-tight">
+                           {item}
+                        </span>
+                     </div>
+                   ))}
+                </div>
+              )}
+           </div>
+         ))}
+      </div>
+
+      {/* Audit Control Status */}
+      <div className="mt-12 p-6 bg-white/3 rounded-[2rem] border border-white/5">
+         <div className="flex items-center gap-3 mb-4">
+            <ShieldCheck className="w-4 h-4 text-[#CCFF00]" />
+            <p className="text-[9px] font-black text-white uppercase tracking-widest">Aprovisionamiento</p>
+         </div>
+         <div className="space-y-3">
+            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+               <div className="h-full w-full bg-[#CCFF00] opacity-20 animate-pulse" />
+            </div>
+            <p className="text-[8px] font-bold text-white/10 uppercase tracking-[0.2em]">Sincronía Total Establecida</p>
+         </div>
+      </div>
+
+    </nav>
   )
 }
