@@ -1,20 +1,15 @@
-// components/dashboard/SidebarNav.tsx
 'use client'
-
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
-interface SidebarNavProps {
-  planId: 'starter' | 'pro' | 'enterprise'
-}
-
-interface Module {
+// DEFINICIÓN DE INTERFAZ (Esto arregla el error de Vercel)
+interface NavModule {
   label: string;
   items: string[];
-  requiresPlan?: string[];
+  requiresPlan?: string[]; // El '?' indica que es opcional
 }
 
-const MODULES: Record<string, Module> = {
+const MODULES: Record<string, NavModule> = {
   ecommerce: {
     label: 'Ecommerce',
     items: ['Catálogo', 'Órdenes', 'Logística']
@@ -26,7 +21,7 @@ const MODULES: Record<string, Module> = {
   erp: {
     label: 'ERP',
     items: ['Finanzas', 'SAT', 'Inventario'],
-    requiresPlan: ['pro', 'enterprise'] // Solo Pro+
+    requiresPlan: ['pro', 'enterprise'] 
   },
   sistema: {
     label: 'Sistema',
@@ -34,63 +29,49 @@ const MODULES: Record<string, Module> = {
   }
 }
 
-export function SidebarNav({ planId }: SidebarNavProps) {
+export function SidebarNav({ planId }: { planId: string }) {
   const [expanded, setExpanded] = useState(['ecommerce'])
-
+  
   const toggleModule = (key: string) => {
     setExpanded(prev => 
-      prev.includes(key) 
-        ? prev.filter(k => k !== key)
-        : [...prev, key]
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
     )
   }
 
   return (
-    <nav className="flex flex-col gap-6 p-4">
+    <div className="flex flex-col gap-4">
       {Object.entries(MODULES).map(([key, module]) => {
-        // TENANCY GATING: Remove ERP if Starter
+        // TENANCY GATING corregido
         if (module.requiresPlan && !module.requiresPlan.includes(planId)) {
           return null
         }
-
+        
         const isExpanded = expanded.includes(key)
-
+        
         return (
-          <div key={key} className="space-y-4">
-            {/* Module Header */}
+          <div key={key} className="flex flex-col gap-2">
             <button
               onClick={() => toggleModule(key)}
               className="w-full flex items-center justify-between px-5 py-3.5 
                 rounded-full bg-white/5 backdrop-blur-3xl
-                hover:bg-white/8 transition-all duration-200
-                shadow-[0_8px_32px_rgba(0,0,0,0.4)] text-white/80 font-semibold"
+                hover:bg-white/10 transition-all duration-200"
             >
-              <span className="text-sm uppercase tracking-widest">{module.label}</span>
-              <ChevronDown 
-                className={`w-4 h-4 text-white/60 transition-transform duration-300 ${
-                  isExpanded ? 'rotate-180' : ''
-                }`}
-              />
+              <span className="text-sm font-medium text-white/90">{module.label}</span>
+              <ChevronDown className={`w-4 h-4 text-white/40 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </button>
-
-            {/* Accordion Items */}
+            
             {isExpanded && (
-              <div className="flex flex-col gap-2 pl-4 animate-in slide-in-from-top-2 duration-300">
+              <div className="flex flex-col gap-1 px-4">
                 {module.items.map(item => (
-                  <button
-                    key={item}
-                    className="w-full text-left px-5 py-3 rounded-full
-                      text-sm text-white/40 hover:text-white hover:bg-white/5 
-                      transition-all duration-200 uppercase tracking-widest"
-                  >
+                  <div key={item} className="px-4 py-2 text-xs text-white/50 hover:text-[#CCFF00] cursor-pointer transition-colors">
                     {item}
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
           </div>
         )
       })}
-    </nav>
+    </div>
   )
 }
