@@ -21,7 +21,7 @@ export default async function RootLayout({
   const userData = await getAuthenticatedTenant(supabase);
 
   return (
-    <html lang="en" suppressHydrationWarning className="dark selection:bg-[#ccff00] selection:text-black">
+    <html lang="en" suppressHydrationWarning className="dark selection:bg-[#ccff00] selection:text-black" style={{ colorScheme: 'dark' }}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link

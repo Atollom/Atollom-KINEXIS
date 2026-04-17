@@ -62,7 +62,7 @@ export function SamanthaPanel({ userRole }: SamanthaPanelProps) {
   ];
 
   return (
-    <aside className="w-[300px] h-full flex flex-col bg-[#040f1b] relative z-20 border-l border-white/5 flex-shrink-0">
+    <aside className="w-[300px] h-full flex flex-col bg-[#040f1b] shell-bg relative z-20 border-l border-white/5 flex-shrink-0">
       
       {/* 1. BRANDING: Atollom AI Logo with Neon Orbit */}
       <div className="px-5 pt-5 pb-3">

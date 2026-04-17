@@ -44,10 +44,10 @@ export function DashboardShell({ planId = 'enterprise', children }: DashboardShe
   }, [])
 
   return (
-    <div className="flex h-screen w-full bg-[#040f1b] overflow-hidden">
+    <div className="flex h-screen w-full bg-[#040f1b] shell-bg overflow-hidden">
 
       {/* COLUMNA 1: Sidebar (260px) */}
-      <aside className="w-[260px] h-full flex flex-col bg-[#040f1b] relative z-20 border-r border-white/5 flex-shrink-0">
+      <aside className="w-[260px] h-full flex flex-col bg-[#040f1b] shell-bg relative z-20 border-r border-white/5 flex-shrink-0">
         {/* Logo header */}
         <div className="px-5 pt-5 pb-3">
           <div className="flex items-center gap-3">
