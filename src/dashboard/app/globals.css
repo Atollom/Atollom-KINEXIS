@@ -7,10 +7,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  border: none; /* Prohibición de líneas por defecto, pero permitiendo overrides */
+  border: none;
   outline: none !important;
-  box-shadow: none;
+  /* box-shadow NOT reset — Tailwind shadow utilities must work (shadow-ambient, shadow-glow) */
 }
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 9999px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(204,255,0,0.3); }
 
 body {
   background-color: #040f1b; /* Deep Navy Innegociable */

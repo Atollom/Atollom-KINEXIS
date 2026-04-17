@@ -1,20 +1,20 @@
 // components/dashboard/SamanthaPanel.tsx
 'use client'
 
-import { 
-  Send, 
-  Bell, 
-  Receipt, 
-  Package, 
-  Activity, 
-  Target, 
-  CheckCircle2, 
-  AlertCircle, 
+import {
+  Send,
+  Bell,
+  Receipt,
+  Package,
+  Activity,
+  Target,
+  CheckCircle2,
+  AlertCircle,
   Database,
   ShieldCheck,
-  Zap,
-  Globe
+  Zap
 } from 'lucide-react'
+import Image from 'next/image'
 import type { UserRole } from '@/types'
 
 interface SamanthaPanelProps {
@@ -74,8 +74,8 @@ export function SamanthaPanel({ userRole }: SamanthaPanelProps) {
                 {/* Orbit Effect */}
                 <div className="absolute inset-[-8px] border border-[#CCFF00]/20 rounded-full animate-spin-slow pointer-events-none" />
                 <div className="absolute inset-[-4px] border border-[#CCFF00]/40 rounded-full animate-[spin_3s_linear_infinite] pointer-events-none" />
-                <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center p-3 shadow-[0_0_20px_rgba(204,255,0,0.2)]">
-                   <Globe className="w-10 h-10 text-[#CCFF00] animate-pulse" />
+                <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center p-1 shadow-[0_0_20px_rgba(204,255,0,0.2)]">
+                   <Image src="/branding/atollom-icon.png" alt="Atollom AI" width={52} height={52} className="rounded-full animate-pulse" />
                 </div>
              </div>
              <h3 className="text-xs font-black text-white uppercase tracking-[0.4em] mb-1">Samantha <span className="text-[#CCFF00]">AI</span></h3>
