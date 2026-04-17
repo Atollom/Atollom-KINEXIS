@@ -2,49 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS Variables (dark default) ─────────────────────────────────────────── */
+/* ── Dark mode (default) ──────────────────────────────────────────────────── */
 :root {
-  --bg-base:       #040f1b;
-  --bg-surface:    rgba(255,255,255,0.05);
-  --bg-elevated:   rgba(255,255,255,0.08);
-  --text-primary:  #ffffff;
-  --text-muted:    rgba(255,255,255,0.3);
-  --border-subtle: rgba(255,255,255,0.05);
-  --accent:        #CCFF00;
+  --bg-base:        #040f1b;
+  --bg-surface:     #0a1628;
+  --bg-card:        rgba(255, 255, 255, 0.05);
+
+  --text-primary:   #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted:     rgba(255, 255, 255, 0.5);
+
+  --accent-primary: #CCFF00;
+  --accent-glow:    rgba(204, 255, 0, 0.2);
+
+  --border-subtle:  rgba(255, 255, 255, 0.05);
 }
 
-/* ── Light mode overrides ──────────────────────────────────────────────────── */
+/* ── Light mode ───────────────────────────────────────────────────────────── */
 html.light {
-  --bg-base:       #f0f4f8;
-  --bg-surface:    rgba(0,0,0,0.04);
-  --bg-elevated:   rgba(0,0,0,0.06);
-  --text-primary:  #0a0f1c;
-  --text-muted:    rgba(0,0,0,0.4);
-  --border-subtle: rgba(0,0,0,0.08);
-  --accent:        #6b8f00;
+  --bg-base:        #f0f4f8;
+  --bg-surface:     #ffffff;
+  --bg-card:        rgba(0, 0, 0, 0.03);
+
+  --text-primary:   #0a0f1c;
+  --text-secondary: rgba(10, 15, 28, 0.7);
+  --text-muted:     rgba(10, 15, 28, 0.5);
+
+  --accent-primary: #7cb518;
+  --accent-glow:    rgba(124, 181, 24, 0.1);
+
+  --border-subtle:  rgba(0, 0, 0, 0.08);
 }
 
-/* ── Apply vars to structural elements ────────────────────────────────────── */
-html.light body {
+/* ── Base styles ──────────────────────────────────────────────────────────── */
+body {
   background-color: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ── Shell structural overrides ───────────────────────────────────────────── */
+.shell-bg {
+  background-color: var(--bg-surface) !important;
+  transition: background-color 0.25s ease;
+}
+
+/* ── Cards ────────────────────────────────────────────────────────────────── */
+.dashboard-card,
+.metric-card {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+/* ── Light mode: force heading/text visibility ────────────────────────────── */
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4,
+html.light h5,
+html.light h6 {
   color: var(--text-primary);
 }
 
-html.light .shell-bg {
-  background-color: var(--bg-base) !important;
-  border-color: var(--border-subtle) !important;
+html.light p,
+html.light span,
+html.light label,
+html.light li {
+  color: var(--text-secondary);
 }
 
-html.light .shell-surface {
-  background-color: var(--bg-surface) !important;
-  border-color: var(--border-subtle) !important;
+/* Accent color token override */
+html.light .text-\[\#CCFF00\],
+html.light .text-lime-400 {
+  color: var(--accent-primary) !important;
 }
 
-html.light .shell-text {
-  color: var(--text-primary) !important;
-}
-
-/* ── RESET ATÓMICO KINEXIS ────────────────────────────────────────────────── */
+/* ── RESET ATÓMICO ────────────────────────────────────────────────────────── */
 * {
   margin: 0;
   padding: 0;
@@ -53,18 +91,8 @@ html.light .shell-text {
   outline: none !important;
 }
 
-/* Custom scrollbar */
+/* ── Custom scrollbar ─────────────────────────────────────────────────────── */
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 9999px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(204,255,0,0.3); }
-
-body {
-  background-color: var(--bg-base);
-  color: var(--text-primary);
-  min-height: 100vh;
-  width: 100vw;
-  overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
