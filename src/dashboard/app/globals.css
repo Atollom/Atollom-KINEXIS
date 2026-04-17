@@ -7,31 +7,47 @@
   --bg-base:        #040f1b;
   --bg-surface:     #0a1628;
   --bg-card:        rgba(255, 255, 255, 0.05);
+  --bg-hover:       rgba(255, 255, 255, 0.08);
 
   --text-primary:   #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-muted:     rgba(255, 255, 255, 0.5);
 
-  --accent-primary: #CCFF00;
-  --accent-glow:    rgba(204, 255, 0, 0.2);
+  --accent-primary:   #CCFF00;
+  --accent-secondary: #34c759;
+  --accent-glow:      rgba(204, 255, 0, 0.2);
 
+  --border-color:   rgba(255, 255, 255, 0.05);
+  --border-hover:   rgba(255, 255, 255, 0.12);
   --border-subtle:  rgba(255, 255, 255, 0.05);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
-/* ── Light mode ───────────────────────────────────────────────────────────── */
+/* ── Light mode — Apple-inspired ─────────────────────────────────────────── */
 html.light {
-  --bg-base:        #f0f4f8;
+  --bg-base:        #f5f5f7;
   --bg-surface:     #ffffff;
-  --bg-card:        rgba(0, 0, 0, 0.03);
+  --bg-card:        rgba(0, 0, 0, 0.02);
+  --bg-hover:       rgba(0, 0, 0, 0.04);
 
-  --text-primary:   #0a0f1c;
-  --text-secondary: rgba(10, 15, 28, 0.7);
-  --text-muted:     rgba(10, 15, 28, 0.5);
+  --text-primary:   #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-muted:     #86868b;
 
-  --accent-primary: #7cb518;
-  --accent-glow:    rgba(124, 181, 24, 0.1);
+  --accent-primary:   #06c;
+  --accent-secondary: #34c759;
+  --accent-glow:      rgba(0, 102, 204, 0.1);
 
+  --border-color:   rgba(0, 0, 0, 0.1);
+  --border-hover:   rgba(0, 0, 0, 0.2);
   --border-subtle:  rgba(0, 0, 0, 0.08);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 /* ── Base styles ──────────────────────────────────────────────────────────── */
@@ -45,10 +61,15 @@ body {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* ── Shell structural overrides ───────────────────────────────────────────── */
+/* ── Shell structural ─────────────────────────────────────────────────────── */
 .shell-bg {
   background-color: var(--bg-surface) !important;
   transition: background-color 0.25s ease;
+}
+
+html.light .shell-bg {
+  border-right-color: var(--border-color) !important;
+  border-left-color: var(--border-color) !important;
 }
 
 /* ── Cards ────────────────────────────────────────────────────────────────── */
@@ -56,10 +77,22 @@ body {
 .metric-card {
   background-color: var(--bg-card);
   color: var(--text-primary);
-  border-color: var(--border-subtle);
+  border-color: var(--border-color);
 }
 
-/* ── Light mode: force heading/text visibility ────────────────────────────── */
+html.light .dashboard-card,
+html.light .metric-card {
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+html.light .dashboard-card:hover,
+html.light .metric-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-hover);
+}
+
+/* ── Light mode typography ────────────────────────────────────────────────── */
 html.light h1,
 html.light h2,
 html.light h3,
@@ -67,6 +100,8 @@ html.light h4,
 html.light h5,
 html.light h6 {
   color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 html.light p,
@@ -76,10 +111,24 @@ html.light li {
   color: var(--text-secondary);
 }
 
-/* Accent color token override */
+/* ── Light mode accent overrides ──────────────────────────────────────────── */
 html.light .text-\[\#CCFF00\],
 html.light .text-lime-400 {
   color: var(--accent-primary) !important;
+}
+
+/* ── Light mode buttons (scoped to non-nav elements) ─────────────────────── */
+html.light .btn-primary {
+  background: var(--accent-primary);
+  color: white;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html.light .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 /* ── RESET ATÓMICO ────────────────────────────────────────────────────────── */
@@ -96,3 +145,6 @@ html.light .text-lime-400 {
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 9999px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(204,255,0,0.3); }
+
+html.light .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+html.light .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,102,204,0.3); }
