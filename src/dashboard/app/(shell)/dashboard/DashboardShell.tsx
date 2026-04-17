@@ -49,39 +49,37 @@ export function DashboardShell({ planId = 'enterprise', children }: DashboardShe
       {/* COLUMNA 1: Sidebar (260px) */}
       <aside className="w-[260px] h-full flex flex-col bg-[#040f1b] shell-bg relative z-20 border-r border-white/5 flex-shrink-0">
         {/* Logo header */}
-        <div className="px-5 pt-5 pb-3">
+        <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="relative flex-shrink-0">
-              <div className="absolute inset-0 bg-[#CCFF00]/20 blur-xl rounded-full" />
-              <Image
-                src="/branding/logo.png"
-                alt="KINEXIS"
-                width={36}
-                height={36}
-                className="object-contain relative z-10"
-              />
-            </div>
-            <div>
-              <h1 className="text-sm font-black text-white tracking-tighter leading-none">KINEXIS</h1>
-              <p className="text-[8px] font-bold text-[#CCFF00] uppercase tracking-[0.2em] opacity-70 mt-0.5">
+            <Image
+              src="/branding/atollom-icon.png"
+              alt="KINEXIS"
+              width={40}
+              height={40}
+              className="w-10 h-10 rounded-xl"
+            />
+            <div className="flex flex-col">
+              <h1 className="text-lg font-semibold text-white tracking-tight leading-none">
+                KINEXIS
+              </h1>
+              <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">
                 Integrated AI Systems
               </p>
             </div>
           </div>
+          <p className="text-[9px] text-white/30 mt-2 tracking-wide">By Atollom Labs</p>
 
           {/* User info */}
           {!loading && userName && (
             <div className="mt-3 bg-white/5 rounded-xl px-3 py-2 flex items-center justify-between">
-              <p className="text-[9px] font-black text-white/40 uppercase tracking-wider truncate">
+              <p className="text-[9px] font-semibold text-white/50 uppercase tracking-wider truncate">
                 {userName}
               </p>
-              <span className="text-[8px] font-black text-[#CCFF00]/50 uppercase tracking-wider ml-2 flex-shrink-0">
+              <span className="text-[8px] font-semibold text-[#CCFF00]/60 uppercase tracking-wider ml-2 flex-shrink-0">
                 {userRole}
               </span>
             </div>
           )}
-
-          <div className="h-px bg-white/5 mt-3" />
         </div>
 
         <SidebarNav planId={planId} userRole={userRole} />
