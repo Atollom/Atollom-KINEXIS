@@ -7,7 +7,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  border: none !important; /* Prohibición absoluta de líneas */
+  border: none; /* Prohibición de líneas por defecto, pero permitiendo overrides */
   outline: none !important;
   box-shadow: none;
 }

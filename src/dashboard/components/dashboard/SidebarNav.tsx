@@ -14,7 +14,7 @@ import {
   Terminal,
   Zap
 } from 'lucide-react'
-import { UserRole } from '@/app/dashboard/DashboardShell'
+import type { UserRole } from '@/types'
 
 interface NavModule {
   label: string

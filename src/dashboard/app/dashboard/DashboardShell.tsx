@@ -5,8 +5,8 @@ import { useState } from 'react'
 import { SidebarNav } from '@/components/dashboard/SidebarNav'
 import { WorkspaceArea } from '@/components/dashboard/WorkspaceArea'
 import { SamanthaPanel } from '@/components/dashboard/SamanthaPanel'
+import type { UserRole } from '@/types'
 
-export type UserRole = 'ADMIN' | 'ALMACEN' | 'VENTAS'
 export type TenantType = 'ATOLLOM' | 'CLIENT'
 
 interface DashboardShellProps {

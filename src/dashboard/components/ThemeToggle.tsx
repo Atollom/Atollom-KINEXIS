@@ -1,53 +1,36 @@
-"use client";
-
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+"use client"
+import { Moon, Sun } from "lucide-react"
+import { useEffect, useState } from "react"
 
 export function ThemeToggle() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
 
-  // Avoid hydration mismatch
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const saved = localStorage.getItem('theme') as 'light' | 'dark'
+    if (saved) {
+      setTheme(saved)
+      document.documentElement.classList.toggle('light', saved === 'light')
+    }
+  }, [])
 
-  if (!mounted) {
-    return <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5" />;
+  const toggle = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark'
+    setTheme(newTheme)
+    localStorage.setItem('theme', newTheme)
+    document.documentElement.classList.toggle('light', newTheme === 'light')
   }
-
-  const isDark = resolvedTheme === "dark";
 
   return (
     <button
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="
-        relative w-10 h-10 rounded-xl 
-        flex items-center justify-center
-        bg-white/[0.03] border border-white/5
-        transition-all duration-500 active:scale-90
-        group overflow-hidden
-      "
-      aria-label="Toggle Interface Mode"
+      onClick={toggle}
+      className="p-2 rounded-lg hover:bg-white/10 transition-colors z-50 flex items-center justify-center"
+      aria-label="Toggle theme"
     >
-      {/* Dynamic Background */}
-      <div className={`absolute inset-0 transition-opacity duration-700 ${isDark ? 'bg-[#ccff00]/5 opacity-100' : 'bg-black/5 opacity-100'}`} />
-      
-      {/* Icons */}
-      <div className="relative z-10">
-        <span 
-          className={`material-symbols-outlined text-lg transition-all duration-700 shadow-volt-text ${isDark ? "rotate-0 text-[#ccff00]" : "rotate-90 opacity-0 absolute"}`}
-        >
-          near_me
-        </span>
-        <span 
-          className={`material-symbols-outlined text-lg transition-all duration-700 ${!isDark ? "rotate-0 text-black" : "-rotate-90 opacity-0 absolute"}`}
-        >
-          lightbulb
-        </span>
-      </div>
-
-      {/* Hover Pulse */}
-      <div className={`absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/5 transition-all duration-500`} />
-      <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-t-full transition-all duration-500 ${isDark ? 'bg-[#ccff00] shadow-volt' : 'bg-black/20'}`} />
+      {theme === 'dark' ? (
+        <Sun className="w-5 h-5 text-yellow-400" />
+      ) : (
+        <Moon className="w-5 h-5 text-slate-700" />
+      )}
     </button>
-  );
+  )
 }

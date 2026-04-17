@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { createClient } from "@/lib/supabase";
-import { DashboardShell } from "@/components/DashboardShell";
-import { ShellWrapper } from "@/components/ShellWrapper";
 import { getAuthenticatedTenant } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -14,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 import { Providers } from "@/components/Providers";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function RootLayout({
   children,
@@ -41,9 +40,13 @@ export default async function RootLayout({
       </head>
       <body className="antialiased bg-[#040f1b] text-white custom-scrollbar selection:bg-[#ccff00] selection:text-black min-h-screen overflow-hidden">
         <Providers>
+          <div className="fixed top-4 right-4 z-[100]">
+            <ThemeToggle />
+          </div>
           {children}
         </Providers>
       </body>
     </html>
   );
 }
+

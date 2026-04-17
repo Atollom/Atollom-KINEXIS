@@ -3,11 +3,10 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   darkMode: "class",
   content: [
-    "./src/dashboard/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./lib/**/*.{ts,tsx}",
-    "./hooks/**/*.{ts,tsx}",
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+    "./lib/**/*.{js,ts,jsx,tsx}",
+    "./hooks/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -53,6 +52,8 @@ const config: Config = {
       boxShadow: {
         "luxe": "0 10px 40px -10px rgba(0,0,0,0.5)",
         "glass": "0 8px 32px 0 rgba(0,0,0,0.37)",
+        "glow": "0 0 20px rgba(204, 255, 0, 0.3)",
+        "ambient": "0 20px 50px rgba(0, 0, 0, 0.5)",
       },
       animation: {
         "luxe": "luxeFade 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
