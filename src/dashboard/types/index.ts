@@ -1,6 +1,6 @@
 // src/dashboard/types/index.ts
 
-export type UserRole = 'owner' | 'admin' | 'warehouse' | 'contador' | 'viewer' | 'atollom_admin' | 'socia' | 'almacenista' | 'agente' | 'ADMIN' | 'ALMACEN' | 'VENTAS';
+export type UserRole = 'owner' | 'admin' | 'warehouse' | 'contador' | 'viewer' | 'atollom_admin' | 'socia' | 'almacenista' | 'agente';
 
 export interface TenantUser {
   id: string;

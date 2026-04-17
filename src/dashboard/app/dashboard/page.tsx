@@ -19,7 +19,7 @@ import {
 import type { UserRole } from "@/types";
 
 export default function DashboardPage() {
-  const [role, setRole] = useState<UserRole>('ADMIN');
+  const [role, setRole] = useState<UserRole>('viewer');
 
   useEffect(() => {
      const interval = setInterval(() => {
