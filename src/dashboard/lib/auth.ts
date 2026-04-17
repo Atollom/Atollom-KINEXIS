@@ -1,6 +1,6 @@
 // src/dashboard/lib/auth.ts
 import { SupabaseClient } from '@supabase/supabase-js';
-import { TenantUser } from '../types';
+import type { UserRole, TenantUser } from '../types';
 
 /**
  * Helper para obtener user + tenant_id + role
@@ -34,3 +34,22 @@ export async function getAuthenticatedTenant(supabase: SupabaseClient): Promise<
     tenant_name: (profile.tenants as any)?.name || 'Atollom HQ'
   } as TenantUser;
 }
+
+/**
+ * Obtiene el rol del usuario — consulta directa sin join para evitar fallos silenciosos
+ * si la tabla tenants no tiene la fila correspondiente.
+ */
+export async function getUserRole(supabase: SupabaseClient): Promise<UserRole> {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return 'viewer';
+
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (error || !data?.role) return 'viewer';
+  return data.role as UserRole;
+}
+
