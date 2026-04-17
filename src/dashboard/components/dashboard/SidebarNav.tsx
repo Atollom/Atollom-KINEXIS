@@ -111,13 +111,15 @@ interface SidebarNavProps {
 export function SidebarNav({ userRole }: SidebarNavProps) {
   const pathname = usePathname()
 
+  const ALL_MODULE_IDS = MODULES.map(m => m.id)
+
   const [expanded, setExpanded] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return ['ecommerce', 'crm', 'erp']
+    if (typeof window === 'undefined') return ALL_MODULE_IDS
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      return saved ? JSON.parse(saved) : ['ecommerce', 'crm', 'erp']
+      return saved ? JSON.parse(saved) : ALL_MODULE_IDS
     } catch {
-      return ['ecommerce', 'crm', 'erp']
+      return ALL_MODULE_IDS
     }
   })
 

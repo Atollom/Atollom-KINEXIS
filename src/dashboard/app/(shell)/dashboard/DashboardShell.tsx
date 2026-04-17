@@ -24,16 +24,21 @@ export function DashboardShell({ planId = 'enterprise', children }: DashboardShe
     const supabase = createBrowserSupabaseClient()
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { setLoading(false); return }
-      const { data } = await supabase
+
+      // Try user_profiles first (may be blocked by RLS if migrations pending)
+      const { data: profile } = await supabase
         .from('user_profiles')
-        .select('role, full_name')
+        .select('role, full_name, display_name')
         .eq('id', user.id)
         .single()
-      if (data?.role) {
-        setUserRole(data.role as UserRole)
-        localStorage.setItem('kinexis_role', data.role)
-      }
-      if (data?.full_name) setUserName(data.full_name)
+
+      // Fallback chain: DB profile → JWT user_metadata → 'viewer'
+      const role = (profile?.role ?? user.user_metadata?.role ?? 'viewer') as UserRole
+      const name = profile?.full_name ?? profile?.display_name ?? user.user_metadata?.full_name ?? ''
+
+      setUserRole(role)
+      localStorage.setItem('kinexis_role', role)
+      if (name) setUserName(name)
       setLoading(false)
     })
   }, [])
