@@ -1,42 +1,39 @@
 import { createServerClient } from '@supabase/ssr';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
-// Roles con acceso
-const WAREHOUSE_ROLES = ['warehouse', 'almacenista', 'admin', 'owner', 'socia', 'atollom_admin'];
-const FISCAL_ROLES = ['contador', 'admin', 'owner', 'socia', 'atollom_admin'];
-const CRM_ROLES = ['agente', 'admin', 'owner', 'socia', 'atollom_admin'];
-const AGENT_ROLES = ['admin', 'owner', 'socia', 'atollom_admin'];
-
-export async function middleware(req: NextRequest) {
-  let res = NextResponse.next({ request: req });
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return req.cookies.getAll();
+        get(name: string) {
+          return request.cookies.get(name)?.value;
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
-          res = NextResponse.next({ request: req });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            res.cookies.set(name, value, options)
-          );
+        set(name: string, value: string, options: any) {
+          request.cookies.set({ name, value, ...options });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({ name, value: '', ...options });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value: '', ...options });
         },
       },
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // getUser() validates the token server-side — required by @supabase/ssr in middleware
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const { pathname } = req.nextUrl;
+  const { pathname } = request.nextUrl;
 
-  // Rutas públicas
+  // ── Page route protection ───────────────────────────────────────────────────
   const isPageRoute =
     !pathname.startsWith('/api/') &&
     !pathname.startsWith('/login') &&
@@ -44,46 +41,27 @@ export async function middleware(req: NextRequest) {
     pathname !== '/favicon.ico' &&
     pathname !== '/robots.txt';
 
-  if (isPageRoute && !session) {
-    return NextResponse.redirect(new URL('/login', req.url));
+  if (isPageRoute && !user) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (pathname.startsWith('/login') && session) {
-    return NextResponse.redirect(new URL('/', req.url));
+  if (pathname.startsWith('/login') && user) {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // ✅ RBAC API - SIN CONSULTAS EXTRA
-  // Como ya sabemos que el usuario está autenticado, retornamos success temporalmente
-  // El RLS en la base de datos se encarga del aislamiento
+  // ── API route protection ────────────────────────────────────────────────────
   if (pathname.startsWith('/api/')) {
-    if (pathname === '/api/health') return res;
-    if (!session) {
+    if (pathname === '/api/health') return response;
+    if (!user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
-    
-    // ✅ TEMPORALMENTE PERMITIMOS TODAS LAS APIs
-    // El RBAC por roles lo implementaremos después de confirmar que todo funciona
-    return res;
   }
 
-  return res;
+  return response;
 }
 
-// ✅ Workaround para el bug de Next.js 14.2.7+
-// Solo rutas conocidas, NO usamos matcher /(.*)
 export const config = {
   matcher: [
-    '/',
-    '/chat',
-    '/ecommerce',
-    '/erp/:path*',
-    '/crm/:path*',
-    '/meta/:path*',
-    '/settings/:path*',
-    '/warehouse/:path*',
-    '/atollom/:path*',
-    '/dashboard/:path*',
-    '/login',
-    '/api/:path*',
-  ]
+    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };
