@@ -1,88 +1,107 @@
 // components/dashboard/SidebarNav.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  ChevronDown,
+  ChevronRight,
   ShoppingCart,
   Users,
-  Package,
-  Terminal,
+  BarChart3,
+  Settings,
   ShieldCheck,
   LayoutDashboard,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 
-interface NavItem {
-  label: string
-  href: string
+interface SubItem {
+  id: string
+  title: string
+  path: string
 }
 
 interface NavModule {
-  label: string
+  id: string
+  title: string
   icon: any
-  items: NavItem[]
+  submodules: SubItem[]
   roles: UserRole[]
 }
 
-// Real role-to-module mapping aligned with middleware.ts RBAC
-const MODULES: Record<string, NavModule> = {
-  dashboard: {
-    label: 'Dashboard',
+const MODULES: NavModule[] = [
+  {
+    id: 'dashboard',
+    title: 'DASHBOARD',
     icon: LayoutDashboard,
-    items: [{ label: 'Centro de Control', href: '/dashboard' }],
-    roles: ['owner', 'admin', 'socia', 'atollom_admin', 'almacenista', 'warehouse', 'agente', 'contador'],
+    submodules: [
+      { id: 'home', title: 'Centro de Control', path: '/dashboard' },
+    ],
+    roles: ['owner', 'admin', 'socia', 'atollom_admin', 'almacenista', 'warehouse', 'agente', 'contador', 'viewer'],
   },
-  ecommerce: {
-    label: 'Ecommerce',
+  {
+    id: 'ecommerce',
+    title: 'E-COMMERCE',
     icon: ShoppingCart,
-    items: [
-      { label: 'Vista General', href: '/ecommerce' },
-      { label: 'Mercado Libre', href: '/ecommerce' },
-      { label: 'Amazon', href: '/amazon' },
-      { label: 'Shopify', href: '/shopify' },
+    submodules: [
+      { id: 'ecommerce-dashboard', title: 'Dashboard', path: '/ecommerce' },
+      { id: 'ml', title: 'Mercado Libre', path: '/ecommerce/mercadolibre' },
+      { id: 'amazon', title: 'Amazon', path: '/ecommerce/amazon' },
+      { id: 'shopify', title: 'Shopify / B2B', path: '/ecommerce/shopify' },
     ],
     roles: ['owner', 'admin', 'socia', 'atollom_admin', 'almacenista', 'warehouse'],
   },
-  crm: {
-    label: 'CRM Alpha',
+  {
+    id: 'crm',
+    title: 'CRM',
     icon: Users,
-    items: [
-      { label: 'Pipeline de Ventas', href: '/crm' },
-      { label: 'WhatsApp / Instagram', href: '/meta' },
-      { label: 'Bandeja Unificada', href: '/meta/inbox' },
+    submodules: [
+      { id: 'crm-dashboard', title: 'Dashboard', path: '/crm' },
+      { id: 'pipeline', title: 'Pipeline', path: '/crm/pipeline' },
+      { id: 'whatsapp', title: 'WhatsApp', path: '/meta/whatsapp' },
+      { id: 'instagram', title: 'Instagram', path: '/meta' },
+      { id: 'messenger', title: 'Messenger', path: '/crm/messenger' },
+      { id: 'cotizaciones', title: 'Cotizaciones', path: '/crm/cotizaciones' },
     ],
     roles: ['owner', 'admin', 'socia', 'atollom_admin', 'agente'],
   },
-  erp: {
-    label: 'ERP Inventario',
-    icon: Package,
-    items: [
-      { label: 'Inventario', href: '/erp/inventory' },
-      { label: 'Órdenes de Compra', href: '/erp/procurement' },
-      { label: 'Facturación CFDI', href: '/erp/cfdi' },
-      { label: 'Almacén', href: '/warehouse' },
+  {
+    id: 'erp',
+    title: 'ERP',
+    icon: BarChart3,
+    submodules: [
+      { id: 'erp-dashboard', title: 'Dashboard', path: '/erp' },
+      { id: 'cfdi', title: 'CFDI / SAT', path: '/erp/cfdi' },
+      { id: 'contabilidad', title: 'Contabilidad', path: '/erp/accounting' },
+      { id: 'finanzas', title: 'Finanzas', path: '/erp/finance' },
+      { id: 'inventario', title: 'Inventario', path: '/erp/inventory' },
+      { id: 'compras', title: 'Compras', path: '/erp/procurement' },
     ],
     roles: ['owner', 'admin', 'socia', 'atollom_admin', 'almacenista', 'warehouse', 'contador'],
   },
-  sistema: {
-    label: 'Neural System',
-    icon: Terminal,
-    items: [
-      { label: 'Configuración', href: '/settings' },
-      { label: 'Onboarding', href: '/onboarding' },
+  {
+    id: 'system',
+    title: 'CONFIGURACIÓN',
+    icon: Settings,
+    submodules: [
+      { id: 'usuarios', title: 'Usuarios', path: '/settings' },
+      { id: 'perfil', title: 'Mi Perfil', path: '/settings/profile' },
+      { id: 'integraciones', title: 'Integraciones', path: '/settings/integrations' },
     ],
     roles: ['owner', 'admin', 'socia', 'atollom_admin'],
   },
-  atollom: {
-    label: 'Atollom Central',
+  {
+    id: 'atollom',
+    title: 'ATOLLOM CENTRAL',
     icon: ShieldCheck,
-    items: [{ label: 'Panel Admin', href: '/atollom' }],
+    submodules: [
+      { id: 'admin', title: 'Panel Admin', path: '/atollom' },
+    ],
     roles: ['atollom_admin'],
   },
-}
+]
+
+const STORAGE_KEY = 'kinexis_sidebar_expanded'
 
 interface SidebarNavProps {
   planId?: string
@@ -91,69 +110,104 @@ interface SidebarNavProps {
 
 export function SidebarNav({ userRole }: SidebarNavProps) {
   const pathname = usePathname()
-  const [expanded, setExpanded] = useState<string[]>(['ecommerce', 'crm', 'erp'])
 
-  const toggleModule = (key: string) => {
+  const [expanded, setExpanded] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return ['ecommerce', 'crm', 'erp']
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      return saved ? JSON.parse(saved) : ['ecommerce', 'crm', 'erp']
+    } catch {
+      return ['ecommerce', 'crm', 'erp']
+    }
+  })
+
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(expanded)) } catch {}
+  }, [expanded])
+
+  const toggleModule = (id: string) => {
     setExpanded(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+      prev.includes(id) ? prev.filter(k => k !== id) : [...prev, id]
     )
   }
 
-  const availableModules = Object.entries(MODULES).filter(([_, mod]) =>
-    mod.roles.includes(userRole)
-  )
+  const visibleModules = MODULES.filter(mod => mod.roles.includes(userRole))
 
   return (
-    <nav className="flex-1 px-6 space-y-6 overflow-y-auto custom-scrollbar pb-10">
-      <div className="space-y-2">
-        <p className="text-[10px] font-black text-white/10 uppercase tracking-[0.4em] mb-4 ml-4">
-          Módulos de Comando
-        </p>
+    <nav className="flex-1 overflow-y-auto custom-scrollbar pb-6">
+      <p className="text-[9px] font-black text-white/10 uppercase tracking-[0.4em] px-5 mb-3 mt-1">
+        Módulos
+      </p>
 
-        {availableModules.map(([key, mod]) => {
-          const isExpanded = expanded.includes(key)
-          const isActive = mod.items.some(item => pathname === item.href || pathname.startsWith(item.href + '/'))
+      <div className="space-y-0.5 px-3">
+        {visibleModules.map((mod) => {
+          const isExpanded = expanded.includes(mod.id)
+          const isActive = mod.submodules.some(s =>
+            pathname === s.path || pathname.startsWith(s.path + '/')
+          )
+          const isSingleItem = mod.submodules.length === 1
 
-          return (
-            <div key={key} className="space-y-1">
-              <button
-                onClick={() => toggleModule(key)}
-                className={`w-full flex items-center justify-between p-4 rounded-[1.5rem] transition-all duration-300 group ${
-                  isExpanded || isActive ? 'bg-white/5' : 'hover:bg-white/5'
+          if (isSingleItem) {
+            const item = mod.submodules[0]
+            const isCurrent = pathname === item.path || pathname.startsWith(item.path + '/')
+            return (
+              <Link
+                key={mod.id}
+                href={item.path}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 group ${
+                  isCurrent
+                    ? 'bg-[#CCFF00]/10 text-[#CCFF00]'
+                    : 'hover:bg-white/5 text-white/40 hover:text-white'
                 }`}
               >
-                <div className="flex items-center gap-4">
-                  <mod.icon className={`w-4 h-4 transition-colors ${
-                    isActive ? 'text-[#CCFF00]' : isExpanded ? 'text-[#CCFF00]' : 'text-white/20 group-hover:text-white'
+                <mod.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isCurrent ? 'text-[#CCFF00]' : 'text-white/20 group-hover:text-white/60'}`} />
+                <span className="text-[10px] font-black uppercase tracking-widest">{mod.title}</span>
+              </Link>
+            )
+          }
+
+          return (
+            <div key={mod.id}>
+              <button
+                onClick={() => toggleModule(mod.id)}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group ${
+                  isActive ? 'bg-white/5' : 'hover:bg-white/5'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <mod.icon className={`w-3.5 h-3.5 flex-shrink-0 transition-colors ${
+                    isActive ? 'text-[#CCFF00]' : 'text-white/20 group-hover:text-white/60'
                   }`} />
-                  <span className={`text-[11px] font-black uppercase tracking-widest ${
-                    isExpanded || isActive ? 'text-white' : 'text-white/40'
+                  <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
+                    isActive ? 'text-white' : 'text-white/40 group-hover:text-white/80'
                   }`}>
-                    {mod.label}
+                    {mod.title}
                   </span>
                 </div>
-                <ChevronDown className={`w-3 h-3 text-white/10 transition-transform duration-500 ${
-                  isExpanded ? 'rotate-180 text-[#CCFF00]' : ''
+                <ChevronRight className={`w-3 h-3 flex-shrink-0 transition-all duration-300 ${
+                  isExpanded ? 'rotate-90 text-[#CCFF00]/60' : 'text-white/10'
                 }`} />
               </button>
 
               {isExpanded && (
-                <div className="pl-12 pr-4 py-2 space-y-3">
-                  {mod.items.map(item => {
-                    const isCurrent = pathname === item.href
+                <div className="ml-6 pl-3 border-l border-white/5 mt-0.5 mb-1 space-y-0.5">
+                  {mod.submodules.map(item => {
+                    const isCurrent = pathname === item.path || pathname.startsWith(item.path + '/')
                     return (
                       <Link
-                        key={item.href}
-                        href={item.href}
-                        className="flex items-center gap-3 group/item"
+                        key={item.id}
+                        href={item.path}
+                        className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-all duration-150 group/sub ${
+                          isCurrent ? 'text-[#CCFF00]' : 'text-white/25 hover:text-white/80'
+                        }`}
                       >
-                        <div className={`w-1.5 h-1.5 rounded-full transition-all ${
-                          isCurrent ? 'bg-[#CCFF00] shadow-glow' : 'bg-white/5 group-hover/item:bg-[#CCFF00] group-hover/item:shadow-glow'
+                        <div className={`w-1 h-1 rounded-full flex-shrink-0 transition-all ${
+                          isCurrent ? 'bg-[#CCFF00] shadow-[0_0_6px_#CCFF00]' : 'bg-white/10 group-hover/sub:bg-white/40'
                         }`} />
-                        <span className={`text-[10px] font-bold tracking-tight transition-colors ${
-                          isCurrent ? 'text-[#CCFF00]' : 'text-white/20 group-hover/item:text-white'
+                        <span className={`text-[9px] font-bold tracking-wide transition-colors ${
+                          isCurrent ? 'font-black' : ''
                         }`}>
-                          {item.label}
+                          {item.title}
                         </span>
                       </Link>
                     )
@@ -166,9 +220,9 @@ export function SidebarNav({ userRole }: SidebarNavProps) {
       </div>
 
       {/* Role badge */}
-      <div className="mt-8 px-4 py-3 bg-white/3 rounded-[1.5rem]">
-        <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em] text-center">
-          Acceso: <span className="text-[#CCFF00]/60">{userRole}</span>
+      <div className="mx-3 mt-6 px-3 py-2 bg-white/3 rounded-xl">
+        <p className="text-[8px] font-black text-white/20 uppercase tracking-widest text-center">
+          Acceso: <span className="text-[#CCFF00]/50">{userRole}</span>
         </p>
       </div>
     </nav>
