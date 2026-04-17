@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { SidebarNav } from '@/components/dashboard/SidebarNav'
 import { WorkspaceArea } from '@/components/dashboard/WorkspaceArea'
 import { SamanthaPanel } from '@/components/dashboard/SamanthaPanel'
+import { LogoutButton } from '@/components/LogoutButton'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import type { UserRole } from '@/types'
 
@@ -79,6 +80,11 @@ export function DashboardShell({ planId = 'enterprise', children }: DashboardShe
         </div>
 
         <SidebarNav planId={planId} userRole={userRole} />
+
+        {/* Logout */}
+        <div className="px-3 pb-4 border-t border-white/5 pt-3">
+          <LogoutButton />
+        </div>
       </aside>
 
       {/* COLUMNA 2: Workspace (flexible) */}
