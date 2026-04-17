@@ -37,6 +37,9 @@ const ROLE_VISIBLE_MODULES: Record<UserRole, string[] | "all"> = {
   agente: ["crm"],
   viewer: ["ecommerce", "erp", "crm"],
   atollom_admin: "all",
+  ADMIN: "all",
+  ALMACEN: ["erp", "warehouse"],
+  VENTAS: ["crm"],
 };
 
 function canSeeModule(role: UserRole, moduleId: string): boolean {
