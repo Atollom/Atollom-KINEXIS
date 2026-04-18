@@ -47,37 +47,157 @@
 /* ========== LIGHT MODE — Apple-grade ========== */
 html.light {
   --bg-base:       linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-  --bg-surface:    rgba(255,255,255,0.8);
-  --bg-card:       rgba(255,255,255,0.6);
-  --bg-card-hover: rgba(255,255,255,0.9);
+  --bg-surface:    rgba(255,255,255,0.85);
+  --bg-card:       rgba(255,255,255,0.70);
+  --bg-card-hover: rgba(255,255,255,0.95);
 
-  --glass-border: rgba(0,0,0,0.08);
-  --glass-shine:  rgba(255,255,255,0.8);
-  --blur-sm: 10px;
-  --blur-md: 20px;
-  --blur-lg: 30px;
+  --glass-border: rgba(0,0,0,0.06);
+  --glass-shine:  rgba(255,255,255,0.9);
+  --blur-sm: 12px;
+  --blur-md: 24px;
+  --blur-lg: 40px;
 
   --text-primary:   #1d1d1f;
-  --text-secondary: #6e6e73;
+  --text-secondary: #515154;
   --text-muted:     #86868b;
 
-  --accent-primary:   #7fb518;
-  --accent-secondary: #5a8110;
+  /* Darker green for legible contrast on white */
+  --accent-primary:   #4a7c10;
+  --accent-secondary: #3a6209;
   --accent-warning:   #ff9500;
   --accent-danger:    #ff3b30;
 
-  --gradient-brand:  linear-gradient(135deg, #7fb518 0%, #5a8110 100%);
-  --gradient-subtle: linear-gradient(135deg, rgba(127,181,24,0.08) 0%, rgba(90,129,16,0.08) 100%);
+  --gradient-brand:  linear-gradient(135deg, #5a8110 0%, #4a7c10 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(74,124,16,0.06) 0%, rgba(58,98,9,0.06) 100%);
 
-  --shadow-ambient: 0 0 40px rgba(0,0,0,0.05);
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
-  --shadow-md:  0 4px 12px rgba(0,0,0,0.12), 0 0 0 1px var(--glass-border);
-  --shadow-lg:  0 12px 32px rgba(0,0,0,0.15), 0 0 0 1px var(--glass-border), inset 0 1px 0 var(--glass-shine);
-  --shadow-glow: 0 0 30px rgba(127,181,24,0.12);
+  --shadow-ambient: 0 0 40px rgba(0,0,0,0.04);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04), 0 0 0 1px var(--glass-border);
+  --shadow-lg:  0 12px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06), 0 0 0 1px var(--glass-border), inset 0 1px 0 var(--glass-shine);
+  --shadow-glow: 0 0 30px rgba(74,124,16,0.08);
 
-  --border-color:  rgba(0,0,0,0.1);
-  --border-subtle: rgba(0,0,0,0.08);
+  --border-color:  rgba(0,0,0,0.08);
+  --border-subtle: rgba(0,0,0,0.05);
 }
+
+/* Light mode body */
+html.light body {
+  background: var(--bg-base);
+  background-attachment: fixed;
+  color: var(--text-primary);
+}
+
+/* Light mode glassmorphism cards */
+html.light .glassmorphism,
+html.light .dashboard-card,
+html.light .metric-card {
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(var(--blur-md)) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(var(--blur-md)) saturate(150%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+html.light .glassmorphism:hover,
+html.light .dashboard-card:hover {
+  background: var(--bg-card-hover) !important;
+  box-shadow: var(--shadow-lg) !important;
+  transform: translateY(-1px);
+}
+
+/* Light mode shell (sidebar + workspace bg) */
+html.light .shell-bg {
+  background: var(--bg-surface) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Light mode nav items */
+html.light .nav-item { color: var(--text-secondary); }
+html.light .nav-item:hover { background: rgba(0,0,0,0.04); color: var(--text-primary); }
+html.light .nav-item.active { background: var(--gradient-subtle); color: var(--accent-primary); }
+
+/* Light mode headings */
+html.light h1, html.light h2, html.light h3, html.light h4, html.light h5, html.light h6 {
+  color: var(--text-primary);
+}
+
+/* Reset generic text color in light (avoid white-on-white) */
+html.light p { color: var(--text-secondary); }
+
+/* Neon overrides — replace #CCFF00 with readable green in light */
+html.light .text-\[\#CCFF00\],
+html.light .text-lime-400,
+html.light [class*="text-[#CCFF00]"],
+html.light [class*="text-[#ccff00]"] {
+  color: var(--accent-primary) !important;
+}
+
+/* bg-[#CCFF00] button stays styled but with readable text */
+html.light .bg-\[\#CCFF00\],
+html.light [class*="bg-[#CCFF00]"],
+html.light [class*="bg-[#ccff00]"] {
+  background-color: var(--accent-primary) !important;
+  color: #fff !important;
+}
+
+/* bg-white/5 dark-mode cards → light cards */
+html.light [class*="bg-white/5"],
+html.light [class*="bg-white/3"],
+html.light [class*="bg-white/\[0.0"] {
+  background: rgba(0,0,0,0.03) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+html.light [class*="bg-white/10"],
+html.light [class*="bg-white/\[0.08"] {
+  background: rgba(0,0,0,0.05) !important;
+}
+
+/* text-white and text-white/* → dark in light mode */
+html.light .text-white { color: var(--text-primary) !important; }
+html.light [class*="text-white/90"],
+html.light [class*="text-white/80"],
+html.light [class*="text-white/70"],
+html.light [class*="text-white/60"] { color: var(--text-secondary) !important; }
+html.light [class*="text-white/50"],
+html.light [class*="text-white/40"],
+html.light [class*="text-white/30"],
+html.light [class*="text-white/20"],
+html.light [class*="text-white/10"] { color: var(--text-muted) !important; }
+
+/* Inputs light mode */
+html.light input, html.light textarea, html.light select {
+  background: rgba(0,0,0,0.03);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+html.light input::placeholder, html.light textarea::placeholder { color: var(--text-muted); }
+html.light input:focus, html.light textarea:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-color: var(--accent-primary);
+}
+
+/* Status badges light mode */
+html.light .status-success {
+  background: rgba(74,124,16,0.08);
+  color: var(--accent-primary);
+  border-color: rgba(74,124,16,0.15);
+}
+html.light .status-warning {
+  background: rgba(255,149,0,0.08);
+  color: var(--accent-warning);
+  border-color: rgba(255,149,0,0.15);
+}
+html.light .status-error {
+  background: rgba(255,59,48,0.08);
+  color: var(--accent-danger);
+  border-color: rgba(255,59,48,0.15);
+}
+
+/* border-white/* → subtle in light */
+html.light [class*="border-white/5"],
+html.light [class*="border-white/10"] { border-color: var(--glass-border) !important; }
 
 /* ========== BODY ========== */
 body {
