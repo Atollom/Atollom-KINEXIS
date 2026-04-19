@@ -37,7 +37,12 @@ src/dashboard/.vercel
 
 # Design / reference docs (local only)
 Nuevo\ Diseño/
+**/stitch_kinexis_ai_scaffolding/
 LOGO/
 
 # Screenshots output (generated)
 src/dashboard/public/screenshots/*.png
+
+# Logs
+*.log
+npm-debug.log*
