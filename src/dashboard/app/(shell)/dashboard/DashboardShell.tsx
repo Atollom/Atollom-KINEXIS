@@ -49,25 +49,25 @@ export function DashboardShell({ planId = 'enterprise', children }: DashboardShe
       {/* COLUMNA 1: Sidebar (260px) */}
       <aside className="w-[260px] h-full flex flex-col bg-[#040f1b] shell-bg relative z-20 border-r border-white/5 flex-shrink-0">
         {/* Logo header */}
-        <div className="p-6 border-b border-white/10">
+        <div className="p-5 border-b border-white/10">
           <div className="flex items-center gap-3">
             <Image
               src="/branding/atollom-icon.png"
-              alt="KINEXIS"
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-xl"
+              alt="Atollom"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-lg flex-shrink-0"
             />
-            <div className="flex flex-col">
-              <h1 className="text-lg font-semibold text-white tracking-tight leading-none">
-                KINEXIS
-              </h1>
-              <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">
-                Integrated AI Systems
-              </p>
-            </div>
+            <Image
+              src="/branding/logo.png"
+              alt="KINEXIS"
+              width={110}
+              height={32}
+              className="h-7 w-auto object-contain"
+              priority
+            />
           </div>
-          <p className="text-[9px] text-white/30 mt-2 tracking-wide">By Atollom Labs</p>
+          <p className="text-[9px] text-white/25 mt-2 tracking-widest uppercase">By Atollom Labs</p>
 
           {/* User info */}
           {!loading && userName && (

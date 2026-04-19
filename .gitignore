@@ -19,9 +19,25 @@ node_modules/
 src/dashboard/node_modules/
 src/dashboard/.next/
 src/dashboard/tsconfig.tsbuildinfo
+scripts/screenshots/node_modules/
+scripts/screenshots/package.json
+scripts/screenshots/package-lock.json
+
+# Root-level package files (no project here)
+/package.json
+/package-lock.json
 
 # OS
 .DS_Store
 Thumbs.db
 
+# Vercel
 .vercel
+src/dashboard/.vercel
+
+# Design / reference docs (local only)
+Nuevo\ Diseño/
+LOGO/
+
+# Screenshots output (generated)
+src/dashboard/public/screenshots/*.png
