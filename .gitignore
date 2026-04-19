@@ -43,6 +43,20 @@ LOGO/
 # Screenshots output (generated)
 src/dashboard/public/screenshots/*.png
 
-# Logs
+# Logs and test output
 *.log
 npm-debug.log*
+test_*.txt
+test_log*.txt
+
+# AI session artifacts (handoff files, memory dumps)
+SHARED_MEMORY.md
+shared_memory.json
+handoff_request.md
+load_report.md
+*.patch
+vercel_login.html
+
+# One-off scripts
+fix_parens.py
+replace_script.py
