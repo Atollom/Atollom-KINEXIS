@@ -1,0 +1,40 @@
+# KINEXIS Backend — Python Dependencies
+# Autor: Carlos Cortés (Atollom Labs)
+
+# Web framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
+# Async
+httpx==0.28.1
+aiohttp==3.11.9
+
+# Supabase
+supabase==2.10.0
+
+# Anthropic (Samantha + agentes)
+anthropic==0.40.0
+
+# Database
+asyncpg==0.30.0
+psycopg2-binary==2.9.10
+
+# Redis (Context Manager de Samantha)
+redis[asyncio]==5.2.1
+
+# Data validation
+pydantic==2.10.3
+
+# Environment
+python-dotenv==1.0.1
+
+# Integrations
+facturapi==0.2.0  # CFDI — will pin to stable when available
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+
+# Logging
+structlog==24.4.0
