@@ -1,21 +1,39 @@
 """
 Agente #13: CFDI Billing
-Responsabilidad: Generar facturas CFDI 4.0 SAT-compliant vía FacturAPI
+Responsabilidad: Generar facturas CFDI 4.0 SAT-compliant con validación completa
 Autor: Carlos Cortés (Atollom Labs)
 Fecha: 2026-04-21
 """
 
 import re
+import uuid
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-# RFC genérico para público en general (SAT)
 RFC_PUBLICO_GENERAL = "XAXX010101000"
-# Regex validación RFC (personas físicas y morales)
 RFC_PATTERN = re.compile(r"^[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3}$")
+
+# Forma de pago SAT (cómo se pagó: transferencia, efectivo, etc.)
+VALID_PAYMENT_METHODS = {"01", "02", "03", "04", "28", "29"}
+
+# Método de pago SAT (cuándo: una exhibición vs diferido)
+VALID_PAYMENT_FORMS = {"PUE", "PPD"}
+
+# Uso CFDI SAT
+VALID_USES = {"G01", "G02", "G03", "I01", "I02", "I03", "P01", "S01", "CP01"}
+
+# Folio counter — Fase 2: from Supabase sequence
+_FOLIO_COUNTER = 41
+
+
+def _next_folio() -> str:
+    global _FOLIO_COUNTER
+    _FOLIO_COUNTER += 1
+    year = datetime.now(timezone.utc).year
+    return f"F-{year}-{_FOLIO_COUNTER:03d}"
 
 
 class Agent13CFDIBilling:
@@ -23,35 +41,37 @@ class Agent13CFDIBilling:
     CFDI Billing — Generación y timbrado de facturas CFDI 4.0.
 
     Flujo:
-      1. Valida RFC del receptor con SAT
-      2. Construye XML CFDI 4.0
-      3. Timbra vía FacturAPI
-      4. Genera PDF
-      5. Envía por email / guarda en Supabase Storage
+      1. Valida RFC receptor con regex SAT
+      2. Calcula subtotal/impuestos/total desde items
+      3. Construye XML CFDI 4.0 (Fase 2: FacturAPI)
+      4. Timbra y genera PDF
+      5. Guarda en Supabase Storage
 
     Input:
         {
-            "tenant_id":      str
-            "customer_rfc":   str   — RFC receptor
-            "customer_name":  str
-            "items":          list  — [{description, qty, unit_price, unit_key}]
-            "total":          float
-            "payment_form":   str   — "03" transferencia, "01" efectivo
-            "use":            str   — "G03" gastos generales
+            "customer_rfc":    str   — RFC receptor (o XAXX010101000)
+            "customer_name":   str   — Nombre/razón social
+            "items":           list  — [{description, quantity, unit_price, tax_rate}]
+            "payment_method":  str   — "03" transferencia, "01" efectivo, etc.
+            "payment_form":    str   — "PUE" | "PPD"
+            "use":             str   — "G03" gastos generales, etc.
         }
 
     Output:
         {
-            "uuid":     str   — Folio fiscal SAT
-            "xml_url":  str
-            "pdf_url":  str
-            "series":   str
-            "folio":    int
+            "uuid":        str   — Folio fiscal SAT (UUID v4)
+            "folio":       str   — Folio interno F-YYYY-NNN
+            "subtotal":    float
+            "tax":         float
+            "total":       float
+            "xml_url":     str   — (Fase 2)
+            "pdf_url":     str   — (Fase 2)
+            "status":      str   — "timbrada" (Fase 2)
+            "timbrado_at": str   — ISO timestamp
         }
     """
 
-    REQUIRED_FIELDS = ["tenant_id", "customer_rfc", "items", "total", "payment_form"]
-    VALID_PAYMENT_FORMS = {"01", "03", "04", "28", "29"}
+    REQUIRED_FIELDS = ["customer_rfc", "customer_name", "items", "payment_method"]
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
@@ -59,15 +79,15 @@ class Agent13CFDIBilling:
         logger.info(f"{self.name} initialized")
 
     async def execute(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Genera factura CFDI 4.0 timbrada."""
+        """Genera factura CFDI 4.0."""
         try:
             validated = self._validate_input(input_data)
             result = await self._process(validated)
-            logger.info(f"{self.name} invoice generated for RFC {validated['customer_rfc']}")
+            logger.info(f"{self.name} invoice {result['folio']} RFC={validated['customer_rfc']}")
             return {
                 "success": True,
                 "agent": self.name,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "data": result,
             }
         except Exception as e:
@@ -76,7 +96,7 @@ class Agent13CFDIBilling:
                 "success": False,
                 "agent": self.name,
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
     def _validate_input(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -84,21 +104,54 @@ class Agent13CFDIBilling:
             if field not in data:
                 raise ValueError(f"Missing required field: {field}")
 
-        rfc = data["customer_rfc"].upper().strip()
+        rfc = str(data["customer_rfc"]).upper().strip()
         if not RFC_PATTERN.match(rfc):
             raise ValueError(f"RFC inválido: {rfc}")
         data["customer_rfc"] = rfc
 
-        if not isinstance(data["items"], list) or len(data["items"]) == 0:
+        customer_name = str(data["customer_name"]).strip()
+        if not customer_name:
+            raise ValueError("customer_name cannot be empty")
+
+        items = data["items"]
+        if not isinstance(items, list) or len(items) == 0:
             raise ValueError("items must be non-empty list")
 
-        if float(data["total"]) <= 0:
-            raise ValueError("total must be > 0")
+        for i, item in enumerate(items):
+            if float(item.get("unit_price", 0)) < 0:
+                raise ValueError(f"items[{i}] unit_price must be >= 0")
+            if int(item.get("quantity", 0)) <= 0:
+                raise ValueError(f"items[{i}] quantity must be > 0")
+            tax_rate = float(item.get("tax_rate", 0.16))
+            if not (0 <= tax_rate <= 1):
+                raise ValueError(f"items[{i}] tax_rate must be 0-1")
 
-        if data["payment_form"] not in self.VALID_PAYMENT_FORMS:
-            raise ValueError(f"payment_form inválida. Válidas: {self.VALID_PAYMENT_FORMS}")
+        if data["payment_method"] not in VALID_PAYMENT_METHODS:
+            raise ValueError(f"Invalid payment_method. Valid: {VALID_PAYMENT_METHODS}")
+
+        payment_form = data.get("payment_form", "PUE")
+        if payment_form not in VALID_PAYMENT_FORMS:
+            raise ValueError(f"Invalid payment_form. Valid: {VALID_PAYMENT_FORMS}")
+        data["payment_form"] = payment_form
+
+        use = data.get("use", "G03")
+        if use not in VALID_USES:
+            raise ValueError(f"Invalid use. Valid: {VALID_USES}")
+        data["use"] = use
 
         return data
+
+    def _calculate_totals(self, items: list) -> tuple[float, float, float]:
+        """Returns (subtotal, tax, total)."""
+        subtotal = sum(
+            float(item["unit_price"]) * int(item["quantity"])
+            for item in items
+        )
+        tax = sum(
+            float(item["unit_price"]) * int(item["quantity"]) * float(item.get("tax_rate", 0.16))
+            for item in items
+        )
+        return round(subtotal, 2), round(tax, 2), round(subtotal + tax, 2)
 
     async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -108,18 +161,31 @@ class Agent13CFDIBilling:
         invoice = await client.invoices.create({
             "customer": {"legal_name": data["customer_name"], "tax_id": data["customer_rfc"]},
             "items": data["items"],
-            "payment_form": data["payment_form"],
-            "use": data.get("use", "G03"),
+            "payment_form": data["payment_method"],
+            "payment_method": data["payment_form"],
+            "use": data["use"],
         })
-        return {"uuid": invoice.uuid, "xml_url": invoice.xml_url, "pdf_url": invoice.pdf_url}
+        return {"uuid": invoice.uuid, "xml_url": invoice.xml_url, ...}
         """
+        subtotal, tax, total = self._calculate_totals(data["items"])
+        folio = _next_folio()
+
         return {
-            "uuid": None,
+            "uuid": str(uuid.uuid4()),
+            "folio": folio,
+            "customer_rfc": data["customer_rfc"],
+            "customer_name": data["customer_name"],
+            "subtotal": subtotal,
+            "tax": tax,
+            "total": total,
+            "payment_method": data["payment_method"],
+            "payment_form": data["payment_form"],
+            "use": data["use"],
             "xml_url": None,
             "pdf_url": None,
-            "series": "A",
-            "folio": None,
-            "note": "FacturAPI integration pending — Fase 2",
+            "status": "pending_timbrado",
+            "timbrado_at": None,
+            "note": "FacturAPI timbrado integration pending — Fase 2",
         }
 
 
