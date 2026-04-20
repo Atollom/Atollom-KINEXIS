@@ -26,6 +26,13 @@ from .erp.agent_24_thermal_printer import thermal_printer
 from .erp.agent_25_skydrop_shipping import skydrop_shipping
 from .erp.agent_30_purchase_orders import purchase_orders
 
+# ── Meta ──────────────────────────────────────────────────────────────────────
+from .meta.agent_wa_whatsapp import wa_agent
+from .meta.agent_ig_instagram import ig_agent
+from .meta.agent_fb_facebook import fb_agent
+from .meta.agent_12_ads_manager import ads_manager
+from .meta.agent_content_publisher import content_publisher
+
 # ── CRM ───────────────────────────────────────────────────────────────────────
 from .crm.agent_04_b2b_collector import b2b_collector
 from .crm.agent_19_nps_collector import nps_collector
@@ -53,6 +60,12 @@ __all__ = [
     "thermal_printer",
     "skydrop_shipping",
     "purchase_orders",
+    # Meta
+    "wa_agent",
+    "ig_agent",
+    "fb_agent",
+    "ads_manager",
+    "content_publisher",
     # CRM
     "b2b_collector",
     "nps_collector",
