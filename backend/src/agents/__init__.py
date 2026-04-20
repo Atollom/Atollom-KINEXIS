@@ -27,7 +27,12 @@ from .erp.agent_25_skydrop_shipping import skydrop_shipping
 from .erp.agent_30_purchase_orders import purchase_orders
 
 # ── CRM ───────────────────────────────────────────────────────────────────────
+from .crm.agent_04_b2b_collector import b2b_collector
+from .crm.agent_19_nps_collector import nps_collector
 from .crm.agent_31_lead_scorer import lead_scorer
+from .crm.agent_32_quote_generator import quote_generator
+from .crm.agent_33_follow_up import follow_up
+from .crm.agent_37_support_tickets import support_tickets
 
 __all__ = [
     # Core
@@ -49,5 +54,10 @@ __all__ = [
     "skydrop_shipping",
     "purchase_orders",
     # CRM
+    "b2b_collector",
+    "nps_collector",
     "lead_scorer",
+    "quote_generator",
+    "follow_up",
+    "support_tickets",
 ]
