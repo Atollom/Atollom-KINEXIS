@@ -112,16 +112,6 @@ class AgentWAWhatsApp:
         return data
 
     async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        TODO Fase 2:
-        import httpx
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"https://graph.facebook.com/v19.0/{PHONE_NUMBER_ID}/messages",
-                headers={"Authorization": f"Bearer {WA_ACCESS_TOKEN}"},
-                json={...}
-            )
-        """
         action = data["action"]
         phone = data.get("phone", "")
 
@@ -142,6 +132,47 @@ class AgentWAWhatsApp:
                 "note": "Webhook processing & DB storage pending — Fase 2",
             }
 
+        # Try real WhatsApp Cloud API
+        try:
+            from src.integrations import whatsapp_integration
+            if whatsapp_integration.access_token and whatsapp_integration.phone_number_id:
+                template = data.get("template")
+                media = data.get("media")
+                if template:
+                    api_result = await whatsapp_integration.send_template(
+                        to=phone,
+                        template_name=template,
+                        language_code=data.get("language_code", "es_MX"),
+                    )
+                elif media:
+                    api_result = await whatsapp_integration.send_media(
+                        to=phone,
+                        media_type=media.get("type", "image"),
+                        media_url=media.get("url", ""),
+                        caption=data.get("message", ""),
+                    )
+                else:
+                    api_result = await whatsapp_integration.send_message(
+                        to=phone,
+                        message=data.get("message", ""),
+                    )
+                if api_result.get("success"):
+                    logger.info(f"{self.name} sent via WhatsApp API to {phone}")
+                    wamid = api_result.get("message_id") or _generate_wamid(phone)
+                    return {
+                        "action": action,
+                        "message_id": wamid,
+                        "phone": phone,
+                        "status": "sent",
+                        "conversation_id": data.get("conversation_id") or _generate_conv_id(phone),
+                        "has_template": bool(template),
+                        "has_media": bool(media),
+                        "sent_at": datetime.now(timezone.utc).isoformat(),
+                        "provider": "whatsapp_cloud_api",
+                    }
+        except Exception as e:
+            logger.warning(f"{self.name} WhatsApp API unavailable, using mock: {e}")
+
         conv_id = data.get("conversation_id") or _generate_conv_id(phone)
         return {
             "action": action,
@@ -152,7 +183,7 @@ class AgentWAWhatsApp:
             "has_template": bool(data.get("template")),
             "has_media": bool(data.get("media")),
             "sent_at": datetime.now(timezone.utc).isoformat(),
-            "note": "WhatsApp Cloud API integration pending — Fase 2",
+            "note": "configure WA_ACCESS_TOKEN + WA_PHONE_NUMBER_ID in .env",
         }
 
 

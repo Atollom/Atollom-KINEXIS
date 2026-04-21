@@ -143,25 +143,34 @@ class Agent27MLQuestions:
         return "unknown", UNKNOWN_ANSWER, False
 
     async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        TODO Fase 2:
-        - Fetch product details from ML API for context-aware answers
-        - Use Claude Sonnet API for natural language answer generation
-        - Post answer to ML API: ml_api.questions.answer(question_id, answer)
-        """
         category, answer, auto_answered = self._classify_question(
             data["question_text"]
         )
 
-        return {
+        answered_via_api = False
+        try:
+            from src.integrations import ml_integration
+            if auto_answered and (ml_integration._access_token or ml_integration.test_access_token):
+                qid = data["question_id"]
+                if str(qid).isdigit():
+                    await ml_integration.answer_question(int(qid), answer)
+                    answered_via_api = True
+                    logger.info(f"{self.name} posted answer to ML API for question {qid}")
+        except Exception as e:
+            logger.warning(f"{self.name} ML API answer post failed: {e}")
+
+        result = {
             "question_id": data["question_id"],
             "product_id": data["product_id"],
             "category": category,
             "answer": answer,
             "auto_answered": auto_answered,
+            "answered_via_api": answered_via_api,
             "answered_at": datetime.now(timezone.utc).isoformat(),
-            "note": "ML API answer posting pending — Fase 2",
         }
+        if not answered_via_api:
+            result["note"] = "ML API answer posting pending — configure credentials in .env"
+        return result
 
 
 ml_questions = Agent27MLQuestions()

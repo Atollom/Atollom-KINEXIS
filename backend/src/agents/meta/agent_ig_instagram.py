@@ -105,16 +105,6 @@ class AgentIGInstagram:
         return data
 
     async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        TODO Fase 2:
-        import httpx
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"https://graph.facebook.com/v19.0/me/messages",
-                params={"access_token": IG_ACCESS_TOKEN},
-                json={"recipient": {"id": ig_id}, "message": {"text": message}}
-            )
-        """
         action = data["action"]
         ig_id = data.get("instagram_id", "")
 
@@ -136,6 +126,38 @@ class AgentIGInstagram:
                 "note": "Webhook processing & DB storage pending — Fase 2",
             }
 
+        # Try real Instagram Graph API via WhatsApp integration (shared token)
+        try:
+            from src.integrations import whatsapp_integration
+            if whatsapp_integration.access_token:
+                media = data.get("media")
+                if media:
+                    api_result = await whatsapp_integration.send_media(
+                        to=ig_id,
+                        media_type=media.get("type", "image"),
+                        media_url=media.get("url", ""),
+                        caption=data.get("message", ""),
+                    )
+                else:
+                    api_result = await whatsapp_integration.send_message(
+                        to=ig_id,
+                        message=data.get("message", ""),
+                    )
+                if api_result.get("success"):
+                    logger.info(f"{self.name} sent via Instagram Graph API to {ig_id}")
+                    return {
+                        "action": action,
+                        "message_id": api_result.get("message_id") or _generate_ig_msg_id(ig_id),
+                        "instagram_id": ig_id,
+                        "status": "sent",
+                        "conversation_id": data.get("conversation_id") or _generate_ig_conv_id(ig_id),
+                        "has_media": bool(media),
+                        "sent_at": datetime.now(timezone.utc).isoformat(),
+                        "provider": "instagram_graph_api",
+                    }
+        except Exception as e:
+            logger.warning(f"{self.name} Instagram Graph API unavailable, using mock: {e}")
+
         conv_id = data.get("conversation_id") or _generate_ig_conv_id(ig_id)
         return {
             "action": action,
@@ -145,7 +167,7 @@ class AgentIGInstagram:
             "conversation_id": conv_id,
             "has_media": bool(data.get("media")),
             "sent_at": datetime.now(timezone.utc).isoformat(),
-            "note": "Instagram Graph API integration pending — Fase 2",
+            "note": "configure IG_ACCESS_TOKEN in .env",
         }
 
 

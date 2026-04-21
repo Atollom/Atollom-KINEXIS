@@ -115,19 +115,6 @@ class AgentFBFacebook:
         return data
 
     async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        TODO Fase 2:
-        import httpx
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                "https://graph.facebook.com/v19.0/me/messages",
-                params={"access_token": FB_PAGE_ACCESS_TOKEN},
-                json={
-                    "recipient": {"id": fb_id},
-                    "message": {"text": message, "quick_replies": quick_replies}
-                }
-            )
-        """
         action = data["action"]
         fb_id = data.get("facebook_id", "")
 
@@ -148,6 +135,31 @@ class AgentFBFacebook:
                 "note": "Webhook processing & DB storage pending — Fase 2",
             }
 
+        # Try real Facebook Graph API via WhatsApp integration (shared token)
+        try:
+            from src.integrations import whatsapp_integration
+            if whatsapp_integration.access_token:
+                api_result = await whatsapp_integration.send_message(
+                    to=fb_id,
+                    message=data.get("message", ""),
+                )
+                if api_result.get("success"):
+                    logger.info(f"{self.name} sent via Facebook Graph API to {fb_id}")
+                    qr = data.get("quick_replies")
+                    return {
+                        "action": action,
+                        "message_id": api_result.get("message_id") or _generate_fb_msg_id(fb_id),
+                        "facebook_id": fb_id,
+                        "status": "sent",
+                        "conversation_id": data.get("conversation_id") or _generate_fb_conv_id(fb_id),
+                        "has_quick_replies": bool(qr),
+                        "quick_replies_count": len(qr) if qr else 0,
+                        "sent_at": datetime.now(timezone.utc).isoformat(),
+                        "provider": "facebook_graph_api",
+                    }
+        except Exception as e:
+            logger.warning(f"{self.name} Facebook Graph API unavailable, using mock: {e}")
+
         conv_id = data.get("conversation_id") or _generate_fb_conv_id(fb_id)
         qr = data.get("quick_replies")
         return {
@@ -159,7 +171,7 @@ class AgentFBFacebook:
             "has_quick_replies": bool(qr),
             "quick_replies_count": len(qr) if qr else 0,
             "sent_at": datetime.now(timezone.utc).isoformat(),
-            "note": "Facebook Graph API integration pending — Fase 2",
+            "note": "configure FB_PAGE_ACCESS_TOKEN in .env",
         }
 
 

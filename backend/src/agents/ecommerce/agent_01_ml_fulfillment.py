@@ -77,14 +77,33 @@ class Agent01MLFulfillment:
         return data
 
     async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        TODO Fase 2: Implementar flujo real.
-        1. await agent_05_inventory.check_stock(data["items"])
-        2. await agent_25_shipping.create_shipment(data["shipping_address"])
-        3. await ml_api.update_order_status(data["order_id"], "shipped")
-        4. await whatsapp_agent.notify_buyer(data["order_id"])
-        """
         order_id = data["order_id"]
+
+        # Try real ML API when credentials are available
+        try:
+            from src.integrations import ml_integration
+            if ml_integration._access_token or ml_integration.test_access_token:
+                orders = await ml_integration.get_orders(status="paid")
+                order = next(
+                    (o for o in orders if str(o.get("id")) == str(order_id)), None
+                )
+                if order:
+                    logger.info(f"{self.name} fetched real order {order_id} from ML API")
+                    return {
+                        "order_id": order_id,
+                        "order_data": order,
+                        "status": "processing",
+                        "total": order.get("total_amount"),
+                        "buyer": order.get("buyer", {}).get("nickname"),
+                        "tracking_number": None,
+                        "carrier": None,
+                        "estimated_delivery": None,
+                        "note": "Shipping dispatch pending — Fase 2",
+                    }
+        except Exception as e:
+            logger.warning(f"{self.name} ML API unavailable, using mock: {e}")
+
+        # Mock fallback — no credentials or order not found in API
         return {
             "order_id": order_id,
             "status": "queued_for_fulfillment",

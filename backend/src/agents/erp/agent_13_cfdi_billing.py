@@ -154,22 +154,52 @@ class Agent13CFDIBilling:
         return round(subtotal, 2), round(tax, 2), round(subtotal + tax, 2)
 
     async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        TODO Fase 2:
-        import facturapi
-        client = facturapi.Facturapi(os.getenv("FACTURAPI_KEY"))
-        invoice = await client.invoices.create({
-            "customer": {"legal_name": data["customer_name"], "tax_id": data["customer_rfc"]},
-            "items": data["items"],
-            "payment_form": data["payment_method"],
-            "payment_method": data["payment_form"],
-            "use": data["use"],
-        })
-        return {"uuid": invoice.uuid, "xml_url": invoice.xml_url, ...}
-        """
         subtotal, tax, total = self._calculate_totals(data["items"])
         folio = _next_folio()
 
+        # Try real CFDI dual provider (Facturama → FacturAPI fallback)
+        try:
+            from src.integrations import cfdi_provider
+            generic_items = [
+                {
+                    "description": item.get("description", "Producto"),
+                    "product_key": item.get("product_key", "01010101"),
+                    "quantity": int(item.get("quantity", 1)),
+                    "unit_price": float(item.get("unit_price", 0)),
+                }
+                for item in data["items"]
+            ]
+            result = await cfdi_provider.create_invoice(
+                customer_rfc=data["customer_rfc"],
+                customer_name=data["customer_name"],
+                items=generic_items,
+                payment_form=data["payment_method"],
+                payment_method=data.get("payment_form", "PUE"),
+                use=data.get("use", "G03"),
+            )
+            if result["success"]:
+                logger.info(f"{self.name} timbrado OK via {result.get('provider')}")
+                return {
+                    "uuid": result.get("uuid") or str(uuid.uuid4()),
+                    "folio": result.get("folio_number") or folio,
+                    "customer_rfc": data["customer_rfc"],
+                    "customer_name": data["customer_name"],
+                    "subtotal": subtotal,
+                    "tax": tax,
+                    "total": total,
+                    "payment_method": data["payment_method"],
+                    "payment_form": data.get("payment_form", "PUE"),
+                    "use": data.get("use", "G03"),
+                    "xml_url": result.get("xml_url"),
+                    "pdf_url": result.get("pdf_url"),
+                    "status": "timbrada",
+                    "timbrado_at": result.get("timbrado_at") or datetime.now(timezone.utc).isoformat(),
+                    "provider": result.get("provider"),
+                }
+        except Exception as e:
+            logger.warning(f"{self.name} CFDI provider unavailable, using mock: {e}")
+
+        # Mock fallback — no credentials or provider error
         return {
             "uuid": str(uuid.uuid4()),
             "folio": folio,
@@ -179,13 +209,13 @@ class Agent13CFDIBilling:
             "tax": tax,
             "total": total,
             "payment_method": data["payment_method"],
-            "payment_form": data["payment_form"],
-            "use": data["use"],
+            "payment_form": data.get("payment_form", "PUE"),
+            "use": data.get("use", "G03"),
             "xml_url": None,
             "pdf_url": None,
             "status": "pending_timbrado",
             "timbrado_at": None,
-            "note": "FacturAPI timbrado integration pending — Fase 2",
+            "note": "CFDI provider integration pending — configure credentials in .env",
         }
 
 
