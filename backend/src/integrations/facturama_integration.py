@@ -132,6 +132,107 @@ class FacturamaIntegration(BaseIntegration):
                     "details": data.get("ModelState", {}),
                 }
 
+    async def create_invoice_for_rfc(
+        self,
+        issuer_rfc: str,
+        issuer_name: str,
+        customer_rfc: str,
+        customer_name: str,
+        items: List[Dict[str, Any]],
+        payment_form: str = "03",
+        payment_method: str = "PUE",
+        cfdi_use: str = "G03",
+    ) -> Dict[str, Any]:
+        """
+        Crea factura con RFC emisor específico via Facturama Profiles.
+
+        Facturama permite múltiples RFC bajo una cuenta usando Profiles.
+        Esto habilita que cada tenant facture con su propio RFC.
+        """
+        profile_id = await self._get_or_create_profile(issuer_rfc, issuer_name)
+        if not profile_id:
+            return {
+                "success": False,
+                "provider": "facturama",
+                "error": f"Could not get/create profile for RFC: {issuer_rfc}",
+            }
+
+        payload = {
+            "ProfileId": profile_id,
+            "Receiver": {"Rfc": customer_rfc, "Name": customer_name, "CfdiUse": cfdi_use},
+            "CfdiType": "I",
+            "PaymentForm": payment_form,
+            "PaymentMethod": payment_method,
+            "Items": items,
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self._base()}/api/3/cfdis", headers=self._get_headers(), json=payload
+            ) as resp:
+                data = await resp.json()
+                if resp.status in (200, 201):
+                    stamp = data.get("Complement", {}).get("TaxStamp", {})
+                    provider_id = data.get("Id")
+                    return {
+                        "success": True,
+                        "provider": "facturama",
+                        "provider_invoice_id": provider_id,
+                        "uuid": stamp.get("Uuid"),
+                        "folio_number": data.get("Folio"),
+                        "serie": data.get("Serie"),
+                        "total": data.get("Total"),
+                        "subtotal": data.get("Subtotal"),
+                        "xml_url": f"{self._base()}/api/3/cfdis/{provider_id}/xml",
+                        "pdf_url": f"{self._base()}/api/3/cfdis/{provider_id}/pdf",
+                        "status": "valid",
+                        "timbrado_at": data.get("Date"),
+                    }
+                return {
+                    "success": False,
+                    "provider": "facturama",
+                    "error": data.get("Message", "Unknown error"),
+                    "details": data.get("ModelState", {}),
+                }
+
+    async def _get_or_create_profile(self, rfc: str, razon_social: str) -> Optional[str]:
+        """
+        Busca Profile existente para el RFC o crea uno nuevo.
+
+        Facturama Profiles permiten múltiples RFC emisores bajo una sola
+        cuenta de Atollom — cada tenant puede facturar con su propio RFC.
+        """
+        if not all([self.user, self.password]):
+            logger.warning("Facturama credentials not configured — cannot manage profiles")
+            return None
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"{self._base()}/api/3/profiles", headers=self._get_headers()
+                ) as resp:
+                    if resp.status == 200:
+                        profiles = await resp.json()
+                        for profile in (profiles if isinstance(profiles, list) else []):
+                            if profile.get("Rfc") == rfc:
+                                logger.info(f"Found existing Facturama profile for RFC {rfc}: {profile['Id']}")
+                                return profile["Id"]
+
+                # Profile not found — create it
+                async with session.post(
+                    f"{self._base()}/api/3/profiles",
+                    headers=self._get_headers(),
+                    json={"Rfc": rfc, "Name": razon_social},
+                ) as create_resp:
+                    if create_resp.status in (200, 201):
+                        new_profile = await create_resp.json()
+                        logger.info(f"Created Facturama profile for RFC {rfc}: {new_profile['Id']}")
+                        return new_profile["Id"]
+                    err = await create_resp.json()
+                    logger.error(f"Failed to create Facturama profile for {rfc}: {err}")
+                    return None
+        except Exception as e:
+            logger.error(f"_get_or_create_profile error for {rfc}: {e}")
+            return None
+
     # ── Read / Cancel ─────────────────────────────────────────────────────────
 
     async def get_invoice(self, cfdi_id: str) -> Dict[str, Any]:
@@ -157,6 +258,8 @@ class FacturamaIntegration(BaseIntegration):
         Args:
             motive: 01-04 (clave SAT de cancelacion)
         """
+        if not all([self.user, self.password]):
+            return {"success": False, "provider": "Facturama", "error": "Credentials not configured"}
         params: Dict[str, Any] = {"motive": motive}
         if substitution_uuid:
             params["substitution"] = substitution_uuid

@@ -126,6 +126,66 @@ class FacturapiIntegration(BaseIntegration):
                     "error": data.get("message", "Unknown error"),
                 }
 
+    async def create_invoice_for_rfc(
+        self,
+        issuer_rfc: str,
+        issuer_name: str,
+        customer_rfc: str,
+        customer_name: str,
+        items: List[Dict[str, Any]],
+        payment_form: str = "03",
+        payment_method: str = "PUE",
+        use: str = "G03",
+    ) -> Dict[str, Any]:
+        """
+        Crea factura con RFC emisor específico.
+
+        FacturAPI usa Organizations para multi-RFC. En la integración base
+        se usa la organization configurada en la API key. Para multi-RFC
+        verdadero se necesitarían organizations separadas por tenant.
+
+        El issuer_rfc se registra en el campo customer del CFDI;
+        la organization que aparece como emisor depende de la API key.
+        """
+        logger.info(f"FacturAPI invoice: issuer={issuer_rfc} ({issuer_name}) → receiver={customer_rfc}")
+        payload = {
+            "customer": {
+                "legal_name": customer_name,
+                "tax_id": customer_rfc,
+                "tax_system": "601",
+                "address": {"zip": "00000"},
+            },
+            "items": items,
+            "payment_form": payment_form,
+            "use": use,
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self._base()}/v2/invoices", headers=self._get_headers(), json=payload
+            ) as resp:
+                data = await resp.json()
+                if resp.status in (200, 201):
+                    return {
+                        "success": True,
+                        "provider": "facturapi",
+                        "provider_invoice_id": data.get("id"),
+                        "uuid": data.get("uuid"),
+                        "folio_number": data.get("folio_number"),
+                        "serie": data.get("series"),
+                        "total": data.get("total"),
+                        "subtotal": data.get("subtotal"),
+                        "pdf_url": data.get("pdf_custom_link") or data.get("pdf_original_link"),
+                        "xml_url": data.get("xml_original_link"),
+                        "verification_url": data.get("verification_url"),
+                        "status": data.get("status"),
+                        "timbrado_at": data.get("created_at"),
+                    }
+                return {
+                    "success": False,
+                    "provider": "facturapi",
+                    "error": data.get("message", "Unknown error"),
+                }
+
     # ── Read / Cancel ─────────────────────────────────────────────────────────
 
     async def get_invoice(self, invoice_id: str) -> Dict[str, Any]:
