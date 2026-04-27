@@ -11,7 +11,8 @@ from src.routers import (
     onboarding_router,
     cfdi_router,
     samantha_router,
-    dashboard_router
+    dashboard_router,
+    agents_router,
 )
 
 @asynccontextmanager
@@ -51,3 +52,4 @@ app.include_router(onboarding_router.router)
 app.include_router(cfdi_router.router)
 app.include_router(samantha_router.router)
 app.include_router(dashboard_router.router)
+app.include_router(agents_router.router)

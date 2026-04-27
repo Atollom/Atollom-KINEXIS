@@ -1,5 +1,5 @@
 {
   "pythonVersion": "3.12",
   "include": ["src", "main.py", "tests", "scripts"],
-  "extraPaths": ["."]
+  "extraPaths": [".", "backend"]
 }

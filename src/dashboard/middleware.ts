@@ -1,7 +1,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/login', '/unauthorized', '/api/health']
+const PUBLIC_PATHS = ['/', '/login', '/unauthorized', '/api/health']
+
+// E2E test bypass — set PLAYWRIGHT_BYPASS_AUTH=true in test environment only
+const E2E_BYPASS = process.env.PLAYWRIGHT_BYPASS_AUTH === 'true'
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some(p => pathname.startsWith(p))
@@ -16,6 +19,7 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     if (isStaticAsset(pathname)) return NextResponse.next()
+    if (E2E_BYPASS) return NextResponse.next()
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

@@ -2,57 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ========== DARK MODE — Enterprise Premium ========== */
+/* ========== DARK MODE & LIGHT MODE VARIABLES ========== */
 :root {
-  /* Backgrounds */
-  --bg-base:       linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-  --bg-surface:    rgba(15, 23, 42, 0.7);
-  --bg-card:       rgba(30, 41, 59, 0.4);
-  --bg-card-hover: rgba(51, 65, 85, 0.5);
+  /* LIGHT MODE VARIABLES */
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #fafafa;
+  --card-foreground: #0a0a0a;
+  --primary: #22c55e; /* green-500 */
+  --primary-foreground: #ffffff;
 
-  /* Glass */
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shine:  rgba(255, 255, 255, 0.05);
-  --blur-sm: 8px;
-  --blur-md: 16px;
-  --blur-lg: 24px;
-
-  /* Text */
-  --text-primary:   rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-muted:     rgba(255, 255, 255, 0.4);
-
-  /* Accent — KINEXIS green */
-  --accent-primary:   #b8e74a;
-  --accent-secondary: #7fb518;
-  --accent-warning:   #fbbf24;
-  --accent-danger:    #f87171;
-
-  /* Gradients */
-  --gradient-brand:  linear-gradient(135deg, #b8e74a 0%, #7fb518 100%);
-  --gradient-subtle: linear-gradient(135deg, rgba(184,231,74,0.1) 0%, rgba(127,181,24,0.1) 100%);
-
-  /* Shadows */
-  --shadow-ambient: 0 0 60px rgba(0,0,0,0.3);
-  --shadow-sm:  0 2px 8px rgba(0,0,0,0.2);
-  --shadow-md:  0 4px 16px rgba(0,0,0,0.3), 0 0 0 1px var(--glass-border);
-  --shadow-lg:  0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--glass-border), inset 0 1px 0 var(--glass-shine);
-  --shadow-glow: 0 0 40px rgba(184,231,74,0.15);
-
-  /* Legacy compat */
-  --border-color:  rgba(255,255,255,0.05);
-  --border-subtle: rgba(255,255,255,0.05);
-}
-
-/* ========== LIGHT MODE — Apple-grade ========== */
-html.light {
   --bg-base:       linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-  --bg-surface:    rgba(255,255,255,0.85);
-  --bg-card:       rgba(255,255,255,0.70);
-  --bg-card-hover: rgba(255,255,255,0.95);
+  --bg-surface:    rgba(255, 255, 255, 0.85);
+  --bg-card:       rgba(255, 255, 255, 0.70);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
 
-  --glass-border: rgba(0,0,0,0.06);
-  --glass-shine:  rgba(255,255,255,0.9);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-shine:  rgba(255, 255, 255, 0.9);
   --blur-sm: 12px;
   --blur-md: 24px;
   --blur-lg: 40px;
@@ -61,7 +27,6 @@ html.light {
   --text-secondary: #515154;
   --text-muted:     #86868b;
 
-  /* Darker green for legible contrast on white */
   --accent-primary:   #4a7c10;
   --accent-secondary: #3a6209;
   --accent-warning:   #ff9500;
@@ -80,124 +45,90 @@ html.light {
   --border-subtle: rgba(0,0,0,0.05);
 }
 
-/* Light mode body */
-html.light body {
-  background: var(--bg-base);
-  background-attachment: fixed;
-  color: var(--text-primary);
+.dark {
+  /* DARK MODE VARIABLES (KINEXIS Default) */
+  --background: #0a0e27;
+  --foreground: #ffffff;
+  --card: #111827;
+  --card-foreground: #ffffff;
+  --primary: #ccff00;
+  --primary-foreground: #000000;
+
+  --bg-base:       linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  --bg-surface:    rgba(15, 23, 42, 0.7);
+  --bg-card:       rgba(30, 41, 59, 0.4);
+  --bg-card-hover: rgba(51, 65, 85, 0.5);
+
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shine:  rgba(255, 255, 255, 0.05);
+  --blur-sm: 8px;
+  --blur-md: 16px;
+  --blur-lg: 24px;
+
+  --text-primary:   rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted:     rgba(255, 255, 255, 0.4);
+
+  --accent-primary:   #ccff00;
+  --accent-secondary: #7fb518;
+  --accent-warning:   #fbbf24;
+  --accent-danger:    #f87171;
+
+  --gradient-brand:  linear-gradient(135deg, #ccff00 0%, #7fb518 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(204,255,0,0.1) 0%, rgba(127,181,24,0.1) 100%);
+
+  --shadow-ambient: 0 0 60px rgba(0,0,0,0.3);
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.2);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.3), 0 0 0 1px var(--glass-border);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--glass-border), inset 0 1px 0 var(--glass-shine);
+  --shadow-glow: 0 0 40px rgba(204,255,0,0.15);
+
+  --border-color:  rgba(255,255,255,0.05);
+  --border-subtle: rgba(255,255,255,0.05);
 }
 
-/* Light mode glassmorphism cards */
+/* Fallback for Next-Themes .light class */
+.light {
+  /* Same as :root for explicit override if needed */
+}
+
+/* Note: We remove the html.light specific overrides here and use variables instead where possible.
+   However, we need to keep overrides for classes that hardcode opacity over black/white. */
 html.light .glassmorphism,
 html.light .dashboard-card,
 html.light .metric-card {
   background: var(--bg-card) !important;
-  backdrop-filter: blur(var(--blur-md)) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(var(--blur-md)) saturate(150%) !important;
-  border: 1px solid var(--glass-border) !important;
+  border-color: var(--glass-border) !important;
   box-shadow: var(--shadow-md) !important;
 }
 
-html.light .glassmorphism:hover,
-html.light .dashboard-card:hover {
-  background: var(--bg-card-hover) !important;
-  box-shadow: var(--shadow-lg) !important;
-  transform: translateY(-1px);
-}
-
-/* Light mode shell (sidebar + workspace bg) */
 html.light .shell-bg {
   background: var(--bg-surface) !important;
   border-color: var(--glass-border) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
-/* Light mode nav items */
-html.light .nav-item { color: var(--text-secondary); }
-html.light .nav-item:hover { background: rgba(0,0,0,0.04); color: var(--text-primary); }
-html.light .nav-item.active { background: var(--gradient-subtle); color: var(--accent-primary); }
-
-/* Light mode headings */
-html.light h1, html.light h2, html.light h3, html.light h4, html.light h5, html.light h6 {
-  color: var(--text-primary);
+html.light [class*="bg-white/"] {
+  background: rgba(0,0,0,0.04) !important;
+  border-color: var(--glass-border) !important;
 }
 
-/* Reset generic text color in light (avoid white-on-white) */
-html.light p { color: var(--text-secondary); }
-
-/* Neon overrides — replace #CCFF00 with readable green in light */
-html.light .text-\[\#CCFF00\],
-html.light .text-lime-400,
-html.light [class*="text-[#CCFF00]"],
-html.light [class*="text-[#ccff00]"] {
-  color: var(--accent-primary) !important;
+html.light [class*="text-white/"] {
+  color: var(--text-secondary) !important;
 }
 
-/* bg-[#CCFF00] button stays styled but with readable text */
-html.light .bg-\[\#CCFF00\],
-html.light [class*="bg-[#CCFF00]"],
-html.light [class*="bg-[#ccff00]"] {
+html.light .text-white {
+  color: var(--text-primary) !important;
+}
+
+html.light .bg-\[\#CCFF00\] {
   background-color: var(--accent-primary) !important;
   color: #fff !important;
 }
 
-/* bg-white/5 dark-mode cards → light cards */
-html.light [class*="bg-white/5"],
-html.light [class*="bg-white/3"],
-html.light [class*="bg-white/\[0.0"] {
-  background: rgba(0,0,0,0.03) !important;
-  border: 1px solid var(--glass-border) !important;
+html.light .text-\[\#CCFF00\] {
+  color: var(--accent-primary) !important;
 }
-html.light [class*="bg-white/10"],
-html.light [class*="bg-white/\[0.08"] {
-  background: rgba(0,0,0,0.05) !important;
-}
-
-/* text-white and text-white/* → dark in light mode */
-html.light .text-white { color: var(--text-primary) !important; }
-html.light [class*="text-white/90"],
-html.light [class*="text-white/80"],
-html.light [class*="text-white/70"],
-html.light [class*="text-white/60"] { color: var(--text-secondary) !important; }
-html.light [class*="text-white/50"],
-html.light [class*="text-white/40"],
-html.light [class*="text-white/30"],
-html.light [class*="text-white/20"],
-html.light [class*="text-white/10"] { color: var(--text-muted) !important; }
-
-/* Inputs light mode */
-html.light input, html.light textarea, html.light select {
-  background: rgba(0,0,0,0.03);
-  border: 1px solid var(--glass-border);
-  color: var(--text-primary);
-}
-html.light input::placeholder, html.light textarea::placeholder { color: var(--text-muted); }
-html.light input:focus, html.light textarea:focus {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
-  border-color: var(--accent-primary);
-}
-
-/* Status badges light mode */
-html.light .status-success {
-  background: rgba(74,124,16,0.08);
-  color: var(--accent-primary);
-  border-color: rgba(74,124,16,0.15);
-}
-html.light .status-warning {
-  background: rgba(255,149,0,0.08);
-  color: var(--accent-warning);
-  border-color: rgba(255,149,0,0.15);
-}
-html.light .status-error {
-  background: rgba(255,59,48,0.08);
-  color: var(--accent-danger);
-  border-color: rgba(255,59,48,0.15);
-}
-
-/* border-white/* → subtle in light */
-html.light [class*="border-white/5"],
-html.light [class*="border-white/10"] { border-color: var(--glass-border) !important; }
 
 /* ========== BODY ========== */
 body {
