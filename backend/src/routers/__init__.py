@@ -7,6 +7,7 @@ from . import cfdi_router
 from . import samantha_router
 from . import dashboard_router
 from . import agents_router
+from . import stripe_router
 
 __all__ = [
     "onboarding_router",
@@ -14,4 +15,5 @@ __all__ = [
     "samantha_router",
     "dashboard_router",
     "agents_router",
+    "stripe_router",
 ]

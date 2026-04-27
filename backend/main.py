@@ -13,6 +13,7 @@ from src.routers import (
     samantha_router,
     dashboard_router,
     agents_router,
+    stripe_router,
 )
 
 @asynccontextmanager
