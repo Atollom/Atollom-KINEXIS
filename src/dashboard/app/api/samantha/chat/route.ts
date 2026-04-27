@@ -7,7 +7,10 @@ export async function POST(req: NextRequest) {
   const auth = await getAuthenticatedTenant(supabase);
 
   if (!auth) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    return NextResponse.json({
+      error: 'No autorizado',
+      response: 'No tienes sesión activa. Por favor inicia sesión para usar Samantha.'
+    }, { status: 401 });
   }
 
   try {

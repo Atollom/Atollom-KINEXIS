@@ -15,7 +15,7 @@ export function SamanthaFixedPanel() {
     {
       id: '1',
       role: 'assistant',
-      content: 'Hola, soy Samantha. KINEXIS Neural Agent. ¿En qué te puedo ayudar hoy con Orthocardio?'
+      content: 'Hola, soy Samantha. KINEXIS Neural Agent. ¿En qué te puedo ayudar hoy?'
     }
   ])
   const [isLoading, setIsLoading] = useState(false)
@@ -45,17 +45,17 @@ export function SamanthaFixedPanel() {
       })
       
       const data = await res.json()
-      
+
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.response || 'Hubo un problema de red.'
+        content: data.response || (res.ok ? 'Sin respuesta del servidor.' : `Error ${res.status}: ${data.error || 'Intenta de nuevo.'}`)
       }])
     } catch (err) {
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Error de conexión.'
+        content: 'Error de conexión con los servidores. Verifica que el backend esté activo.'
       }])
     } finally {
       setIsLoading(false)
