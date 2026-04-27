@@ -4,13 +4,25 @@ import { getAuthenticatedTenant } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   const supabase = createClient();
+
+  // Detectar si hay sesión antes de intentar el perfil
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({
+      error: 'Sin sesión',
+      response: 'No tienes sesión activa. Por favor inicia sesión para usar Samantha.'
+    }, { status: 401 });
+  }
+
   const auth = await getAuthenticatedTenant(supabase);
 
   if (!auth) {
+    // Usuario autenticado en Supabase pero sin perfil en la tabla `users`
+    console.error('[Samantha] Usuario autenticado sin perfil en users:', user.email);
     return NextResponse.json({
-      error: 'No autorizado',
-      response: 'No tienes sesión activa. Por favor inicia sesión para usar Samantha.'
-    }, { status: 401 });
+      error: 'Perfil no encontrado',
+      response: `Hola, tu cuenta (${user.email}) está autenticada pero no tiene perfil configurado en KINEXIS. Contacta al administrador o completa el onboarding.`
+    }, { status: 403 });
   }
 
   try {

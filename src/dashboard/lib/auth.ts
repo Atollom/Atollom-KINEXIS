@@ -3,25 +3,45 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import type { UserRole, TenantUser } from '../types';
 
 /**
- * Helper para obtener user + tenant_id + role
- * El tenant_id SIEMPRE viene del user_profiles en la BD
+ * Helper para obtener user + tenant_id + role.
+ * Estrategia de lookup:
+ *   1. Por supabase_user_id (caso normal post-onboarding)
+ *   2. Por email como fallback (usuarios creados antes de ligar supabase_user_id)
+ *      → auto-backfill supabase_user_id para futuras llamadas
  */
 export async function getAuthenticatedTenant(supabase: SupabaseClient): Promise<TenantUser | null> {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
-  if (authError || !user) {
-    return null;
-  }
 
-  const { data: profile, error: profileError } = await supabase
+  if (authError || !user) return null;
+
+  const SELECT = 'tenant_id, role, full_name, tenants(plan, name)';
+
+  // 1. Lookup primario por supabase_user_id
+  let { data: profile } = await supabase
     .from('users')
-    .select('tenant_id, role, full_name, tenants(plan, name)')
+    .select(SELECT)
     .eq('supabase_user_id', user.id)
-    .single();
+    .maybeSingle();
 
-  if (profileError || !profile) {
-    return null;
+  // 2. Fallback por email (usuario existe en `users` pero sin supabase_user_id)
+  if (!profile && user.email) {
+    const { data: byEmail } = await supabase
+      .from('users')
+      .select(SELECT)
+      .eq('email', user.email)
+      .maybeSingle();
+
+    if (byEmail) {
+      profile = byEmail;
+      // Backfill silencioso para que el próximo login use el lookup rápido
+      await supabase
+        .from('users')
+        .update({ supabase_user_id: user.id })
+        .eq('email', user.email);
+    }
   }
+
+  if (!profile) return null;
 
   return {
     id: user.id,
@@ -31,25 +51,38 @@ export async function getAuthenticatedTenant(supabase: SupabaseClient): Promise<
     email: user.email || '',
     is_atollom_admin: profile.role === 'atollom_admin',
     plan_id: (profile.tenants as any)?.plan,
-    tenant_name: (profile.tenants as any)?.name || 'KINEXIS'
+    tenant_name: (profile.tenants as any)?.name || 'KINEXIS',
   } as TenantUser;
 }
 
 /**
- * Obtiene el rol del usuario — consulta directa sin join para evitar fallos silenciosos
- * si la tabla tenants no tiene la fila correspondiente.
+ * Obtiene el rol del usuario — consulta directa sin join.
  */
 export async function getUserRole(supabase: SupabaseClient): Promise<UserRole> {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return 'viewer';
 
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  // Intenta por supabase_user_id, luego por email
+  let data: { role: string } | null = null;
 
-  if (error || !data?.role) return 'viewer';
+  const byId = await supabase
+    .from('users')
+    .select('role')
+    .eq('supabase_user_id', user.id)
+    .maybeSingle();
+
+  data = byId.data;
+
+  if (!data && user.email) {
+    const byEmail = await supabase
+      .from('users')
+      .select('role')
+      .eq('email', user.email)
+      .maybeSingle();
+    data = byEmail.data;
+  }
+
+  if (!data?.role) return 'viewer';
   return data.role as UserRole;
 }
 
