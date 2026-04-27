@@ -10,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from src.routers import samantha_router, dashboard_router, stripe_router
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Agent imports
 # ──────────────────────────────────────────────────────────────────────────────
@@ -382,6 +384,14 @@ async def meta_webhook_receive(request: Request):
     asyncio.create_task(_dispatch_agent())
 
     return JSONResponse(content={"status": "ok"}, status_code=200)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# KINEXIS routers — Samantha, Dashboard, Stripe
+# ──────────────────────────────────────────────────────────────────────────────
+app.include_router(samantha_router.router)
+app.include_router(dashboard_router.router)
+app.include_router(stripe_router.router)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
