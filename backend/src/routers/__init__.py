@@ -1,16 +1,15 @@
 """
 KINEXIS — Routers de módulo
-Orquestadores de agentes por dominio: E-commerce, CRM, ERP, Meta
 """
 
-from .ecommerce_router import ecommerce_router
-from .crm_router import crm_router
-from .erp_router import erp_router
-from .meta_router import meta_router
+from . import onboarding_router
+from . import cfdi_router
+from . import samantha_router
+from . import dashboard_router
 
 __all__ = [
-    "ecommerce_router",
-    "crm_router",
-    "erp_router",
-    "meta_router",
+    "onboarding_router",
+    "cfdi_router",
+    "samantha_router",
+    "dashboard_router",
 ]
