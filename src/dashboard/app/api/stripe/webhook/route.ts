@@ -48,9 +48,9 @@ export async function POST(req: NextRequest) {
 
         // Actualizar módulos activos según el plan
         const modulesMap: Record<string, string[]> = {
-          growth: ['ecommerce'],
-          pro: ['ecommerce', 'erp'],
-          enterprise: ['ecommerce', 'erp', 'crm'],
+          starter: ['ecommerce'],
+          growth: ['ecommerce', 'crm'],
+          pro: ['ecommerce', 'erp', 'crm'],
         };
 
         await supabase
@@ -83,9 +83,9 @@ export async function POST(req: NextRequest) {
         const newPlan = subscription.items.data[0]?.price.id;
         // Map price ID to plan type
         const planMap: Record<string, string> = {
+          [process.env.STRIPE_STARTER_PRICE_ID || 'price_starter_monthly']: 'starter',
           [process.env.STRIPE_GROWTH_PRICE_ID || 'price_growth_monthly']: 'growth',
           [process.env.STRIPE_PRO_PRICE_ID || 'price_pro_monthly']: 'pro',
-          [process.env.STRIPE_ENTERPRISE_PRICE_ID || 'price_enterprise_monthly']: 'enterprise',
         };
 
         if (newPlan && planMap[newPlan]) {
@@ -105,11 +105,11 @@ export async function POST(req: NextRequest) {
 
         if (!tenantId) break;
 
-        // Downgrade a free/growth
+        // Downgrade a Starter
         await supabase
           .from('tenants')
           .update({
-            plan_id: 'growth',
+            plan_id: 'starter',
             stripe_subscription_id: null,
           })
           .eq('id', tenantId);

@@ -7,25 +7,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder'
   apiVersion: '2025-02-24.acacia',
 });
 
-// Planes disponibles con precios en MXN (centavos)
+// Planes disponibles con precios en MXN (centavos = precio × 100)
 const PLANS = {
-  growth: {
-    name: 'Ecommerce Manager',
-    price: 9900, // $99.00 MXN/mes
+  starter: {
+    name: 'KINEXIS Starter',
+    price: 650000, // $6,500.00 MXN/mes
     modules: ['ecommerce'],
+    priceId: process.env.STRIPE_STARTER_PRICE_ID || 'price_starter_monthly',
+  },
+  growth: {
+    name: 'KINEXIS Growth',
+    price: 1050000, // $10,500.00 MXN/mes
+    modules: ['ecommerce', 'crm'],
     priceId: process.env.STRIPE_GROWTH_PRICE_ID || 'price_growth_monthly',
   },
   pro: {
-    name: 'Ecommerce + ERP',
-    price: 19900, // $199.00 MXN/mes
-    modules: ['ecommerce', 'erp'],
-    priceId: process.env.STRIPE_PRO_PRICE_ID || 'price_pro_monthly',
-  },
-  enterprise: {
-    name: 'Full Suite',
-    price: 34900, // $349.00 MXN/mes
+    name: 'KINEXIS Pro',
+    price: 1650000, // $16,500.00 MXN/mes
     modules: ['ecommerce', 'erp', 'crm'],
-    priceId: process.env.STRIPE_ENTERPRISE_PRICE_ID || 'price_enterprise_monthly',
+    priceId: process.env.STRIPE_PRO_PRICE_ID || 'price_pro_monthly',
   },
 };
 
