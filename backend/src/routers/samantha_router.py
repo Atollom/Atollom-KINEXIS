@@ -1,57 +1,113 @@
 """
-Samantha Chat Router
-Responses mock inteligentes basados en keywords
+Samantha Router — real LLM-powered chat with DB context and credit tracking.
+Provider: Gemini 2.5 Flash (default) | Anthropic (LLM_PROVIDER=anthropic)
 """
 
-from fastapi import APIRouter
+import logging
+from typing import Any, Dict, List
+
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List
+
+from src.agents.samantha.core import get_samantha
+from src.agents.samantha.credits import check_credits, decrement_credits
+from src.agents.samantha.db_queries import get_tenant_context
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/samantha", tags=["samantha"])
+
 
 class ChatMessage(BaseModel):
     role: str
     content: str
+
 
 class ChatRequest(BaseModel):
     query: str
     history: List[ChatMessage] = []
     tenant_id: str
 
+
 @router.post("/chat")
 async def chat(request: ChatRequest):
-    """
-    Chat con Samantha - Responses mock por ahora.
-    TODO: Integrar Samantha Core real
-    """
+    # 1. Check credits
+    credits = await check_credits(request.tenant_id)
+    if not credits["ok"]:
+        return {
+            "response": (
+                f"Has alcanzado el límite mensual de consultas ({credits['limit']} "
+                "preguntas). Actualiza tu plan para continuar."
+            ),
+            "intent": "credit_limit",
+            "credits_remaining": 0,
+            "confidence": 1.0,
+            "suggested_actions": [{"label": "Actualizar plan", "action": "upgrade"}],
+        }
 
-    query_lower = request.query.lower()
+    # 2. Fetch live DB context
+    try:
+        context = await get_tenant_context(request.tenant_id)
+    except Exception as exc:
+        logger.warning("DB context fetch failed: %s — using empty context", exc)
+        context = {
+            "tenant_name": "tu empresa",
+            "plan": "starter",
+            "products_count": 0, "orders_count": 0, "revenue_30d": 0.0,
+            "customers_count": 0, "invoices_count": 0,
+            "low_stock": [], "recent_orders": [],
+        }
 
-    # Detección de intenciones — orden: específico → general
-    if any(word in query_lower for word in ["hoy", "día", "today"]):
-        response = "Hoy has tenido 3 órdenes nuevas por un total de $2,340 MXN. El sistema está operando normalmente. ✅"
-        intent = "daily_summary"
+    # 3. Call LLM
+    import os
+    provider = os.getenv("LLM_PROVIDER", "gemini").lower()
+    api_key = os.getenv("GOOGLE_API_KEY") if provider == "gemini" else os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        key_name = "GOOGLE_API_KEY" if provider == "gemini" else "ANTHROPIC_API_KEY"
+        return {
+            "response": (
+                f"Samantha aún no está activada. El administrador debe configurar "
+                f"`{key_name}` en las variables de entorno del servidor."
+            ),
+            "intent": "config_missing",
+            "confidence": 1.0,
+            "credits_remaining": credits["remaining"],
+            "suggested_actions": [],
+        }
 
-    elif any(word in query_lower for word in ["ayuda", "help", "qué puedes hacer"]):
-        response = """Puedo ayudarte con:
+    history: List[Dict[str, Any]] = [
+        {"role": m.role, "content": m.content} for m in request.history
+    ]
+    try:
+        samantha = get_samantha()
+        response_text = await samantha.query(
+            message=request.query,
+            tenant_id=request.tenant_id,
+            context=context,
+            history=history,
+        )
+    except Exception as exc:
+        logger.error("Samantha LLM error: %s", exc)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Error al consultar el modelo de IA: {exc}",
+        )
 
-- 📦 Inventario y productos
-- 💰 Ventas y órdenes
-- 📄 Facturas CFDI
-- 👥 Clientes
-- 📊 Reportes y análisis
-- ⚙️ Configuración del sistema
-
-¿Con qué necesitas ayuda específicamente?"""
-        intent = "help"
-
-    else:
-        response = f"Entiendo que preguntas sobre: '{request.query}'. Déjame consultar con mis agentes especializados y te respondo en un momento."
-        intent = "general_query"
+    # 4. Decrement credits (fire-and-forget)
+    try:
+        await decrement_credits(request.tenant_id)
+    except Exception:
+        pass  # non-blocking
 
     return {
-        "response": response,
-        "intent": intent,
-        "confidence": 0.95,
-        "suggested_actions": []
+        "response": response_text,
+        "intent": "llm_response",
+        "confidence": 1.0,
+        "credits_remaining": credits["remaining"] - 1,
+        "suggested_actions": [],
     }
+
+
+@router.get("/credits/{tenant_id}")
+async def get_credits(tenant_id: str):
+    return await check_credits(tenant_id)
