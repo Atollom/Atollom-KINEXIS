@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
-import { getAuthenticatedTenant } from '@/lib/auth';
+import { createClient, createServiceClient } from '@/lib/supabase';
 import { createBrowserClient } from '@supabase/ssr';
 
 export async function POST(req: NextRequest) {
-  // ── 1. Verificar sesión ──────────────────────────────────────────
-  // Prioridad: Authorization header (enviado por el panel cliente)
-  // Fallback: cookies SSR (route handlers internos, tests)
+  // ── 1. Verificar token ───────────────────────────────────────────
+  // Priority: Authorization Bearer header (sent by client panel)
+  // Fallback: SSR cookie session (internal callers)
   const authHeader = req.headers.get('authorization') ?? '';
   const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
@@ -14,13 +13,14 @@ export async function POST(req: NextRequest) {
   let userEmail: string | null = null;
 
   if (bearerToken) {
-    // Validar JWT directamente con Supabase
+    // Validate JWT against Supabase — works regardless of cookie config
     const supabaseJwt = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
     const { data: { user }, error } = await supabaseJwt.auth.getUser(bearerToken);
     if (error || !user) {
+      console.error('[Samantha] Invalid bearer token:', error?.message);
       return NextResponse.json({
         error: 'Token inválido',
         response: 'Tu sesión expiró. Por favor recarga la página e inicia sesión de nuevo.'
@@ -28,8 +28,9 @@ export async function POST(req: NextRequest) {
     }
     userId = user.id;
     userEmail = user.email ?? null;
+    console.log(`[Samantha] Token valid — user: ${userEmail} (${userId})`);
   } else {
-    // Fallback cookies SSR
+    // Fallback: SSR cookie
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -40,52 +41,62 @@ export async function POST(req: NextRequest) {
     }
     userId = user.id;
     userEmail = user.email ?? null;
+    console.log(`[Samantha] Cookie session — user: ${userEmail} (${userId})`);
   }
 
-  // ── 2. Obtener tenant_id desde la tabla users ────────────────────
-  const supabaseAdmin = createClient();
+  // ── 2. Lookup tenant via SERVICE ROLE (bypasses RLS) ────────────
+  // Anon key is blocked by RLS on the users table.
+  const admin = createServiceClient();
   const SELECT = 'tenant_id, role, full_name, tenants(plan, name)';
 
   let profile: any = null;
 
-  // Buscar por supabase_user_id
-  const byId = await supabaseAdmin
+  // Primary: by supabase_user_id
+  const { data: byId, error: errById } = await admin
     .from('users')
     .select(SELECT)
     .eq('supabase_user_id', userId)
     .maybeSingle();
 
-  profile = byId.data;
+  console.log(`[Samantha] Lookup by supabase_user_id=${userId}:`, byId, errById?.message);
+  profile = byId;
 
-  // Fallback por email + backfill supabase_user_id
+  // Fallback: by email + auto-backfill supabase_user_id
   if (!profile && userEmail) {
-    const byEmail = await supabaseAdmin
+    const { data: byEmail, error: errByEmail } = await admin
       .from('users')
       .select(SELECT)
       .eq('email', userEmail)
       .maybeSingle();
 
-    if (byEmail.data) {
-      profile = byEmail.data;
-      await supabaseAdmin
+    console.log(`[Samantha] Fallback by email=${userEmail}:`, byEmail, errByEmail?.message);
+
+    if (byEmail) {
+      profile = byEmail;
+      await admin
         .from('users')
         .update({ supabase_user_id: userId })
         .eq('email', userEmail);
+      console.log(`[Samantha] Backfilled supabase_user_id for ${userEmail}`);
     }
   }
 
   if (!profile) {
-    console.error('[Samantha] Sin perfil en users:', userEmail);
+    console.error(`[Samantha] No profile found for user ${userEmail} (${userId})`);
     return NextResponse.json({
       error: 'Perfil no encontrado',
       response: `Tu cuenta (${userEmail}) está autenticada pero no tiene perfil en KINEXIS. Contacta al administrador o completa el onboarding.`
     }, { status: 403 });
   }
 
-  // ── 3. Llamar al backend Python ──────────────────────────────────
+  console.log(`[Samantha] Profile found — tenant_id: ${profile.tenant_id}, role: ${profile.role}`);
+
+  // ── 3. Call Python backend ───────────────────────────────────────
   try {
     const body = await req.json();
     const backendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
+
+    console.log(`[Samantha] Calling backend ${backendUrl}/api/samantha/chat — tenant: ${profile.tenant_id}`);
 
     const response = await fetch(`${backendUrl}/api/samantha/chat`, {
       method: 'POST',
@@ -98,14 +109,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (!response.ok) {
-      throw new Error(`Backend error: ${response.status} ${response.statusText}`);
+      const errText = await response.text();
+      console.error(`[Samantha] Backend error ${response.status}:`, errText);
+      throw new Error(`Backend ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log(`[Samantha] Response OK — credits_remaining: ${data.credits_remaining}`);
     return NextResponse.json(data);
 
   } catch (error: any) {
-    console.error('[Samantha Chat API] Error:', error);
+    console.error('[Samantha Chat API] Error:', error.message);
     return NextResponse.json({
       error: error.message,
       response: 'Hubo un error de conexión con mis sistemas centrales. ¿Puedes intentarlo nuevamente?'
