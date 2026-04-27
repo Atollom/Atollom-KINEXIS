@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { 
   TrendingUp, 
   Package, 
@@ -36,6 +36,31 @@ const MOCK_REVENUE = [
 ]
 
 export default function DashboardOwner() {
+  const [stats, setStats] = useState({ products: 0, orders: 0, invoices: 0, revenue_30d: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/dashboard/stats')
+        if (res.ok) {
+          const data = await res.json()
+          setStats({
+            products: data.products || 0,
+            orders: data.orders || 0,
+            invoices: data.invoices || 0,
+            revenue_30d: data.revenue_30d || 0
+          })
+        }
+      } catch (err) {
+        console.error('Failed to load stats:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadStats()
+  }, [])
+
   return (
     <div className="flex flex-col h-full gap-6 animate-in fade-in zoom-in-95 duration-1000">
       <header className="flex justify-between items-center px-2">
@@ -70,8 +95,14 @@ export default function DashboardOwner() {
           
           <div className="relative z-10 flex justify-between items-start mb-4">
              <div>
-                <p className="text-[10px] font-black text-[#CCFF00] uppercase tracking-[0.4em] mb-4">Revenue Stream Consolidation</p>
-                <h3 className="text-5xl font-black text-white tracking-tighter leading-none">$1,242,800</h3>
+                <p className="text-[10px] font-black text-[#CCFF00] uppercase tracking-[0.4em] mb-4">Ingresos Consolidados (30d)</p>
+                {loading ? (
+                  <div className="h-12 w-48 bg-white/10 animate-pulse rounded-lg mt-2"></div>
+                ) : (
+                  <h3 className="text-5xl font-black text-white tracking-tighter leading-none">
+                    ${stats.revenue_30d.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </h3>
+                )}
                 <p className="text-xs font-medium text-white/40 mt-4 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-[#CCFF00]" />
                   <span className="text-white font-black">+24.2%</span> performance vs last Q
@@ -112,11 +143,11 @@ export default function DashboardOwner() {
           <div className="flex items-center gap-6 mt-8 relative z-10 pt-6 border-t border-white/5">
              <div className="flex items-center gap-3">
                <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center">
-                  <Wallet className="w-5 h-5 text-[#CCFF00]" />
+                  <Package className="w-5 h-5 text-[#CCFF00]" />
                </div>
                <div>
-                  <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">Net Profit (Est.)</p>
-                  <p className="text-xl font-black text-white">$412,000</p>
+                  <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">Catálogo</p>
+                  {loading ? <div className="h-6 w-16 bg-white/10 animate-pulse rounded mt-1"></div> : <p className="text-xl font-black text-white">{stats.products}</p>}
                </div>
              </div>
              <div className="flex items-center gap-3">
@@ -124,8 +155,8 @@ export default function DashboardOwner() {
                   <Activity className="w-5 h-5 text-white/40" />
                </div>
                <div>
-                  <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">AOV Consolidation</p>
-                  <p className="text-xl font-black text-white">$2,100</p>
+                  <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">Órdenes Totales</p>
+                  {loading ? <div className="h-6 w-16 bg-white/10 animate-pulse rounded mt-1"></div> : <p className="text-xl font-black text-white">{stats.orders}</p>}
                </div>
              </div>
           </div>
@@ -156,16 +187,20 @@ export default function DashboardOwner() {
            <div className="bg-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between border border-white/5 hover:bg-white/[0.08] transition-all group">
               <div className="flex justify-between items-start">
                 <div>
-                   <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] mb-2">Active Shipments</p>
-                   <h4 className="text-4xl font-black text-white tracking-tighter">142<span className="text-base text-white/20 ml-2 font-black italic">UNITS</span></h4>
+                   <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] mb-2">Facturas CFDI</p>
+                   {loading ? (
+                     <div className="h-10 w-24 bg-white/10 animate-pulse rounded-lg mt-1"></div>
+                   ) : (
+                     <h4 className="text-4xl font-black text-white tracking-tighter">{stats.invoices}<span className="text-base text-white/20 ml-2 font-black italic">TIMBRADAS</span></h4>
+                   )}
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:rotate-12 transition-transform">
-                   <Package className="w-6 h-6 text-[#CCFF00]" />
+                   <ClipboardCheck className="w-6 h-6 text-[#CCFF00]" />
                 </div>
               </div>
               <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mt-4 flex items-center gap-2">
-                <Truck className="w-3 h-3" />
-                82% On-time delivery
+                <ShieldCheck className="w-3 h-3" />
+                100% Validated
               </p>
            </div>
 
@@ -207,3 +242,4 @@ export default function DashboardOwner() {
     </div>
   )
 }
+
