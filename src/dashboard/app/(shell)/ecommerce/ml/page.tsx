@@ -4,10 +4,10 @@ import { useMemo } from "react";
 
 export default function MercadoLibrePage() {
   const stats = useMemo(() => [
-    { label: "Successful Publications", value: "1,240", icon: "inventory", color: "text-blue-400" },
-    { label: "Seller Reputation", value: "Platinum", icon: "verified", color: "text-primary" },
-    { label: "In Transit", value: "42", icon: "local_shipping", color: "text-amber-400" },
-    { label: "Returns", value: "3", icon: "assignment_return", color: "text-red-400" },
+    { label: "Publicaciones Activas", value: "1,240", icon: "inventory", color: "text-blue-400" },
+    { label: "Reputación del Vendedor", value: "Platino", icon: "verified", color: "text-primary" },
+    { label: "En Tránsito", value: "42", icon: "local_shipping", color: "text-amber-400" },
+    { label: "Devoluciones", value: "3", icon: "assignment_return", color: "text-red-400" },
   ], []);
 
   const comments = [
@@ -69,7 +69,7 @@ export default function MercadoLibrePage() {
             <section className="space-y-6">
                <div className="flex items-center justify-between">
                   <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic">Solicitudes de Cambio de Precio</h3>
-                  <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">ACTION REQUIRED</span>
+                  <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">ACCIÓN REQUERIDA</span>
                </div>
                <div className="space-y-4">
                   {priceRequests.map(req => (
@@ -85,7 +85,7 @@ export default function MercadoLibrePage() {
                        </div>
                        <div className="flex items-center gap-8">
                           <div className="text-right">
-                             <p className="text-[9px] font-black text-on-surface/20 label-tracking">CURRENT vs NEW</p>
+                             <p className="text-[9px] font-black text-on-surface/20 label-tracking">ACTUAL vs NUEVO</p>
                              <p className="text-sm font-black text-on-surface">${req.current.toLocaleString()} &rarr; <span className="text-primary font-black">${req.requested.toLocaleString()}</span></p>
                           </div>
                           <div className="flex gap-2">
@@ -169,7 +169,7 @@ export default function MercadoLibrePage() {
                       <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10" />
                       <div className="flex-1">
                          <p className="text-[11px] font-black text-on-surface truncate">NX-800 Pulse Hub</p>
-                         <p className="text-[9px] font-bold text-[#ccff00] uppercase tracking-widest">Active / Promoted</p>
+                         <p className="text-[9px] font-bold text-[#ccff00] uppercase tracking-widest">Activa / Promocionada</p>
                       </div>
                       <span className="material-symbols-outlined text-primary !text-[16px]">trending_up</span>
                    </div>

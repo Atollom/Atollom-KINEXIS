@@ -77,7 +77,7 @@ export default function FulfillmentPage() {
        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <span className="text-[0.75rem] font-bold label-tracking text-primary drop-shadow-glow">
-            Logistics / Fulfillment Intelligence
+            Logística / Inteligencia de Despacho
           </span>
           <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">
             Control de Despacho
@@ -110,10 +110,10 @@ export default function FulfillmentPage() {
       {/* Stats Quick Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
          {[
-           { label: "Pending", count: 8, color: "text-primary" },
-           { label: "Picking", count: 4, color: "text-amber-400" },
-           { label: "Packing", count: 2, color: "text-blue-400" },
-           { label: "Shipped Today", count: 124, color: "text-on-surface-variant" },
+           { label: "Pendientes", count: 8, color: "text-primary" },
+           { label: "En Picking", count: 4, color: "text-amber-400" },
+           { label: "Empacando", count: 2, color: "text-blue-400" },
+           { label: "Enviados Hoy", count: 124, color: "text-on-surface-variant" },
          ].map((stat, i) => (
            <div key={i} className="glass-card p-5 rounded-2xl flex flex-col items-center justify-center border border-white/5">
               <p className="text-[9px] font-black label-tracking uppercase text-on-surface/30">{stat.label}</p>
@@ -160,7 +160,7 @@ export default function FulfillmentPage() {
                        <p className="text-xs font-black text-primary italic uppercase tracking-widest">{order.status}</p>
                     </div>
                     <button className="px-8 py-3 neon-disruptor rounded-xl text-[10px] font-black label-tracking shadow-glow hover:scale-105 transition-transform">
-                       START PACKING
+                       INICIAR EMPAQUE
                     </button>
                  </div>
               </div>
@@ -175,7 +175,7 @@ export default function FulfillmentPage() {
          {filteredOrders.length === 0 && (
             <div className="py-24 text-center glass-card rounded-[3rem]">
                <span className="material-symbols-outlined !text-5xl text-primary/10 mb-6 block">done_all</span>
-               <p className="text-sm font-black text-on-surface/20 uppercase label-tracking">No orders pending in this sector</p>
+               <p className="text-sm font-black text-on-surface/20 uppercase label-tracking">Sin órdenes pendientes en este canal</p>
             </div>
          )}
       </div>

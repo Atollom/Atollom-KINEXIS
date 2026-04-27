@@ -70,7 +70,7 @@ export default function DashboardOwner() {
            </h1>
            <p className="text-white/30 font-bold uppercase tracking-[0.4em] text-[10px] mt-1 flex items-center gap-2">
              <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-pulse shadow-[0_0_8px_#CCFF00]" />
-             Executive Oversight <span className="text-white font-black">/ Owner View</span>
+             Supervisión Ejecutiva <span className="text-white font-black">/ Vista del Propietario</span>
            </p>
         </div>
         <div className="bg-white/5 px-6 py-3 rounded-2xl flex items-center gap-4 border border-white/5 shadow-2xl backdrop-blur-xl">
@@ -105,12 +105,12 @@ export default function DashboardOwner() {
                 )}
                 <p className="text-xs font-medium text-white/40 mt-4 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-[#CCFF00]" />
-                  <span className="text-white font-black">+24.2%</span> performance vs last Q
+                  <span className="text-white font-black">+24.2%</span> rendimiento vs trimestre anterior
                 </p>
              </div>
              <div className="px-5 py-2 bg-[#CCFF00]/10 border border-[#CCFF00]/20 rounded-full flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-ping" />
-                <span className="text-[9px] font-black text-[#CCFF00] tracking-widest uppercase">LIVE ANALYTICS</span>
+                <span className="text-[9px] font-black text-[#CCFF00] tracking-widest uppercase">ANÁLISIS EN VIVO</span>
              </div>
           </div>
 
@@ -169,8 +169,8 @@ export default function DashboardOwner() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#CCFF00]/5 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="relative z-10 flex justify-between items-start">
                 <div>
-                   <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] mb-2">Systems Status</p>
-                   <h4 className="text-2xl font-black text-white tracking-tighter leading-tight uppercase">Platform <br/><span className="text-[#CCFF00]">Stable</span></h4>
+                   <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] mb-2">Estado del Sistema</p>
+                   <h4 className="text-2xl font-black text-white tracking-tighter leading-tight uppercase">Plataforma <br/><span className="text-[#CCFF00]">Estable</span></h4>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-[#CCFF00]/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(204,255,0,0.1)]">
                    <Zap className="w-6 h-6 text-[#CCFF00]" />
@@ -200,23 +200,23 @@ export default function DashboardOwner() {
               </div>
               <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mt-4 flex items-center gap-2">
                 <ShieldCheck className="w-3 h-3" />
-                100% Validated
+                100% Validadas
               </p>
            </div>
 
            {/* Row 2: Recent Activity List (Simplified) */}
            <div className="md:col-span-2 bg-white/5 rounded-[2.5rem] p-8 border border-white/5 flex flex-col h-full">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xs font-black text-white uppercase tracking-[0.3em]">Critical Operations Feed</h3>
+                <h3 className="text-xs font-black text-white uppercase tracking-[0.3em]">Operaciones Críticas</h3>
                 <button className="text-[9px] font-black text-[#CCFF00] uppercase tracking-widest hover:underline transition-all flex items-center gap-2">
-                  FULL AUDIT <ArrowUpRight size={14} />
+                  AUDITORÍA COMPLETA <ArrowUpRight size={14} />
                 </button>
               </div>
               <div className="space-y-4">
                  {[
-                   { id: "A-801", label: "Inventory Audit", val: "Compliant", info: "Warehouse A", icon: ShieldCheck, color: "text-[#CCFF00]" },
-                   { id: "L-224", label: "Logistics Sync", val: "Active", info: "Route 04", icon: MapPin, color: "text-white/40" },
-                   { id: "P-109", label: "Purchase Auth", val: "Pending", info: "$12.4k req", icon: Clock, color: "text-[#FF0055]" },
+                   { id: "A-801", label: "Auditoría de Inventario", val: "Cumplimiento", info: "Almacén A", icon: ShieldCheck, color: "text-[#CCFF00]" },
+                   { id: "L-224", label: "Sincronización Logística", val: "Activo", info: "Ruta 04", icon: MapPin, color: "text-white/40" },
+                   { id: "P-109", label: "Autorización de Compras", val: "Pendiente", info: "$12.4k sol.", icon: Clock, color: "text-[#FF0055]" },
                  ].map((item, idx) => (
                    <div key={idx} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0 group cursor-pointer">
                       <div className="flex items-center gap-4">

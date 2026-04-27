@@ -4,15 +4,15 @@ import { useMemo } from "react";
 
 export default function B2BPage() {
   const stats = useMemo(() => [
-    { label: "Active Corporate Clients", value: "48", icon: "domain", color: "text-blue-400" },
-    { label: "Accounts Receivable", value: "$1.2M", icon: "account_balance", color: "text-primary" },
-    { label: "Credit Utilization", value: "62%", icon: "credit_score", color: "text-amber-400" },
-    { label: "Pipeline Value", value: "$4.5M", icon: "trending_up", color: "text-emerald-400" },
+    { label: "Clientes Corporativos Activos", value: "48", icon: "domain", color: "text-blue-400" },
+    { label: "Cuentas por Cobrar", value: "$1.2M", icon: "account_balance", color: "text-primary" },
+    { label: "Utilización de Crédito", value: "62%", icon: "credit_score", color: "text-amber-400" },
+    { label: "Valor del Pipeline", value: "$4.5M", icon: "trending_up", color: "text-emerald-400" },
   ], []);
 
   const highTicketLeads = [
-    { id: 1, company: "Tech Logistic Corp", value: 450000, stage: "Negotiation", contact: "Mark R." },
-    { id: 2, company: "Global Vision S.A.", value: 125000, stage: "Quote Sent", contact: "Alice W." },
+    { id: 1, company: "Tech Logistic Corp", value: 450000, stage: "Negociación", contact: "Carlos R." },
+    { id: 2, company: "Global Vision S.A.", value: 125000, stage: "Cotización Enviada", contact: "Ana W." },
   ];
 
   const creditRequests = [
@@ -26,7 +26,7 @@ export default function B2BPage() {
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <span className="text-[0.75rem] font-bold label-tracking text-[#3B82F6] drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]">
-            Channel Intelligence / B2B Enterprise
+            Inteligencia de Canal / B2B Empresarial
           </span>
           <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">
             Control Operativo B2B
@@ -68,8 +68,8 @@ export default function B2BPage() {
             {/* Enterprise Pipeline */}
             <section className="space-y-6">
                <div className="flex items-center justify-between">
-                  <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic">High Ticket Pipeline</h3>
-                  <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">ACTION REQUIRED</span>
+                  <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic">Pipeline de Alto Valor</h3>
+                  <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">ACCIÓN REQUERIDA</span>
                </div>
                <div className="space-y-4">
                   {highTicketLeads.map(lead => (
@@ -80,12 +80,12 @@ export default function B2BPage() {
                           </div>
                           <div>
                              <p className="text-sm font-black text-on-surface">{lead.company}</p>
-                             <p className="text-[10px] font-bold text-on-surface-variant italic">Stage: {lead.stage}</p>
+                             <p className="text-[10px] font-bold text-on-surface-variant italic">Etapa: {lead.stage}</p>
                           </div>
                        </div>
                        <div className="flex items-center gap-10">
                           <div className="text-right">
-                             <p className="text-[9px] font-black text-on-surface/20 label-tracking">EST. VALUE</p>
+                             <p className="text-[9px] font-black text-on-surface/20 label-tracking">VALOR EST.</p>
                              <p className="text-lg font-black text-primary italic">${lead.value.toLocaleString()}</p>
                           </div>
                           <button className="w-10 h-10 rounded-lg border border-white/10 hover:bg-white/10 transition-all flex items-center justify-center">
@@ -99,7 +99,7 @@ export default function B2BPage() {
 
             {/* Credit Requests Area */}
             <section className="space-y-6">
-                <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic">Credit & Overdraft Requests</h3>
+                <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic">Solicitudes de Crédito y Sobregiro</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                    {creditRequests.map(req => (
                      <div key={req.id} className="glass-card p-6 rounded-3xl border border-white/5 flex flex-col gap-4">
@@ -108,11 +108,11 @@ export default function B2BPage() {
                               <p className="text-xs font-black text-on-surface">{req.company}</p>
                               <p className="text-[9px] font-bold text-on-surface/40 uppercase tracking-widest">Score: {req.score}</p>
                            </div>
-                           <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">NEW REQ</span>
+                           <span className="text-[9px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full">NUEVA SOL.</span>
                         </div>
                         <div className="space-y-2">
                            <div className="flex justify-between text-[10px] font-bold">
-                              <span className="text-on-surface/30">Request</span>
+                              <span className="text-on-surface/30">Solicitud</span>
                               <span className="text-on-surface">${req.requested.toLocaleString()}</span>
                            </div>
                            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
@@ -134,8 +134,8 @@ export default function B2BPage() {
                      <span className="material-symbols-outlined text-[#3B82F6]">policy</span>
                   </div>
                   <div>
-                    <h3 className="text-[10px] font-black label-tracking text-[#3B82F6] uppercase">Credit AI</h3>
-                    <p className="text-lg font-black text-on-surface">Risk Level: Low</p>
+                    <h3 className="text-[10px] font-black label-tracking text-[#3B82F6] uppercase">IA de Crédito</h3>
+                    <p className="text-lg font-black text-on-surface">Nivel de Riesgo: Bajo</p>
                   </div>
                </div>
                
@@ -152,7 +152,7 @@ export default function B2BPage() {
 
             {/* Terms Distribution */}
             <section className="glass-card p-8 rounded-[2.5rem] border border-white/5">
-                <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic mb-8">Contract Terms Distribution</h3>
+                <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic mb-8">Distribución de Términos de Contrato</h3>
                 <div className="space-y-6">
                    {[
                      { term: "Net 30", count: 28, pct: 60, color: "bg-blue-400" },
@@ -163,7 +163,7 @@ export default function B2BPage() {
                      <div key={t.term} className="space-y-2">
                         <div className="flex justify-between text-[10px] font-bold">
                            <span className="text-on-surface/60">{t.term}</span>
-                           <span className="text-on-surface">{t.count} Clients</span>
+                           <span className="text-on-surface">{t.count} Clientes</span>
                         </div>
                         <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
                            <div className={`h-full ${t.color}`} style={{ width: `${t.pct}%` }} />

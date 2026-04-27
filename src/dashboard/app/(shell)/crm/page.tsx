@@ -5,16 +5,16 @@ import Link from "next/link";
 
 export default function CRMSummaryPage() {
   const stats = useMemo(() => [
-    { label: "Active Leads", value: "154", growth: "+18%", icon: "person_search", color: "text-blue-400" },
-    { label: "Pipeline Value", value: "$2.4M", growth: "+12%", icon: "payments", color: "text-primary" },
-    { label: "Closing Ratio", value: "24%", growth: "+5%", icon: "task_alt", color: "text-emerald-400" },
-    { label: "Avg Sale Cycle", value: "14d", growth: "-2d", icon: "timer", color: "text-amber-400" },
+    { label: "Prospectos Activos", value: "154", growth: "+18%", icon: "person_search", color: "text-blue-400" },
+    { label: "Valor del Pipeline", value: "$2.4M", growth: "+12%", icon: "payments", color: "text-primary" },
+    { label: "Tasa de Cierre", value: "24%", growth: "+5%", icon: "task_alt", color: "text-emerald-400" },
+    { label: "Ciclo Promedio de Venta", value: "14d", growth: "-2d", icon: "timer", color: "text-amber-400" },
   ], []);
 
   const recentActivity = [
-    { id: 1, type: "Quote Approved", customer: "Tech Logistics", value: 125000, time: "Hace 15 min" },
-    { id: 2, type: "New Lead", customer: "Alice Johnson", channel: "WhatsApp", time: "Hace 1 hr" },
-    { id: 3, type: "Meeting Scheduled", customer: "Global Corp", contact: "Mark Riva", time: "Hoy 14:00" },
+    { id: 1, type: "Cotización Aprobada", customer: "Tech Logistics", value: 125000, time: "Hace 15 min" },
+    { id: 2, type: "Nuevo Prospecto", customer: "Ana González", channel: "WhatsApp", time: "Hace 1 hr" },
+    { id: 3, type: "Reunión Agendada", customer: "Global Corp", contact: "Carlos Riva", time: "Hoy 14:00" },
   ];
 
   return (
@@ -23,10 +23,10 @@ export default function CRMSummaryPage() {
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <span className="text-[0.75rem] font-bold label-tracking text-primary drop-shadow-glow">
-            Relationship Engine / Global CRM
+            Motor de Relaciones / CRM Global
           </span>
           <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">
-            Command Dashboard
+            Panel de Ventas
           </h1>
         </div>
 
@@ -36,8 +36,8 @@ export default function CRMSummaryPage() {
                  <span className="material-symbols-outlined !text-[20px]">forum</span>
               </div>
               <div className="text-left">
-                 <p className="text-[10px] font-black text-on-surface-variant label-tracking uppercase">Unified Inbox</p>
-                 <p className="text-sm font-black text-on-surface">12 Unread Messages</p>
+                 <p className="text-[10px] font-black text-on-surface-variant label-tracking uppercase">Bandeja Unificada</p>
+                 <p className="text-sm font-black text-on-surface">12 Mensajes Sin Leer</p>
               </div>
            </Link>
         </div>
@@ -66,13 +66,13 @@ export default function CRMSummaryPage() {
          <div className="lg:col-span-8 space-y-10">
             {/* Pipeline Funnel Preview */}
             <section className="glass-card p-10 rounded-[3rem] border border-white/5 relative overflow-hidden">
-               <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic mb-10 relative z-10">Active Pipeline Velocity</h3>
-               
+               <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic mb-10 relative z-10">Velocidad del Pipeline Activo</h3>
+
                <div className="flex flex-col gap-8 relative z-10">
                   <div className="space-y-3">
                      <div className="flex justify-between items-end">
-                        <p className="text-sm font-black text-on-surface">Prospects <span className="text-on-surface/30 font-medium ml-2">84 Leads</span></p>
-                        <p className="text-[11px] font-black text-primary italic">$1.2M Value</p>
+                        <p className="text-sm font-black text-on-surface">Prospectos <span className="text-on-surface/30 font-medium ml-2">84 Leads</span></p>
+                        <p className="text-[11px] font-black text-primary italic">$1.2M Valor</p>
                      </div>
                      <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
                         <div className="w-full h-full bg-primary/40 rounded-full" />
@@ -80,8 +80,8 @@ export default function CRMSummaryPage() {
                   </div>
                   <div className="space-y-3 pl-10">
                      <div className="flex justify-between items-end">
-                        <p className="text-sm font-black text-on-surface">Quotes Sent <span className="text-on-surface/30 font-medium ml-2">32 Quotes</span></p>
-                        <p className="text-[11px] font-black text-primary italic">$850k Value</p>
+                        <p className="text-sm font-black text-on-surface">Cotizaciones Enviadas <span className="text-on-surface/30 font-medium ml-2">32 Cots.</span></p>
+                        <p className="text-[11px] font-black text-primary italic">$850k Valor</p>
                      </div>
                      <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
                         <div className="w-[70%] h-full bg-primary/60 rounded-full" />
@@ -89,8 +89,8 @@ export default function CRMSummaryPage() {
                   </div>
                   <div className="space-y-3 pl-20">
                      <div className="flex justify-between items-end">
-                        <p className="text-sm font-black text-on-surface">Negotiating <span className="text-on-surface/30 font-medium ml-2">12 Items</span></p>
-                        <p className="text-[11px] font-black text-primary italic">$420k Value</p>
+                        <p className="text-sm font-black text-on-surface">En Negociación <span className="text-on-surface/30 font-medium ml-2">12 Items</span></p>
+                        <p className="text-[11px] font-black text-primary italic">$420k Valor</p>
                      </div>
                      <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
                         <div className="w-[40%] h-full bg-primary rounded-full shadow-glow" />
@@ -109,7 +109,7 @@ export default function CRMSummaryPage() {
                         <span className="material-symbols-outlined !text-3x">person_search</span>
                      </div>
                      <div>
-                        <h4 className="text-xl font-black text-on-surface tight-tracking">Lead Intelligence Agent</h4>
+                        <h4 className="text-xl font-black text-on-surface tight-tracking">Agente de Inteligencia de Prospectos</h4>
                         <p className="text-sm font-medium text-on-surface-variant opacity-60">Gestionar base de prospectos y scoring automático.</p>
                      </div>
                   </div>
@@ -122,13 +122,13 @@ export default function CRMSummaryPage() {
          <div className="lg:col-span-4 space-y-10">
             {/* Intent Analysis AI */}
             <section className="glass-card p-8 rounded-[2.5rem] border border-white/5 space-y-8">
-               <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic">Intent Recognition (AI)</h3>
-               
+               <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic">Reconocimiento de Intención (IA)</h3>
+
                <div className="space-y-6">
                   {[
-                    { label: "Purchase Intent", pct: 72, color: "bg-primary" },
-                    { label: "Support Inquiry", pct: 45, color: "bg-blue-400" },
-                    { label: "Complaint/Claim", pct: 12, color: "bg-red-500" },
+                    { label: "Intención de Compra", pct: 72, color: "bg-primary" },
+                    { label: "Consulta de Soporte", pct: 45, color: "bg-blue-400" },
+                    { label: "Reclamo/Queja", pct: 12, color: "bg-red-500" },
                   ].map(intent => (
                     <div key={intent.label} className="space-y-2">
                        <div className="flex justify-between text-[11px] font-bold">
@@ -145,7 +145,7 @@ export default function CRMSummaryPage() {
 
             {/* Recent Activity Telemetry */}
             <section className="glass-card p-8 rounded-[2.5rem] border border-white/5">
-                <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic mb-8">Intelligence Feed</h3>
+                <h3 className="text-[10px] font-black label-tracking text-on-surface-variant uppercase italic mb-8">Actividad Reciente</h3>
                 <div className="space-y-6">
                    {recentActivity.map(act => (
                      <div key={act.id} className="flex gap-4 relative">

@@ -253,7 +253,7 @@ export default function SettingsPage() {
           }
         }
       } catch {
-        setError("Operational error: System sync failed.");
+        setError("Error operacional: falla de sincronización del sistema.");
       } finally {
         setLoading(false);
       }
@@ -269,7 +269,7 @@ export default function SettingsPage() {
         body: JSON.stringify(profile),
       });
       if (!res.ok) throw new Error("Error guardando perfil");
-      toast.show("Profile synchronized.");
+      toast.show("Perfil sincronizado.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     }
@@ -288,7 +288,7 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error("Error guardando key");
       setVaultStatus(prev => ({ ...prev, [keyName]: true }));
       setKeyInputs(prev => ({ ...prev, [keyName]: "" }));
-      toast.show(`${keyName} stored.`);
+      toast.show(`${keyName} guardado.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {
@@ -311,7 +311,7 @@ export default function SettingsPage() {
         body: JSON.stringify(rules),
       });
       if (!res.ok) throw new Error("Error guardando reglas");
-      toast.show("Operational rules updated.");
+      toast.show("Reglas operacionales actualizadas.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {
@@ -329,7 +329,7 @@ export default function SettingsPage() {
       });
       if (!res.ok) throw new Error("Error cambiando rol");
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-      toast.show("User RBAC synchronized.");
+      toast.show("Roles de usuario actualizados.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {
@@ -346,7 +346,7 @@ export default function SettingsPage() {
         body: JSON.stringify(autonomy),
       });
       if (!res.ok) throw new Error("Error guardando autonomía");
-      toast.show("Autonomy matrix updated.");
+      toast.show("Matriz de autonomía actualizada.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {
@@ -357,7 +357,7 @@ export default function SettingsPage() {
   async function selectActiveCompany(id: string) {
     localStorage.setItem("active_company_id", id);
     setActiveCompanyId(id);
-    toast.show("Active company set for this session.");
+    toast.show("Empresa activa establecida para esta sesión.");
   }
 
   async function setPrincipalCompany(id: string) {
@@ -369,7 +369,7 @@ export default function SettingsPage() {
         body: JSON.stringify({ id, es_principal: true }),
       });
       setCompanies(prev => prev.map(c => ({ ...c, es_principal: c.id === id })));
-      toast.show("Principal company updated.");
+      toast.show("Empresa principal actualizada.");
     } catch {
       setError("Error");
     } finally {
@@ -381,7 +381,7 @@ export default function SettingsPage() {
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-4 animate-pulse">
         <div className="w-12 h-12 rounded-full border-2 border-[#ccff00]/20 border-t-[#ccff00] animate-spin" />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ccff00]">Syncing Matrix...</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ccff00]">Sincronizando...</p>
       </div>
     );
   }
@@ -397,8 +397,8 @@ export default function SettingsPage() {
                 <span className="material-symbols-outlined text-[#ccff00] text-xl">settings</span>
              </div>
              <div>
-                <h1 className="text-3xl font-black tracking-tighter text-white uppercase">System Config</h1>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ccff00]/60 italic">Neural Operational Center</p>
+                <h1 className="text-3xl font-black tracking-tighter text-white uppercase">Configuración</h1>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ccff00]/60 italic">Centro de Operaciones Neural</p>
              </div>
           </div>
         </div>
@@ -451,29 +451,29 @@ export default function SettingsPage() {
         {/* Profile */}
         {activeTab === "profile" && (
            <div className="space-y-8 animate-luxe">
-              <SectionCard title="Identity Core" icon="business" color="#ccff00">
+              <SectionCard title="Perfil Empresarial" icon="business" color="#ccff00">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <FieldInput label="Entity Name" value={profile.business_name} onChange={v => setProfile(p => ({ ...p, business_name: v }))} placeholder="Atollom Operational Corp" />
-                    <FieldInput label="Tax ID (RFC)" value={profile.rfc} onChange={v => setProfile(p => ({ ...p, rfc: v.toUpperCase() }))} maxLength={13} />
-                    <FieldInput label="Tax Regime" value={profile.tax_regime} onChange={v => setProfile(p => ({ ...p, tax_regime: v }))} />
-                    <FieldInput label="Identity Pin (CP)" value={profile.postal_code} onChange={v => setProfile(p => ({ ...p, postal_code: v }))} maxLength={5} />
+                    <FieldInput label="Nombre de la Empresa" value={profile.business_name} onChange={v => setProfile(p => ({ ...p, business_name: v }))} placeholder="Atollom Operational Corp" />
+                    <FieldInput label="RFC" value={profile.rfc} onChange={v => setProfile(p => ({ ...p, rfc: v.toUpperCase() }))} maxLength={13} />
+                    <FieldInput label="Régimen Fiscal" value={profile.tax_regime} onChange={v => setProfile(p => ({ ...p, tax_regime: v }))} />
+                    <FieldInput label="Código Postal" value={profile.postal_code} onChange={v => setProfile(p => ({ ...p, postal_code: v }))} maxLength={5} />
                  </div>
                  <div className="mt-8">
-                    <FieldInput label="Brand Core (Logo URL)" value={profile.logo_url} onChange={v => setProfile(p => ({ ...p, logo_url: v }))} />
+                    <FieldInput label="URL del Logotipo" value={profile.logo_url} onChange={v => setProfile(p => ({ ...p, logo_url: v }))} />
                  </div>
                  {profile.logo_url && (
                     <div className="mt-8 flex items-center gap-6 p-4 rounded-2xl border border-white/5 bg-white/5">
                        <div className="w-24 h-24 rounded-xl bg-black flex items-center justify-center overflow-hidden">
-                          <img src={profile.logo_url} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
+                          <img src={profile.logo_url} alt="Vista Previa Logo" className="max-w-full max-h-full object-contain" />
                        </div>
                        <div>
-                          <p className="text-[10px] font-black text-[#ccff00] uppercase tracking-widest italic">Identity Sync Active</p>
-                          <p className="text-[9px] text-white/30 uppercase mt-1">Live Preview Module</p>
+                          <p className="text-[10px] font-black text-[#ccff00] uppercase tracking-widest italic">Vista Previa Activa</p>
+                          <p className="text-[9px] text-white/30 uppercase mt-1">Módulo de Vista Previa</p>
                        </div>
                     </div>
                  )}
                  <div className="mt-12 flex justify-end">
-                    <SaveButton onClick={saveProfile} label="Commit Identity Sync" />
+                    <SaveButton onClick={saveProfile} label="Guardar Perfil" />
                  </div>
               </SectionCard>
            </div>
@@ -482,7 +482,7 @@ export default function SettingsPage() {
         {/* Companies */}
         {activeTab === "companies" && (
            <div className="space-y-8 animate-luxe">
-              <SectionCard title="Entity Sub-Grid" icon="domain" color="#ccff00">
+              <SectionCard title="Empresas Registradas" icon="domain" color="#ccff00">
                  <div className="grid gap-4">
                     {companies.map(emp => (
                        <div key={emp.id} className={`glass-card p-6 rounded-3xl border transition-all duration-300 flex items-center justify-between ${activeCompanyId === emp.id ? 'border-[#ccff00]/30 shadow-volt' : 'border-white/5 hover:border-white/10'}`}>
@@ -493,7 +493,7 @@ export default function SettingsPage() {
                              <div>
                                 <div className="flex items-center gap-3">
                                    <h3 className="text-sm font-black text-white uppercase tracking-widest">{emp.nombre}</h3>
-                                   {emp.es_principal && <span className="text-[8px] font-black text-[#ccff00] border border-[#ccff00]/30 bg-[#ccff00]/5 px-2 py-0.5 rounded italic">CORE</span>}
+                                   {emp.es_principal && <span className="text-[8px] font-black text-[#ccff00] border border-[#ccff00]/30 bg-[#ccff00]/5 px-2 py-0.5 rounded italic">PRINCIPAL</span>}
                                 </div>
                                 <p className="text-[10px] text-white/40 uppercase tracking-widest mt-1">{emp.rfc} • {emp.cp_expedicion}</p>
                              </div>
@@ -534,7 +534,7 @@ export default function SettingsPage() {
                                    {hasValue && (
                                       <span className="text-[8px] font-black text-[#ccff00] uppercase tracking-widest flex items-center gap-2">
                                          <span className="w-1 h-1 rounded-full bg-[#ccff00] shadow-[0_0_5px_#ccff00]" />
-                                         Encrypted
+                                         Cifrado
                                       </span>
                                    )}
                                 </div>
@@ -544,7 +544,7 @@ export default function SettingsPage() {
                                          type="password" 
                                          value={inputVal || (hasValue ? maskValue(hasValue) : "")}
                                          onChange={e => setKeyInputs(prev => ({ ...prev, [keyDef.name]: e.target.value }))}
-                                         placeholder={hasValue ? "REDACTED" : "Input Cipher..."}
+                                         placeholder={hasValue ? "CIFRADO" : "Ingresar clave..."}
                                          className="w-full h-12 bg-white/5 border border-white/5 rounded-xl px-4 text-sm text-white focus:border-[#ccff00]/30 outline-none transition-all placeholder:text-white/10"
                                       />
                                    </div>
@@ -575,7 +575,7 @@ export default function SettingsPage() {
         )}
         {activeTab === "rules" && rules && (
            <form onSubmit={saveRules} className="space-y-8 animate-luxe">
-              <SectionCard title="Margin Parameters" icon="sell" color="#ccff00">
+              <SectionCard title="Parámetros de Margen" icon="sell" color="#ccff00">
                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     {Object.entries(MARGIN_MINIMUMS).map(([field, min]) => {
                        const val = (rules[field as keyof BusinessRules] as number) ?? 0;
@@ -591,7 +591,7 @@ export default function SettingsPage() {
                                    onChange={e => setRules(r => r ? { ...r, [field]: parseFloat(e.target.value) || 0 } : r)}
                                    className={`w-full h-12 bg-white/5 border rounded-xl px-4 text-sm font-black transition-all outline-none ${isBelow ? 'border-red-500/40 text-red-500' : 'border-white/5 text-[#ccff00]'}`}
                                 />
-                                {isBelow && <p className="text-[8px] font-black text-red-500 uppercase mt-2 italic">Alert: Min {min}</p>}
+                                {isBelow && <p className="text-[8px] font-black text-red-500 uppercase mt-2 italic">Alerta: Mín. {min}</p>}
                              </div>
                           </div>
                        );
@@ -600,19 +600,19 @@ export default function SettingsPage() {
               </SectionCard>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 <SectionCard title="Inventory Umbras" icon="warehouse" color="#ccff00">
+                 <SectionCard title="Umbrales de Inventario" icon="warehouse" color="#ccff00">
                     <div className="grid grid-cols-2 gap-6">
-                       <FieldInput type="number" label="Warning (Days)" value={(rules.stock_safety_days ?? 7).toString()} onChange={v => setRules(r => r ? { ...r, stock_safety_days: parseInt(v) || 0 } : r)} />
-                       <FieldInput type="number" label="Critical (Days)" value={(rules.stock_critical_days ?? 3).toString()} onChange={v => setRules(r => r ? { ...r, stock_critical_days: parseInt(v) || 0 } : r)} />
+                       <FieldInput type="number" label="Alerta (Días)" value={(rules.stock_safety_days ?? 7).toString()} onChange={v => setRules(r => r ? { ...r, stock_safety_days: parseInt(v) || 0 } : r)} />
+                       <FieldInput type="number" label="Crítico (Días)" value={(rules.stock_critical_days ?? 3).toString()} onChange={v => setRules(r => r ? { ...r, stock_critical_days: parseInt(v) || 0 } : r)} />
                     </div>
                  </SectionCard>
-                 <SectionCard title="NPS Cooldown" icon="star" color="#ccff00">
-                    <FieldInput type="number" label="Interval (Days)" value={(rules.nps_cooldown_days ?? 90).toString()} onChange={v => setRules(r => r ? { ...r, nps_cooldown_days: parseInt(v) || 90 } : r)} />
+                 <SectionCard title="Cooldown NPS" icon="star" color="#ccff00">
+                    <FieldInput type="number" label="Intervalo (Días)" value={(rules.nps_cooldown_days ?? 90).toString()} onChange={v => setRules(r => r ? { ...r, nps_cooldown_days: parseInt(v) || 90 } : r)} />
                  </SectionCard>
               </div>
 
               <div className="flex justify-end pt-8">
-                 <SaveButton onClick={() => {}} label="Sync Operational Rules" />
+                 <SaveButton onClick={() => {}} label="Guardar Reglas" />
               </div>
            </form>
         )}
@@ -620,7 +620,7 @@ export default function SettingsPage() {
         {/* Users */}
         {activeTab === "users" && (
            <div className="space-y-8 animate-luxe">
-              <SectionCard title="Human Matrix (RBAC)" icon="group" color="#ccff00">
+              <SectionCard title="Gestión de Usuarios (RBAC)" icon="group" color="#ccff00">
                  <div className="grid gap-4">
                     {users.map(user => (
                        <div key={user.id} className="glass-card p-6 rounded-3xl border border-white/5 hover:border-white/10 transition-all flex items-center justify-between">
@@ -629,7 +629,7 @@ export default function SettingsPage() {
                                 <span className="text-sm font-black text-white">{(user.full_name || user.email).charAt(0).toUpperCase()}</span>
                              </div>
                              <div>
-                                <h3 className="text-sm font-black text-white uppercase tracking-widest">{user.full_name || "Unknown Op"}</h3>
+                                <h3 className="text-sm font-black text-white uppercase tracking-widest">{user.full_name || "Sin Nombre"}</h3>
                                 <p className="text-[10px] text-white/30 uppercase mt-1">{user.email}</p>
                              </div>
                           </div>
@@ -659,7 +659,7 @@ export default function SettingsPage() {
         {/* Autonomy */}
         {activeTab === "autonomy" && (
            <div className="space-y-8 animate-luxe">
-              <SectionCard title="Neural Autonomy Matrix" icon="smart_toy" color="#ccff00">
+              <SectionCard title="Matriz de Autonomía" icon="smart_toy" color="#ccff00">
                  <div className="space-y-12">
                     {MODULES_LIST.map(mod => {
                        const currentLevel = autonomy[mod.id as keyof AutonomyConfig];
@@ -676,7 +676,7 @@ export default function SettingsPage() {
                                    </div>
                                 </div>
                                 <div className="text-right">
-                                   <p className="text-[10px] font-black text-[#ccff00] uppercase italic tracking-widest">Active Level: {currentLevel}</p>
+                                   <p className="text-[10px] font-black text-[#ccff00] uppercase italic tracking-widest">Nivel Activo: {currentLevel}</p>
                                 </div>
                              </div>
 
@@ -702,7 +702,7 @@ export default function SettingsPage() {
                  </div>
               </SectionCard>
               <div className="flex justify-end pt-8">
-                 <SaveButton onClick={saveAutonomy} label="Update Neural Matrix" saving={savingAutonomy} />
+                 <SaveButton onClick={saveAutonomy} label="Actualizar Matriz" saving={savingAutonomy} />
               </div>
            </div>
         )}
@@ -754,7 +754,7 @@ function SaveButton({ onClick, label, saving = false }: { onClick: () => void; l
       className="h-14 px-10 rounded-2xl bg-[#ccff00] text-black text-[11px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-4 hover:scale-105 active:scale-95 transition-all shadow-volt disabled:opacity-40 disabled:cursor-not-allowed group"
     >
       {saving ? <span className="material-symbols-outlined text-lg animate-spin">sync</span> : <span className="material-symbols-outlined text-lg group-hover:rotate-12 transition-transform">bolt</span>}
-      {saving ? "Processing..." : label}
+      {saving ? "Procesando..." : label}
     </button>
   );
 }
