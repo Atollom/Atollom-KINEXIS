@@ -182,12 +182,14 @@ export default function SettingsPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
       supabase
-        .from("user_profiles")
+        .from("users")
         .select("role")
-        .eq("id", user.id)
-        .single()
+        .eq("supabase_user_id", user.id)
+        .maybeSingle()
         .then(({ data }) => {
-          if (data?.role) setUserRole(data.role as UserRole);
+          if (data?.role) { setUserRole(data.role as UserRole); return; }
+          supabase.from("users").select("role").eq("email", user.email ?? "").maybeSingle()
+            .then(({ data: d }) => { if (d?.role) setUserRole(d.role as UserRole); });
         });
     });
   }, []);
@@ -233,7 +235,10 @@ export default function SettingsPage() {
 
         if (profileRes.status === "fulfilled") setProfile(profileRes.value);
         if (vaultRes.status === "fulfilled") setVaultStatus(vaultRes.value.keys || {});
-        if (rulesRes.status === "fulfilled") setRules(rulesRes.value);
+        // Only set rules if the response contains valid data (not an error object)
+        if (rulesRes.status === "fulfilled" && typeof rulesRes.value?.ml_margin === "number") {
+          setRules(rulesRes.value);
+        }
         if (usersRes.status === "fulfilled") setUsers(usersRes.value.users || []);
         if (autonomyRes.status === "fulfilled") setAutonomy(autonomyRes.value.autonomy || autonomy);
         if (companiesRes.status === "fulfilled") {
@@ -560,14 +565,21 @@ export default function SettingsPage() {
            </div>
         )}
 
-        {/* Rules */}
+        {/* Rules — empty state when tenant_business_rules not seeded yet */}
+        {activeTab === "rules" && !rules && (
+           <div className="glass-card rounded-[3rem] p-12 flex flex-col items-center text-center gap-4 border border-white/5">
+              <span className="material-symbols-outlined text-4xl text-[#ccff00]/40">tune</span>
+              <h3 className="text-lg font-black text-white/60 uppercase tracking-widest">Sin Reglas Configuradas</h3>
+              <p className="text-sm text-white/30 max-w-md">Las reglas operacionales se configuran durante el onboarding. Contacta al administrador de KINEXIS para inicializarlas.</p>
+           </div>
+        )}
         {activeTab === "rules" && rules && (
            <form onSubmit={saveRules} className="space-y-8 animate-luxe">
               <SectionCard title="Margin Parameters" icon="sell" color="#ccff00">
                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     {Object.entries(MARGIN_MINIMUMS).map(([field, min]) => {
-                       const val = rules[field as keyof BusinessRules] as number;
-                       const isBelow = val < min;
+                       const val = (rules[field as keyof BusinessRules] as number) ?? 0;
+                       const isBelow = val > 0 && val < min;
                        return (
                           <div key={field} className="space-y-3">
                              <label className="text-[10px] font-black text-white/30 uppercase tracking-widest leading-none block">
@@ -590,12 +602,12 @@ export default function SettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <SectionCard title="Inventory Umbras" icon="warehouse" color="#ccff00">
                     <div className="grid grid-cols-2 gap-6">
-                       <FieldInput type="number" label="Warning (Days)" value={rules.stock_safety_days.toString()} onChange={v => setRules(r => r ? { ...r, stock_safety_days: parseInt(v) || 0 } : r)} />
-                       <FieldInput type="number" label="Critical (Days)" value={rules.stock_critical_days.toString()} onChange={v => setRules(r => r ? { ...r, stock_critical_days: parseInt(v) || 0 } : r)} />
+                       <FieldInput type="number" label="Warning (Days)" value={(rules.stock_safety_days ?? 7).toString()} onChange={v => setRules(r => r ? { ...r, stock_safety_days: parseInt(v) || 0 } : r)} />
+                       <FieldInput type="number" label="Critical (Days)" value={(rules.stock_critical_days ?? 3).toString()} onChange={v => setRules(r => r ? { ...r, stock_critical_days: parseInt(v) || 0 } : r)} />
                     </div>
                  </SectionCard>
                  <SectionCard title="NPS Cooldown" icon="star" color="#ccff00">
-                    <FieldInput type="number" label="Interval (Days)" value={rules.nps_cooldown_days.toString()} onChange={v => setRules(r => r ? { ...r, nps_cooldown_days: parseInt(v) || 90 } : r)} />
+                    <FieldInput type="number" label="Interval (Days)" value={(rules.nps_cooldown_days ?? 90).toString()} onChange={v => setRules(r => r ? { ...r, nps_cooldown_days: parseInt(v) || 90 } : r)} />
                  </SectionCard>
               </div>
 
