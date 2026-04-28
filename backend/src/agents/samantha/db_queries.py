@@ -105,3 +105,27 @@ def _empty_context(reason: str) -> Dict[str, Any]:
 async def get_tenant_context(tenant_id: str) -> Dict[str, Any]:
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, partial(_fetch_context_sync, tenant_id))
+
+
+def _fetch_user_sync(supabase_user_id: str) -> Dict[str, Any]:
+    """Resolve supabase_user_id (JWT sub) → internal users row."""
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        return {}
+    conn = psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, tenant_id, email, role FROM users WHERE supabase_user_id = %s LIMIT 1",
+            (supabase_user_id,),
+        )
+        row = cur.fetchone()
+        return dict(row) if row else {}
+    finally:
+        conn.close()
+
+
+async def get_user_by_supabase_id(supabase_user_id: str) -> Dict[str, Any]:
+    """Return {id, tenant_id, email, role} from users table, keyed by supabase_user_id."""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, partial(_fetch_user_sync, supabase_user_id))

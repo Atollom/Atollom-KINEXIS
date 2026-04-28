@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from src.agents.samantha.core import get_samantha
 from src.agents.samantha.credits import check_credits, decrement_credits
-from src.agents.samantha.db_queries import get_tenant_context
+from src.agents.samantha.db_queries import get_tenant_context, get_user_by_supabase_id
 from src.services.memory_service import get_memory_service
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,9 @@ class ChatRequest(BaseModel):
     query: str
     history: List[ChatMessage] = []
     tenant_id: str
-    user_id: Optional[str] = None  # Required for memory features; skipped if absent
+    # supabase_user_id: the auth.uid() from Supabase JWT (NOT users.id)
+    # Backend resolves → users.id before calling memory service
+    supabase_user_id: Optional[str] = None
     session_id: Optional[str] = None
 
 
@@ -62,23 +64,31 @@ async def chat(request: ChatRequest):
             "low_stock": [], "recent_orders": [],
         }
 
-    # 3. Load memory context (non-blocking: failures are silently skipped)
+    # 3. Resolve supabase_user_id → internal users.id, then load memory context
     memory_context = ""
-    if request.user_id:
+    if request.supabase_user_id:
         try:
-            memory_svc = get_memory_service()
-            boot_memories, relevant_memories = await _load_memories(
-                memory_svc,
-                tenant_id=request.tenant_id,
-                user_id=request.user_id,
-                query=request.query,
-            )
-            memory_context = memory_svc.format_memory_context(boot_memories, relevant_memories)
-            if memory_context:
-                logger.debug(
-                    "Memory context loaded: %d boot + %d relevant",
-                    len(boot_memories), len(relevant_memories),
+            user_row = await get_user_by_supabase_id(request.supabase_user_id)
+            if not user_row:
+                logger.warning(
+                    "supabase_user_id %s not found in users table — memory skipped",
+                    request.supabase_user_id,
                 )
+            else:
+                internal_user_id = user_row["id"]  # users.id (PK), NOT supabase_user_id
+                memory_svc = get_memory_service()
+                boot_memories, relevant_memories = await _load_memories(
+                    memory_svc,
+                    tenant_id=request.tenant_id,
+                    user_id=internal_user_id,
+                    query=request.query,
+                )
+                memory_context = memory_svc.format_memory_context(boot_memories, relevant_memories)
+                if memory_context:
+                    logger.debug(
+                        "Memory context loaded for user %s: %d boot + %d relevant",
+                        internal_user_id, len(boot_memories), len(relevant_memories),
+                    )
         except Exception as exc:
             logger.warning("Memory load failed (non-fatal): %s", exc)
 
@@ -158,10 +168,21 @@ async def get_credits(tenant_id: str):
     return await check_credits(tenant_id)
 
 
+async def _resolve_user_id(supabase_user_id: str) -> str:
+    """Lookup users.id from supabase_user_id. Raises 404 if not found."""
+    user_row = await get_user_by_supabase_id(supabase_user_id)
+    if not user_row:
+        raise HTTPException(
+            status_code=404,
+            detail=f"User with supabase_user_id={supabase_user_id} not found in users table",
+        )
+    return user_row["id"]
+
+
 @router.post("/memory/save")
 async def save_memory(
     tenant_id: str,
-    user_id: str,
+    supabase_user_id: str,
     content: str,
     importance: int = 5,
     tags: Optional[List[str]] = None,
@@ -170,10 +191,11 @@ async def save_memory(
     summary: Optional[str] = None,
 ):
     """Persist a memory manually (e.g. from agent actions)."""
+    internal_user_id = await _resolve_user_id(supabase_user_id)
     memory_svc = get_memory_service()
     result = await memory_svc.save_memory(
         tenant_id=tenant_id,
-        user_id=user_id,
+        user_id=internal_user_id,
         content=content,
         importance=importance,
         tags=tags,
@@ -185,8 +207,9 @@ async def save_memory(
 
 
 @router.get("/memory/boot")
-async def boot_memories(tenant_id: str, user_id: str, min_importance: int = 7):
+async def boot_memories(tenant_id: str, supabase_user_id: str, min_importance: int = 7):
     """Return boot-sequence memories for a user session."""
+    internal_user_id = await _resolve_user_id(supabase_user_id)
     memory_svc = get_memory_service()
-    memories = await memory_svc.get_boot_memories(tenant_id, user_id, min_importance)
+    memories = await memory_svc.get_boot_memories(tenant_id, internal_user_id, min_importance)
     return {"memories": memories, "count": len(memories)}

@@ -23,7 +23,8 @@ from src.services.memory_service import SamanthaMemoryService
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 TENANT_ID = "0ac40357-b96c-4a32-929e-ae810875d6b0"
-USER_ID   = "0aea6e5b-021e-4bee-9575-d45f99c7e8b3"
+SUPABASE_USER_ID = "0aea6e5b-021e-4bee-9575-d45f99c7e8b3"  # auth.uid() / JWT sub
+USER_ID          = "c6be32de-381e-47a6-8108-ddd8d5d1f200"  # users.id (PK) — memory FK target
 
 _HAS_SUPABASE = bool(
     os.getenv("SUPABASE_URL") and os.getenv("SUPABASE_SERVICE_ROLE_KEY")
