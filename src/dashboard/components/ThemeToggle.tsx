@@ -1,49 +1,30 @@
 "use client"
 
 import { Moon, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true)
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    const saved = localStorage.getItem('theme')
-    const dark = saved !== 'light'
-    setIsDark(dark)
-    applyTheme(dark)
-  }, [])
+  // Avoid hydration mismatch — render only after mount
+  useEffect(() => { setMounted(true) }, [])
+  if (!mounted) return null
 
-  function applyTheme(dark: boolean) {
-    const root = document.documentElement
-    if (dark) {
-      root.classList.add('dark')
-      root.classList.remove('light')
-      root.style.colorScheme = 'dark'
-    } else {
-      root.classList.remove('dark')
-      root.classList.add('light')
-      root.style.colorScheme = 'light'
-    }
-  }
-
-  const toggle = () => {
-    const next = !isDark
-    setIsDark(next)
-    localStorage.setItem('theme', next ? 'dark' : 'light')
-    applyTheme(next)
-  }
+  const isDark = theme === "dark"
 
   return (
     <button
-      onClick={toggle}
-      className="p-2 rounded-xl hover:bg-white/10 transition-all duration-300 z-50 flex items-center justify-center group"
-      aria-label="Toggle theme"
-      title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="p-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/10 light:hover:bg-black/5 transition-all duration-300 z-50 flex items-center justify-center group"
+      aria-label="Cambiar tema"
+      title={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
     >
       {isDark ? (
         <Sun className="w-4 h-4 text-yellow-400 group-hover:rotate-45 transition-transform duration-300" />
       ) : (
-        <Moon className="w-4 h-4 text-slate-600 group-hover:-rotate-12 transition-transform duration-300" />
+        <Moon className="w-4 h-4 text-slate-500 group-hover:-rotate-12 transition-transform duration-300" />
       )}
     </button>
   )

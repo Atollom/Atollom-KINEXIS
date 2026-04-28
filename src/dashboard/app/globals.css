@@ -4,18 +4,18 @@
 
 /* ========== DARK MODE & LIGHT MODE VARIABLES ========== */
 :root {
-  /* LIGHT MODE VARIABLES */
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --card: #fafafa;
-  --card-foreground: #0a0a0a;
-  --primary: #22c55e; /* green-500 */
-  --primary-foreground: #ffffff;
+  /* LIGHT MODE — default */
+  --background: #FFFFFF;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --primary: #CDFF00;
+  --primary-foreground: #1A1A1A;
 
-  --bg-base:       linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-  --bg-surface:    rgba(255, 255, 255, 0.85);
-  --bg-card:       rgba(255, 255, 255, 0.70);
-  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-base:       #F5F5F7;
+  --bg-surface:    rgba(255, 255, 255, 0.90);
+  --bg-card:       rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 1);
 
   --glass-border: rgba(0, 0, 0, 0.06);
   --glass-shine:  rgba(255, 255, 255, 0.9);
@@ -23,26 +23,35 @@
   --blur-md: 24px;
   --blur-lg: 40px;
 
-  --text-primary:   #1d1d1f;
-  --text-secondary: #515154;
-  --text-muted:     #86868b;
+  --text-primary:   #1A1A1A;
+  --text-secondary: #666666;
+  --text-muted:     #999999;
 
-  --accent-primary:   #4a7c10;
-  --accent-secondary: #3a6209;
-  --accent-warning:   #ff9500;
-  --accent-danger:    #ff3b30;
+  --accent-primary:   #CDFF00;
+  --accent-secondary: #B8E600;
+  --accent-warning:   #FFCC00;
+  --accent-danger:    #FF3B30;
 
-  --gradient-brand:  linear-gradient(135deg, #5a8110 0%, #4a7c10 100%);
-  --gradient-subtle: linear-gradient(135deg, rgba(74,124,16,0.06) 0%, rgba(58,98,9,0.06) 100%);
+  --gradient-brand:  linear-gradient(135deg, #CDFF00 0%, #B8E600 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(205,255,0,0.08) 0%, rgba(184,230,0,0.08) 100%);
 
   --shadow-ambient: 0 0 40px rgba(0,0,0,0.04);
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md:  0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04), 0 0 0 1px var(--glass-border);
-  --shadow-lg:  0 12px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06), 0 0 0 1px var(--glass-border), inset 0 1px 0 var(--glass-shine);
-  --shadow-glow: 0 0 30px rgba(74,124,16,0.08);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:  0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg:  0 4px 16px rgba(0,0,0,0.12);
+  --shadow-glow: 0 0 24px rgba(205,255,0,0.25);
 
-  --border-color:  rgba(0,0,0,0.08);
-  --border-subtle: rgba(0,0,0,0.05);
+  --border-color:   #E5E5E5;
+  --border-subtle:  #D1D1D1;
+  --border-light:   #E5E5E5;
+  --border-medium:  #D1D1D1;
+  --border-heavy:   #999999;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
 }
 
 .dark {
@@ -87,9 +96,23 @@
   --border-subtle: rgba(255,255,255,0.05);
 }
 
-/* Fallback for Next-Themes .light class */
+/* next-themes sets .light on <html> when light mode is active */
 .light {
-  /* Same as :root for explicit override if needed */
+  --bg-base:       #F5F5F7;
+  --bg-surface:    rgba(255, 255, 255, 0.90);
+  --bg-card:       rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 1);
+  --text-primary:   #1A1A1A;
+  --text-secondary: #666666;
+  --text-muted:     #999999;
+  --accent-primary:   #CDFF00;
+  --border-color:   #E5E5E5;
+  --border-subtle:  #D1D1D1;
+  --glass-border:  rgba(0, 0, 0, 0.06);
+  --glass-shine:   rgba(255, 255, 255, 0.9);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
 }
 
 /* Note: We remove the html.light specific overrides here and use variables instead where possible.
