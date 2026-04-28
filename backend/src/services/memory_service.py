@@ -1,6 +1,6 @@
 """
 SamanthaMemoryService — Vector memory persistence for Samantha.
-Uses Google text-embedding-004 (768 dims) + Supabase pgvector.
+Uses Google embedding-001 + Supabase pgvector.
 Table: samantha_memories (migration 039)
 """
 
@@ -20,7 +20,7 @@ class SamanthaMemoryService:
         url = os.getenv("SUPABASE_URL", "")
         key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
         self.supabase: Client = create_client(url, key)
-        self._embedding_model = "models/text-embedding-004"
+        self._embedding_model = "models/embedding-001"
         self._initialized = bool(url and key)
 
     # ── Embedding ─────────────────────────────────────────────────────────────

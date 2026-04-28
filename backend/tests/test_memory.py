@@ -129,7 +129,7 @@ class TestSearchMemoriesUnit:
     async def test_calls_rpc_with_embedding(self):
         svc = SamanthaMemoryService.__new__(SamanthaMemoryService)
         svc._initialized = True
-        svc._embedding_model = "models/text-embedding-004"
+        svc._embedding_model = "models/embedding-001"
 
         rpc_chain = MagicMock()
         rpc_chain.execute = MagicMock(return_value=MagicMock(data=MOCK_SEARCH_RESULTS))
@@ -171,7 +171,7 @@ class TestSaveMemoryUnit:
     async def test_saves_with_embedding(self):
         svc = SamanthaMemoryService.__new__(SamanthaMemoryService)
         svc._initialized = True
-        svc._embedding_model = "models/text-embedding-004"
+        svc._embedding_model = "models/embedding-001"
 
         inserted = {"id": "new-uuid", "content": "test content", "importance": 8}
         insert_chain = MagicMock()
