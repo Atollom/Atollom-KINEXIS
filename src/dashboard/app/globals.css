@@ -341,3 +341,56 @@ input:focus-visible {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(184,231,74,0.4); }
 html.light .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); }
 html.light .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(127,181,24,0.4); }
+
+/* ========== GLASS-CARD (global utility used by dashboard pages) ========== */
+.glass-card {
+  position: relative;
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--blur-md)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-md)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+html.light .glass-card {
+  background: rgba(255,255,255,0.92) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* ========== NEON DISRUPTOR CTA ========== */
+.neon-disruptor {
+  background: var(--accent-primary);
+  color: #000000;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ========== LIGHT MODE: Tailwind custom color token overrides ========== */
+/* Tailwind config defines these as fixed hex — override them for light mode */
+html.light .text-on-surface            { color: var(--text-primary)   !important; }
+html.light .text-on-surface-variant    { color: var(--text-secondary)  !important; }
+html.light [class*="text-on-surface\/"] { color: var(--text-muted)     !important; }
+html.light .bg-surface,
+html.light .bg-background              { background-color: var(--bg-base) !important; }
+html.light .bg-surface-container,
+html.light .bg-surface-container-low,
+html.light .bg-surface-container-high { background-color: var(--bg-card) !important; }
+
+/* label-tracking helper */
+.label-tracking { letter-spacing: 0.15em; }
+/* tight-tracking helper */
+.tight-tracking  { letter-spacing: -0.04em; }
+/* drop-shadow-glow helper */
+.drop-shadow-glow { filter: drop-shadow(0 0 6px rgba(204,255,0,0.4)); }
+html.light .drop-shadow-glow { filter: drop-shadow(0 0 6px rgba(165,200,0,0.3)); }
+
+/* animate-in helper */
+.animate-in { animation: animateIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes animateIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* animate-luxe */
+.animate-luxe { animation: luxeFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }

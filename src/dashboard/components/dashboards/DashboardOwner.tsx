@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { 
-  TrendingUp, 
-  Package, 
-  Zap, 
+import { useTheme } from 'next-themes'
+import {
+  TrendingUp,
+  Package,
+  Zap,
   Wallet,
   Activity,
   CheckCircle2,
@@ -15,14 +16,14 @@ import {
   Truck,
   ArrowUpRight
 } from 'lucide-react'
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from 'recharts'
 
 const MOCK_REVENUE = [
@@ -36,8 +37,13 @@ const MOCK_REVENUE = [
 ]
 
 export default function DashboardOwner() {
+  const { resolvedTheme } = useTheme()
   const [stats, setStats] = useState({ products: 0, orders: 0, invoices: 0, revenue_30d: 0 })
   const [loading, setLoading] = useState(true)
+
+  const tooltipBg     = resolvedTheme === 'dark' ? '#040f1b' : '#ffffff'
+  const tooltipBorder = resolvedTheme === 'dark' ? 'rgba(255,255,255,0.06)' : '#e5e5e5'
+  const tooltipText   = resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a'
 
   useEffect(() => {
     async function loadStats() {
@@ -132,9 +138,14 @@ export default function DashboardOwner() {
                   fill="url(#ownerRevenue)" 
                   animationDuration={2000}
                 />
-                <Tooltip 
-                   contentStyle={{backgroundColor: '#040f1b', border: '1px solid #ffffff10', borderRadius: '12px'}}
-                   cursor={{stroke: '#ffffff10', strokeWidth: 1}}
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: tooltipBg,
+                    border: `1px solid ${tooltipBorder}`,
+                    borderRadius: '12px',
+                    color: tooltipText,
+                  }}
+                  cursor={{ stroke: tooltipBorder, strokeWidth: 1 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
