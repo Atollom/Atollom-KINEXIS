@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes } from 'react'
+import React, { type ButtonHTMLAttributes } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -9,13 +9,15 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const buttonVariants = cva(
-  "rounded-full px-8 py-3.5 font-medium transition-all duration-200 shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed active:scale-95",
+  "rounded-full px-8 py-3.5 font-medium transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed active:scale-95",
   {
     variants: {
       variant: {
-        primary: "bg-[#CCFF00] text-[#040f1b] hover:bg-[#CCFF00]/90 hover:shadow-[0_0_24px_rgba(204,255,0,0.3)]",
-        ghost: "bg-white/5 backdrop-blur-3xl text-white hover:bg-white/10",
-        glass: "bg-white/5 backdrop-blur-3xl text-white/90 hover:bg-white/8"
+        primary: "text-black hover:opacity-90 hover:shadow-[0_0_24px_rgba(204,255,0,0.3)]",
+        secondary: "border hover:opacity-80",
+        ghost: "hover:opacity-80",
+        glass: "backdrop-blur-3xl hover:opacity-80",
+        destructive: "hover:opacity-90",
       }
     },
     defaultVariants: {
@@ -28,10 +30,19 @@ interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
-export function Button({ className, variant, ...props }: ButtonProps) {
+const variantStyles: Record<string, React.CSSProperties> = {
+  primary: { backgroundColor: 'var(--accent-primary)', color: 'var(--primary-foreground)', boxShadow: 'var(--shadow-glow)' },
+  secondary: { backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' },
+  ghost: { color: 'var(--text-secondary)' },
+  glass: { backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', backdropFilter: 'blur(12px)' },
+  destructive: { backgroundColor: 'var(--accent-danger)', color: '#ffffff' },
+}
+
+export function Button({ className, variant = 'glass', style, ...props }: ButtonProps) {
   return (
     <button
       className={cn(buttonVariants({ variant, className }))}
+      style={{ ...variantStyles[variant ?? 'glass'], ...style }}
       {...props}
     />
   )

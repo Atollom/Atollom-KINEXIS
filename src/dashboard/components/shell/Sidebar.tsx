@@ -234,10 +234,11 @@ function NavItem({ item, depth = 0 }: { item: MenuItem; depth?: number }) {
       <div className={depth === 0 ? 'mb-1' : ''}>
         <button
           onClick={() => setExpanded(v => !v)}
+          style={{ color: 'var(--text-secondary)' }}
           className={`
             w-full flex items-center justify-between rounded-lg transition-colors
             ${depth === 0 ? 'px-3 py-2 text-sm font-semibold' : 'px-3 py-1.5 text-xs font-medium'}
-            text-white/60 hover:text-white hover:bg-white/5
+            hover:bg-black/5 dark:hover:bg-white/5 hover:!text-[color:var(--text-primary)]
           `}
         >
           <span className="flex items-center gap-2">
@@ -262,18 +263,23 @@ function NavItem({ item, depth = 0 }: { item: MenuItem; depth?: number }) {
   return (
     <Link
       href={item.href || '#'}
+      style={active
+        ? { color: 'var(--accent-primary)', backgroundColor: 'rgba(205,255,0,0.1)' }
+        : { color: 'var(--text-muted)' }
+      }
       className={`
         flex items-center gap-2 rounded-lg transition-colors
         ${depth === 0 ? 'px-3 py-2 text-sm font-semibold' : 'px-3 py-1.5 text-xs'}
-        ${active
-          ? 'bg-[#CCFF00]/10 text-[#CCFF00] font-semibold'
-          : 'text-white/50 hover:text-white hover:bg-white/5'}
+        ${!active ? 'hover:bg-black/5 dark:hover:bg-white/5 hover:!text-[color:var(--text-primary)]' : 'font-semibold'}
       `}
     >
       {item.icon && <item.icon className="w-4 h-4 flex-shrink-0" />}
       <span className="truncate">{item.label}</span>
       {item.badge && (
-        <span className="ml-auto text-[10px] px-1.5 py-0.5 bg-[#CCFF00]/10 text-[#CCFF00]/70 rounded flex-shrink-0">
+        <span
+          className="ml-auto text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
+          style={{ backgroundColor: 'rgba(205,255,0,0.1)', color: 'var(--accent-primary)' }}
+        >
           {item.badge}
         </span>
       )}
@@ -285,14 +291,22 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const inner = (
-    <aside className="w-[260px] h-full flex flex-col bg-[#040f1b] border-r border-white/5 flex-shrink-0">
+    <aside
+      className="w-[260px] h-full flex flex-col flex-shrink-0 transition-colors duration-300"
+      style={{
+        backgroundColor: 'var(--bg-surface)',
+        borderRight: '1px solid var(--border-color)',
+      }}
+    >
       {/* Logo */}
-      <div className="p-5 border-b border-white/10">
+      <div className="p-5" style={{ borderBottom: '1px solid var(--border-color)' }}>
         <div className="flex items-center gap-3">
           <Image src="/branding/atollom-icon.png" alt="Atollom" width={32} height={32} className="rounded-lg flex-shrink-0" />
           <Image src="/branding/logo.png" alt="KINEXIS" width={110} height={32} className="h-7 w-auto object-contain" priority />
         </div>
-        <p className="text-[9px] text-white/25 mt-2 tracking-widest uppercase">By Atollom Labs</p>
+        <p className="text-[9px] mt-2 tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>
+          By Atollom Labs
+        </p>
       </div>
 
       {/* Nav */}
@@ -312,10 +326,14 @@ export function Sidebar() {
       {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-[#040f1b] rounded-lg border border-white/10"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg"
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-color)',
+        }}
         aria-label="Open menu"
       >
-        <Menu className="w-5 h-5 text-white" />
+        <Menu className="w-5 h-5" style={{ color: 'var(--text-primary)' }} />
       </button>
 
       {/* Mobile drawer */}
@@ -327,10 +345,14 @@ export function Sidebar() {
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden fixed top-4 left-[268px] z-50 p-2 bg-[#040f1b] rounded-lg border border-white/10"
+            className="lg:hidden fixed top-4 left-[268px] z-50 p-2 rounded-lg"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-color)',
+            }}
             aria-label="Close menu"
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-5 h-5" style={{ color: 'var(--text-primary)' }} />
           </button>
         </>
       )}
