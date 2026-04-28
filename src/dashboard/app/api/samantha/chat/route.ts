@@ -104,7 +104,9 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         query: body.query,
         history: body.history || [],
-        tenant_id: profile.tenant_id
+        tenant_id: profile.tenant_id,
+        supabase_user_id: userId,
+        session_id: body.session_id ?? null
       })
     });
 

@@ -21,6 +21,7 @@ export function SamanthaFixedPanel() {
   ])
   const [isLoading, setIsLoading] = useState(false)
   const [token, setToken] = useState<string | null>(null)
+  const sessionId = useRef(`session_${Date.now()}`)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Obtener access_token al montar — refresca si expira
@@ -64,7 +65,11 @@ export function SamanthaFixedPanel() {
       const res = await fetch('/api/samantha/chat', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ query: userMessage.content, history: messages })
+        body: JSON.stringify({
+          query: userMessage.content,
+          history: messages,
+          session_id: sessionId.current
+        })
       })
 
       const data = await res.json()
