@@ -37,6 +37,9 @@ class ChatRequest(BaseModel):
 
 @router.post("/chat")
 async def chat(request: ChatRequest):
+    print("[EMERGENCY] chat() called — Railway IS running new code", flush=True)
+    logger.warning("[EMERGENCY] chat() called — supabase_user_id=%s", request.supabase_user_id)
+
     # 1. Check credits
     credits = await check_credits(request.tenant_id)
     if not credits["ok"]:
@@ -66,13 +69,13 @@ async def chat(request: ChatRequest):
 
     # 3. Resolve supabase_user_id → internal users.id, then load memory context
     memory_context = ""
-    logger.info("[SAMANTHA DEBUG] supabase_user_id received: %s", request.supabase_user_id or "NONE")
-    logger.info("[SAMANTHA DEBUG] tenant_id: %s", request.tenant_id)
+    logger.warning("[SAMANTHA DEBUG] supabase_user_id received: %s", request.supabase_user_id or "NONE")
+    logger.warning("[SAMANTHA DEBUG] tenant_id: %s", request.tenant_id)
 
     if request.supabase_user_id:
         try:
             user_row = await get_user_by_supabase_id(request.supabase_user_id)
-            logger.info("[SAMANTHA DEBUG] user_row lookup result: %s", user_row)
+            logger.warning("[SAMANTHA DEBUG] user_row lookup result: %s", user_row)
 
             if not user_row:
                 logger.warning(
@@ -81,10 +84,10 @@ async def chat(request: ChatRequest):
                 )
             else:
                 internal_user_id = user_row["id"]  # users.id (PK), NOT supabase_user_id
-                logger.info("[SAMANTHA DEBUG] internal_user_id (users.id): %s", internal_user_id)
+                logger.warning("[SAMANTHA DEBUG] internal_user_id (users.id): %s", internal_user_id)
 
                 memory_svc = get_memory_service()
-                logger.info("[SAMANTHA DEBUG] memory_svc initialized: %s", memory_svc._initialized)
+                logger.warning("[SAMANTHA DEBUG] memory_svc initialized: %s", memory_svc._initialized)
 
                 boot_memories, relevant_memories = await _load_memories(
                     memory_svc,
@@ -92,18 +95,18 @@ async def chat(request: ChatRequest):
                     user_id=internal_user_id,
                     query=request.query,
                 )
-                logger.info("[SAMANTHA DEBUG] boot_memories count: %d", len(boot_memories))
-                logger.info("[SAMANTHA DEBUG] boot_memories: %s", boot_memories)
-                logger.info("[SAMANTHA DEBUG] relevant_memories count: %d", len(relevant_memories))
-                logger.info("[SAMANTHA DEBUG] relevant_memories: %s", relevant_memories)
+                logger.warning("[SAMANTHA DEBUG] boot_memories count: %d", len(boot_memories))
+                logger.warning("[SAMANTHA DEBUG] boot_memories: %s", boot_memories)
+                logger.warning("[SAMANTHA DEBUG] relevant_memories count: %d", len(relevant_memories))
+                logger.warning("[SAMANTHA DEBUG] relevant_memories: %s", relevant_memories)
 
                 memory_context = memory_svc.format_memory_context(boot_memories, relevant_memories)
-                logger.info("[SAMANTHA DEBUG] memory_context length: %d", len(memory_context))
-                logger.info("[SAMANTHA DEBUG] memory_context preview: %s", memory_context[:500])
+                logger.warning("[SAMANTHA DEBUG] memory_context length: %d", len(memory_context))
+                logger.warning("[SAMANTHA DEBUG] memory_context preview: %s", memory_context[:500])
         except Exception as exc:
             logger.warning("[SAMANTHA DEBUG] Memory load failed (non-fatal): %s", exc, exc_info=True)
     else:
-        logger.info("[SAMANTHA DEBUG] No supabase_user_id — memory features skipped")
+        logger.warning("[SAMANTHA DEBUG] No supabase_user_id — memory features skipped")
 
     # Inject memory into context so _build_system_prompt can include it
     context["memory_context"] = memory_context
