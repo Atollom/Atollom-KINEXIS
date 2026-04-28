@@ -66,31 +66,44 @@ async def chat(request: ChatRequest):
 
     # 3. Resolve supabase_user_id → internal users.id, then load memory context
     memory_context = ""
+    logger.info("[SAMANTHA DEBUG] supabase_user_id received: %s", request.supabase_user_id or "NONE")
+    logger.info("[SAMANTHA DEBUG] tenant_id: %s", request.tenant_id)
+
     if request.supabase_user_id:
         try:
             user_row = await get_user_by_supabase_id(request.supabase_user_id)
+            logger.info("[SAMANTHA DEBUG] user_row lookup result: %s", user_row)
+
             if not user_row:
                 logger.warning(
-                    "supabase_user_id %s not found in users table — memory skipped",
+                    "[SAMANTHA DEBUG] supabase_user_id %s not found in users table — memory skipped",
                     request.supabase_user_id,
                 )
             else:
                 internal_user_id = user_row["id"]  # users.id (PK), NOT supabase_user_id
+                logger.info("[SAMANTHA DEBUG] internal_user_id (users.id): %s", internal_user_id)
+
                 memory_svc = get_memory_service()
+                logger.info("[SAMANTHA DEBUG] memory_svc initialized: %s", memory_svc._initialized)
+
                 boot_memories, relevant_memories = await _load_memories(
                     memory_svc,
                     tenant_id=request.tenant_id,
                     user_id=internal_user_id,
                     query=request.query,
                 )
+                logger.info("[SAMANTHA DEBUG] boot_memories count: %d", len(boot_memories))
+                logger.info("[SAMANTHA DEBUG] boot_memories: %s", boot_memories)
+                logger.info("[SAMANTHA DEBUG] relevant_memories count: %d", len(relevant_memories))
+                logger.info("[SAMANTHA DEBUG] relevant_memories: %s", relevant_memories)
+
                 memory_context = memory_svc.format_memory_context(boot_memories, relevant_memories)
-                if memory_context:
-                    logger.debug(
-                        "Memory context loaded for user %s: %d boot + %d relevant",
-                        internal_user_id, len(boot_memories), len(relevant_memories),
-                    )
+                logger.info("[SAMANTHA DEBUG] memory_context length: %d", len(memory_context))
+                logger.info("[SAMANTHA DEBUG] memory_context preview: %s", memory_context[:500])
         except Exception as exc:
-            logger.warning("Memory load failed (non-fatal): %s", exc)
+            logger.warning("[SAMANTHA DEBUG] Memory load failed (non-fatal): %s", exc, exc_info=True)
+    else:
+        logger.info("[SAMANTHA DEBUG] No supabase_user_id — memory features skipped")
 
     # Inject memory into context so _build_system_prompt can include it
     context["memory_context"] = memory_context
