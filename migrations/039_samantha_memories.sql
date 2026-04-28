@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS samantha_memories (
   importance      int         CHECK (importance BETWEEN 1 AND 10) DEFAULT 5,
   tags            text[]      DEFAULT '{}',
 
-  -- Embedding vectorial (OpenAI text-embedding-3-small = 1536 dims)
-  embedding       vector(1536),
+  -- Embedding vectorial (Google text-embedding-004 = 768 dims)
+  embedding       vector(768),
 
   -- Versionado (actualizar sin borrar — mantiene historial)
   parent_id       uuid        REFERENCES samantha_memories(id),
@@ -140,7 +140,7 @@ CREATE POLICY samantha_memories_atollom_read ON samantha_memories
 
 -- Búsqueda semántica por embedding
 CREATE OR REPLACE FUNCTION match_samantha_memories(
-  query_embedding  vector(1536),
+  query_embedding  vector(768),
   p_tenant_id      uuid,
   p_user_id        uuid,
   match_threshold  float DEFAULT 0.7,
@@ -228,7 +228,7 @@ COMMENT ON COLUMN samantha_memories.importance IS
   'Boot sequence carga memorias con importance >= 7.';
 
 COMMENT ON COLUMN samantha_memories.embedding IS
-  'Vector 1536 dims (OpenAI text-embedding-3-small). '
+  'Vector 768 dims (Google text-embedding-004). '
   'NULL hasta que el backend lo calcule asíncronamente.';
 
 COMMENT ON COLUMN samantha_memories.superseded_at IS

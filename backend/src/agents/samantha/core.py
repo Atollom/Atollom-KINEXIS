@@ -23,7 +23,7 @@ DATOS EN TIEMPO REAL DE {tenant_name}:
 - Facturas CFDI válidas: {invoices_count}
 - Productos con bajo stock (top 5): {low_stock_summary}
 - Órdenes recientes: {recent_orders_summary}
-
+{memory_block}
 INSTRUCCIONES:
 - Responde en español, de forma profesional y concisa.
 - Usa los datos anteriores para responder preguntas específicas.
@@ -47,6 +47,10 @@ def _build_system_prompt(ctx: Dict[str, Any]) -> str:
         if recent
         else "sin órdenes recientes"
     )
+    memory_block = ctx.get("memory_context", "")
+    if memory_block:
+        memory_block = memory_block + "\n"
+
     return _SYSTEM_PROMPT.format(
         tenant_name=ctx["tenant_name"],
         plan=ctx["plan"],
@@ -57,6 +61,7 @@ def _build_system_prompt(ctx: Dict[str, Any]) -> str:
         invoices_count=ctx["invoices_count"],
         low_stock_summary=low_stock_summary,
         recent_orders_summary=recent_summary,
+        memory_block=memory_block,
     )
 
 
