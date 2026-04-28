@@ -1,8 +1,8 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- Migration 039: samantha_memory (vector memory system)
+-- Migration 039: samantha_memories (vector memory system)
 -- Tabla avanzada de memoria semántica para Samantha.
 -- Requiere extensión pgvector habilitada en Supabase (Extensions → vector).
--- La tabla samantha_memory (singular, migración 033) sigue existiendo como
+-- La tabla samantha_memories (singular, migración 033) sigue existiendo como
 -- caché conversacional simple. Esta tabla es para memoria persistente de largo plazo.
 -- ─────────────────────────────────────────────────────────────────────────────
 
@@ -12,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- ─────────────────────────────────────────────────────────────────────────────
 -- A. Tabla principal
 -- ─────────────────────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS samantha_memory (
+CREATE TABLE IF NOT EXISTS samantha_memories (
   id              uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id       uuid        NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   user_id         uuid        NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS samantha_memory (
   embedding       vector(768),
 
   -- Versionado (actualizar sin borrar — mantiene historial)
-  parent_id       uuid        REFERENCES samantha_memory(id),
+  parent_id       uuid        REFERENCES samantha_memories(id),
   superseded_at   timestamptz,
 
   -- Trazabilidad
@@ -49,9 +49,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS update_samantha_memory_updated_at ON samantha_memory;
-CREATE TRIGGER update_samantha_memory_updated_at
-  BEFORE UPDATE ON samantha_memory
+DROP TRIGGER IF EXISTS update_samantha_memories_updated_at ON samantha_memories;
+CREATE TRIGGER update_samantha_memories_updated_at
+  BEFORE UPDATE ON samantha_memories
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
@@ -60,22 +60,22 @@ CREATE TRIGGER update_samantha_memory_updated_at
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Full-text search en español
-CREATE INDEX IF NOT EXISTS samantha_memory_content_fts_idx
-  ON samantha_memory
+CREATE INDEX IF NOT EXISTS samantha_memories_content_fts_idx
+  ON samantha_memories
   USING GIN (to_tsvector('spanish', content));
 
 -- Búsqueda vectorial (coseno) — requiere al menos 1 fila para crear el índice IVFFlat
 -- Si falla, ejecutar después de insertar datos:
---   CREATE INDEX samantha_memory_embedding_idx ON samantha_memory
+--   CREATE INDEX samantha_memories_embedding_idx ON samantha_memories
 --   USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_indexes WHERE indexname = 'samantha_memory_embedding_idx'
+    SELECT 1 FROM pg_indexes WHERE indexname = 'samantha_memories_embedding_idx'
   ) THEN
     BEGIN
-      EXECUTE 'CREATE INDEX samantha_memory_embedding_idx
-               ON samantha_memory
+      EXECUTE 'CREATE INDEX samantha_memories_embedding_idx
+               ON samantha_memories
                USING ivfflat (embedding vector_cosine_ops)
                WITH (lists = 100)';
     EXCEPTION WHEN OTHERS THEN
@@ -85,26 +85,26 @@ BEGIN
 END $$;
 
 -- Búsqueda rápida por tenant + usuario + tiempo
-CREATE INDEX IF NOT EXISTS samantha_memory_tenant_user_idx
-  ON samantha_memory(tenant_id, user_id, event_timestamp DESC);
+CREATE INDEX IF NOT EXISTS samantha_memories_tenant_user_idx
+  ON samantha_memories(tenant_id, user_id, event_timestamp DESC);
 
 -- Boot sequence: memorias activas de alta importancia
-CREATE INDEX IF NOT EXISTS samantha_memory_importance_idx
-  ON samantha_memory(tenant_id, user_id, importance DESC)
+CREATE INDEX IF NOT EXISTS samantha_memories_importance_idx
+  ON samantha_memories(tenant_id, user_id, importance DESC)
   WHERE parent_id IS NULL AND superseded_at IS NULL;
 
 -- Búsqueda por tags (GIN para arrays)
-CREATE INDEX IF NOT EXISTS samantha_memory_tags_idx
-  ON samantha_memory USING GIN (tags);
+CREATE INDEX IF NOT EXISTS samantha_memories_tags_idx
+  ON samantha_memories USING GIN (tags);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- D. RLS (Row Level Security)
 -- ─────────────────────────────────────────────────────────────────────────────
-ALTER TABLE samantha_memory ENABLE ROW LEVEL SECURITY;
+ALTER TABLE samantha_memories ENABLE ROW LEVEL SECURITY;
 
 -- Aislamiento por tenant: el usuario solo ve memorias de su tenant
-DROP POLICY IF EXISTS samantha_memory_tenant_isolation ON samantha_memory;
-CREATE POLICY samantha_memory_tenant_isolation ON samantha_memory
+DROP POLICY IF EXISTS samantha_memories_tenant_isolation ON samantha_memories;
+CREATE POLICY samantha_memories_tenant_isolation ON samantha_memories
   FOR ALL
   USING (
     tenant_id IN (
@@ -118,14 +118,14 @@ CREATE POLICY samantha_memory_tenant_isolation ON samantha_memory
   );
 
 -- service_role bypasa RLS para el backend Python
-DROP POLICY IF EXISTS samantha_memory_service_role ON samantha_memory;
-CREATE POLICY samantha_memory_service_role ON samantha_memory
+DROP POLICY IF EXISTS samantha_memories_service_role ON samantha_memories;
+CREATE POLICY samantha_memories_service_role ON samantha_memories
   FOR ALL TO service_role
   USING (TRUE) WITH CHECK (TRUE);
 
 -- atollom_admin puede leer todas las memorias (para debugging)
-DROP POLICY IF EXISTS samantha_memory_atollom_read ON samantha_memory;
-CREATE POLICY samantha_memory_atollom_read ON samantha_memory
+DROP POLICY IF EXISTS samantha_memories_atollom_read ON samantha_memories;
+CREATE POLICY samantha_memories_atollom_read ON samantha_memories
   FOR SELECT
   USING (
     EXISTS (
@@ -139,7 +139,7 @@ CREATE POLICY samantha_memory_atollom_read ON samantha_memory
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Búsqueda semántica por embedding
-CREATE OR REPLACE FUNCTION match_samantha_memory(
+CREATE OR REPLACE FUNCTION match_samantha_memories(
   query_embedding  vector(768),
   p_tenant_id      uuid,
   p_user_id        uuid,
@@ -168,7 +168,7 @@ BEGIN
     sm.tags,
     1 - (sm.embedding <=> query_embedding) AS similarity,
     sm.event_timestamp
-  FROM samantha_memory sm
+  FROM samantha_memories sm
   WHERE sm.tenant_id    = p_tenant_id
     AND sm.user_id      = p_user_id
     AND sm.parent_id    IS NULL
@@ -204,7 +204,7 @@ BEGIN
     sm.summary,
     sm.importance,
     sm.tags
-  FROM samantha_memory sm
+  FROM samantha_memories sm
   WHERE sm.tenant_id    = p_tenant_id
     AND sm.user_id      = p_user_id
     AND sm.importance   >= min_importance
@@ -218,20 +218,20 @@ $$;
 -- ─────────────────────────────────────────────────────────────────────────────
 -- F. Comentarios de tabla
 -- ─────────────────────────────────────────────────────────────────────────────
-COMMENT ON TABLE samantha_memory IS
+COMMENT ON TABLE samantha_memories IS
   'Memoria persistente de Samantha con soporte vectorial. '
-  'Distinto de samantha_memory (simple caché conversacional). '
+  'Distinto de samantha_memories (simple caché conversacional). '
   'parent_id + superseded_at implementan soft-versioning sin borrar historial.';
 
-COMMENT ON COLUMN samantha_memory.importance IS
+COMMENT ON COLUMN samantha_memories.importance IS
   '1-10: 1=efímera, 5=normal, 7+=importante, 9-10=crítica. '
   'Boot sequence carga memorias con importance >= 7.';
 
-COMMENT ON COLUMN samantha_memory.embedding IS
+COMMENT ON COLUMN samantha_memories.embedding IS
   'Vector 768 dims (Google text-embedding-004). '
   'NULL hasta que el backend lo calcule asíncronamente.';
 
-COMMENT ON COLUMN samantha_memory.superseded_at IS
+COMMENT ON COLUMN samantha_memories.superseded_at IS
   'NULL = memoria activa. Timestamp = fue reemplazada por una versión más nueva (parent_id en la nueva).';
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -239,7 +239,7 @@ COMMENT ON COLUMN samantha_memory.superseded_at IS
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Test insert (sin embedding — se calcula luego)
-INSERT INTO samantha_memory (
+INSERT INTO samantha_memories (
   tenant_id,
   user_id,
   content,
@@ -267,7 +267,7 @@ SELECT
   tags,
   agent_source,
   created_at
-FROM samantha_memory
+FROM samantha_memories
 ORDER BY created_at DESC
 LIMIT 5;
 

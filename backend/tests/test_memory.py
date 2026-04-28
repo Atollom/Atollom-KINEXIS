@@ -96,12 +96,12 @@ class TestBootMemoriesUnit:
         svc.supabase = MagicMock()
         svc.supabase.rpc = MagicMock(return_value=rpc_chain)
 
-        memories = await svc.get_boot_memory(TENANT_ID, USER_ID, min_importance=7)
+        memories = await svc.get_boot_memories(TENANT_ID, USER_ID, min_importance=7)
 
         assert len(memories) == 3
         assert all(m["importance"] >= 7 for m in memories)
         svc.supabase.rpc.assert_called_once_with(
-            "get_boot_memory",
+            "get_boot_memories",
             {"p_tenant_id": TENANT_ID, "p_user_id": USER_ID, "min_importance": 7},
         )
 
@@ -110,7 +110,7 @@ class TestBootMemoriesUnit:
         svc = SamanthaMemoryService.__new__(SamanthaMemoryService)
         svc._initialized = False
 
-        memories = await svc.get_boot_memory(TENANT_ID, USER_ID)
+        memories = await svc.get_boot_memories(TENANT_ID, USER_ID)
         assert memories == []
 
     @pytest.mark.asyncio
@@ -120,7 +120,7 @@ class TestBootMemoriesUnit:
         svc.supabase = MagicMock()
         svc.supabase.rpc = MagicMock(side_effect=Exception("db error"))
 
-        memories = await svc.get_boot_memory(TENANT_ID, USER_ID)
+        memories = await svc.get_boot_memories(TENANT_ID, USER_ID)
         assert memories == []
 
 
@@ -143,7 +143,7 @@ class TestSearchMemoriesUnit:
         assert results[0]["similarity"] == 0.91
         svc.supabase.rpc.assert_called_once()
         call_args = svc.supabase.rpc.call_args[0]
-        assert call_args[0] == "match_samantha_memory"
+        assert call_args[0] == "match_samantha_memories"
         assert call_args[1]["query_embedding"] == MOCK_EMBEDDING
 
     @pytest.mark.asyncio
@@ -274,7 +274,7 @@ async def test_boot_memories():
     """Integration: real DB — expects TEST 1 SQL to have been run."""
     service = SamanthaMemoryService()
 
-    memories = await service.get_boot_memory(
+    memories = await service.get_boot_memories(
         tenant_id=TENANT_ID,
         user_id=USER_ID,
     )
@@ -325,7 +325,7 @@ async def test_save_and_retrieve_memory():
     print(f"\n✅ Saved memory id: {saved['id']}")
 
     # Verify it appears in boot sequence
-    boot = await service.get_boot_memory(TENANT_ID, USER_ID, min_importance=7)
+    boot = await service.get_boot_memories(TENANT_ID, USER_ID, min_importance=7)
     ids = [m["id"] for m in boot]
     assert saved["id"] in ids, "Saved memory not found in boot sequence"
     print("✅ Memory found in boot sequence")

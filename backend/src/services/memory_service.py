@@ -1,7 +1,7 @@
 """
 SamanthaMemoryService — Vector memory persistence for Samantha.
 Uses Google text-embedding-004 (768 dims) + Supabase pgvector.
-Table: samantha_memory (migration 039)
+Table: samantha_memories (migration 039)
 """
 
 import asyncio
@@ -69,7 +69,7 @@ class SamanthaMemoryService:
                 "summary": summary,
                 "embedding": embedding,
             }
-            response = self.supabase.table("samantha_memory").insert(row).execute()
+            response = self.supabase.table("samantha_memories").insert(row).execute()
             return response.data[0] if response.data else {}
         except Exception as exc:
             logger.error("MemoryService.save_memory failed: %s", exc)
@@ -91,7 +91,7 @@ class SamanthaMemoryService:
         try:
             embedding = await self._embed(query)
             response = self.supabase.rpc(
-                "match_samantha_memory",
+                "match_samantha_memories",
                 {
                     "query_embedding": embedding,
                     "p_tenant_id": tenant_id,
@@ -107,7 +107,7 @@ class SamanthaMemoryService:
 
     # ── Boot sequence ─────────────────────────────────────────────────────────
 
-    async def get_boot_memory(
+    async def get_boot_memories(
         self,
         tenant_id: str,
         user_id: str,
@@ -118,7 +118,7 @@ class SamanthaMemoryService:
             return []
         try:
             response = self.supabase.rpc(
-                "get_boot_memory",
+                "get_boot_memories",
                 {
                     "p_tenant_id": tenant_id,
                     "p_user_id": user_id,
@@ -127,7 +127,7 @@ class SamanthaMemoryService:
             ).execute()
             return response.data or []
         except Exception as exc:
-            logger.warning("MemoryService.get_boot_memory failed: %s", exc)
+            logger.warning("MemoryService.get_boot_memories failed: %s", exc)
             return []
 
     # ── Update (soft-versioning) ──────────────────────────────────────────────
@@ -153,7 +153,7 @@ class SamanthaMemoryService:
 
             # Fetch original to copy fields
             original = (
-                self.supabase.table("samantha_memory")
+                self.supabase.table("samantha_memories")
                 .select("*")
                 .eq("id", memory_id)
                 .single()
@@ -162,7 +162,7 @@ class SamanthaMemoryService:
             orig = original.data or {}
 
             # Mark old as superseded
-            self.supabase.table("samantha_memory").update(
+            self.supabase.table("samantha_memories").update(
                 {"superseded_at": now}
             ).eq("id", memory_id).execute()
 
@@ -179,7 +179,7 @@ class SamanthaMemoryService:
                 "parent_id": memory_id,
                 "embedding": embedding,
             }
-            response = self.supabase.table("samantha_memory").insert(new_row).execute()
+            response = self.supabase.table("samantha_memories").insert(new_row).execute()
             return response.data[0] if response.data else {}
         except Exception as exc:
             logger.error("MemoryService.update_memory failed: %s", exc)
@@ -198,7 +198,7 @@ class SamanthaMemoryService:
             return []
         try:
             response = (
-                self.supabase.table("samantha_memory")
+                self.supabase.table("samantha_memories")
                 .select("id, content, summary, importance, tags, event_timestamp")
                 .eq("tenant_id", tenant_id)
                 .eq("user_id", user_id)
