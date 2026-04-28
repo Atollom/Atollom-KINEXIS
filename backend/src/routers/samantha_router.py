@@ -184,6 +184,44 @@ async def get_credits(tenant_id: str):
     return await check_credits(tenant_id)
 
 
+@router.get("/debug/memory")
+async def debug_memory(supabase_user_id: str, tenant_id: str):
+    """
+    Diagnostic endpoint — exposes full memory system state as JSON.
+    Call: GET /api/samantha/debug/memory?supabase_user_id=XXX&tenant_id=YYY
+    """
+    result: Dict[str, Any] = {
+        "env": {
+            "SUPABASE_URL": "SET" if os.getenv("SUPABASE_URL") else "MISSING",
+            "SUPABASE_SERVICE_ROLE_KEY": "SET" if os.getenv("SUPABASE_SERVICE_ROLE_KEY") else "MISSING",
+            "GOOGLE_API_KEY": "SET" if os.getenv("GOOGLE_API_KEY") else "MISSING",
+            "DATABASE_URL": "SET" if os.getenv("DATABASE_URL") else "MISSING",
+        },
+        "user_lookup": None,
+        "memory_service_initialized": False,
+        "boot_memories": [],
+        "boot_memories_count": 0,
+        "error": None,
+    }
+
+    try:
+        user_row = await get_user_by_supabase_id(supabase_user_id)
+        result["user_lookup"] = user_row or "NOT FOUND"
+
+        if user_row:
+            internal_user_id = user_row["id"]
+            memory_svc = get_memory_service()
+            result["memory_service_initialized"] = memory_svc._initialized
+
+            boot = await memory_svc.get_boot_memories(tenant_id, internal_user_id, min_importance=1)
+            result["boot_memories"] = boot
+            result["boot_memories_count"] = len(boot)
+    except Exception as exc:
+        result["error"] = str(exc)
+
+    return result
+
+
 async def _resolve_user_id(supabase_user_id: str) -> str:
     """Lookup users.id from supabase_user_id. Raises 404 if not found."""
     user_row = await get_user_by_supabase_id(supabase_user_id)
