@@ -645,3 +645,117 @@ Página de marketing para KINEXIS
 - Backend: `https://atollom-kinexis-production.up.railway.app`
 
 **STATUS SESIÓN:** COMPLETA ✅ | Último commit: `2301251` | Build: PASS ✅
+
+---
+## SESIÓN LIGHT MODE + RATE LIMITING — 2026-04-27 (sesión 2, misma fecha)
+**Última actualización:** 2026-04-27
+
+### ✅ COMPLETADO HOY
+
+**1. RATE LIMITING BÁSICO — BACKEND PYTHON (Railway)**
+- Librería: `slowapi==0.1.9` (añadida a `requirements.txt`)
+- Archivos nuevos: `src/middleware/__init__.py`, `src/middleware/rate_limit.py`
+- Limiter con `key_func=get_remote_address`, default 100/min
+- Handler 429 personalizado: mensaje en español + headers `Retry-After` y `X-RateLimit-Reset`
+- Endpoints protegidos:
+  - `POST /api/samantha/chat` → 10/min
+  - `GET /api/samantha/credits/{tenant_id}` → 30/min
+  - `GET /api/dashboard/stats/{tenant_id}` → 30/min
+  - `GET /api/dashboard/recent-orders/{tenant_id}` → 30/min
+- Fix naming conflict: `chat(request: ChatRequest)` → `chat(request: Request, body: ChatRequest)` requerido por slowapi; IDE marca `request` como "unused" pero es FALSE POSITIVE — slowapi lo accede vía decorator
+- Commit: `18ef37b`
+
+**2. LIGHT MODE FASE 1 — THEME SYSTEM**
+- `src/dashboard/lib/theme.ts` — nuevo archivo con `lightTheme`/`darkTheme` (referencia, no usado directamente por componentes)
+- `app/globals.css` — variables `:root` corregidas: `--accent-primary: #CDFF00` (era `#4a7c10`), `--bg-base: #F5F5F7` (era gradient), `--text-primary: #1A1A1A`; clase `.light` explicit; añadidos `--border-*`, `--radius-*`
+- `components/ThemeToggle.tsx` — reescrito con `useTheme()` de next-themes (era manual localStorage + classList)
+- `components/Providers.tsx` — limpiado (ya usaba next-themes correctamente, `defaultTheme="dark"`)
+- `app/layout.tsx` — removido `className="dark"` hardcodeado del `<html>` (bloqueaba next-themes); cambiado `lang="en"` → `lang="es"`
+- Commit: `9d62bbd`
+
+**3. LIGHT MODE FASE 2 — COMPONENTES BASE**
+- `components/shell/Header.tsx` — CSS vars para bg/border/shadow; ThemeToggle añadido; Bell/User/Logout con `var(--text-secondary)` y `var(--text-muted)`
+- `components/shell/Sidebar.tsx` — aside, logo border, nav items (active/hover) con CSS vars; botones mobile con CSS vars
+- `components/ui/Button.tsx` — añadidos variantes `secondary`, `destructive`; todos los variantes usan `variantStyles` dict con CSS vars via inline `style` prop
+- `components/ui/PageHeader.tsx` — `text-white/95` → `var(--text-primary)`, `text-white/50` → `var(--text-muted)`, badge con `var(--accent-primary)`
+- `components/ui/PageSkeleton.tsx` — `bg-white/5` → `var(--bg-card)` en todos los skeleton blocks
+- `components/ui/card.tsx` — **NUEVO**: Card, CardHeader, CardTitle, CardContent, CardFooter con CSS vars
+- `components/ui/input.tsx` — **NUEVO**: Input + Textarea con label, error state, CSS vars; `id` auto-generado desde `label`
+- Build: PASS | Commit: `aa0e591`
+
+**4. LIGHT MODE FASE 3 — DASHBOARDS**
+- `app/globals.css` additions:
+  - `.glass-card` — clase usada en TODOS los dashboards pero nunca definida; ahora: glassmorphism con CSS vars
+  - `.neon-disruptor` — CTA button con `var(--accent-primary)` + color negro
+  - `.animate-in`, `.label-tracking`, `.tight-tracking`, `.drop-shadow-glow` — helpers usados en templates
+  - Light mode overrides: `text-on-surface` → `var(--text-primary)`, `text-on-surface-variant` → `var(--text-secondary)`, `[class*="text-on-surface/"]` → `var(--text-muted)`
+  - `.animate-luxe` keyframe registrado en CSS (complementa tailwind config)
+- `components/dashboards/DashboardOwner.tsx` — Añadido `useTheme` para tooltip Recharts dinámico: `tooltipBg`, `tooltipBorder`, `tooltipText` según `resolvedTheme`
+- `app/(shell)/ecommerce/page.tsx`:
+  - Border-left accent por canal: ML `#FFE600` (4px), Amazon `#FF9900` (4px), Shopify `#95BF47` (4px)
+  - Header: "Command Center / Global Commerce" → "Centro de Mando / Comercio Global"; "Omnichannel Summary" → "Resumen Omnicanal"
+  - Textos: `text-on-surface` → inline `var(--text-primary)`, `text-on-surface-variant` → `var(--text-secondary)`, `text-on-surface/30` → `var(--text-muted)`
+  - "Operations" → "Operaciones", "Orders" → "Órdenes", "VIEW DEPTH" → "VER DETALLE", "GO TO FULFILLMENT CENTER" → "IR AL CENTRO DE FULFILLMENT", "Logistics Neural Network" → "Red Neural Logística"
+  - `bg-white/10` separador → `var(--border-color)`
+- `app/(shell)/crm/page.tsx`:
+  - Stats cards: `text-on-surface/30` y `text-on-surface` → CSS vars
+  - Pipeline: refactorizado a array dinámico con `var(--bg-base)` para progress track y `var(--accent-primary)` para fill
+  - Leads redirect card: colores con CSS vars
+  - Intent bars: colores via CSS vars (accent, blue-400, accent-danger)
+  - Activity feed: `text-on-surface` y `text-on-surface-variant` → CSS vars
+- `app/(shell)/erp/page.tsx`:
+  - `ERPCard` refactorizado: todos los colores hardcodeados → CSS vars; `color` prop eliminada (no se usaba)
+  - Header: "CORE OPS / ERP ADMINISTRATION" → "OPS CENTRAL / ADMINISTRACIÓN ERP", "Active SKUs" → "SKUs Activos", "Global Status" → "Estado Global", "Optimal" → "Óptimo"
+  - Cards: "Warehouse Ctrl" → "Control Almacén", "Billing Hub" → "Centro de Facturación", "Supply Chain" → "Cadena de Suministro"
+  - Acciones: "Scan & Inventory" → "Escanear Inventario", "Open SAT Node" → "Abrir Nodo SAT", "Vendor Portal" → "Portal Proveedores"
+  - Upload section: "Neural Inventory Sync" → "Sincronización Neural de Inventario", "Upload Master CSV" → "Subir CSV Maestro", "Download Template" → "Descargar Plantilla", "Drop File Here" → "Soltar Archivo Aquí"
+  - Fiscal node: "Fiscal Node" → "Nodo Fiscal", "SAT v4.0 Active" → "SAT v4.0 Activo", "Renew Stamps" → "Renovar Folios"
+  - Stats row: "Purchases" → "Compras", "Returns" → "Devoluciones", "Providers" → "Proveedores", "Latency" → "Latencia"
+  - Divisores con `var(--border-color)`, fondos con `var(--bg-base)`, textos con CSS vars
+- Build: PASS (132/132 páginas) | Commit: `61abed1`
+
+---
+## ⚠️ PENDIENTES CRÍTICOS (actualizados 2026-04-27 sesión 2)
+
+### 🔴 VERCEL ENV VARS (BLOQUEANTE PARA SAMANTHA EN PROD)
+Sin cambios — siguen pendientes de agregar manualmente:
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `PYTHON_BACKEND_URL` = `https://atollom-kinexis-production.up.railway.app`
+
+### 🔴 SUPABASE — VINCULAR supabase_user_id (KAP TOOLS)
+Sin cambios — pendiente SQL manual:
+```sql
+UPDATE users SET supabase_user_id = '0aea6e5b-021e-4bee-9575-d45f99c7e8b3'
+WHERE email = 'admin@kaptools.com.mx';
+```
+
+### 🟡 LIGHT MODE FASE 4 — NAVEGACIÓN MOBILE (SIGUIENTE)
+Bottom nav para mobile, verificación visual completa en ambos modos.
+Pendiente implementar después del regreso.
+
+### 🟡 INTEGRACIÓN APIs REALES
+Sin cambios — ML, Amazon, Shopify, WhatsApp, FacturAPI pendientes.
+
+---
+## DECISIONES TÉCNICAS — SESIÓN 2 (2026-04-27)
+
+| Decisión | Razón |
+|---|---|
+| slowapi `request: Request` como primer parámetro | slowapi accede al request via decorator machinery; IDE marca "unused" pero es false positive — NO eliminar |
+| `glass-card` en globals.css (no Tailwind) | Clase usada en 4+ páginas sin definición; añadirla como utility CSS con vars es más limpio que Tailwind plugin |
+| `.light` y `.dark` en globals.css, no solo `:root` | next-themes añade `.dark` o `.light` al `<html>`; definir ambas clases garantiza override correcto |
+| `useTheme().resolvedTheme` para Recharts tooltip | inline styles en React no soportan CSS vars como valores; necesita valor resuelto en JS |
+| Border-left accent en canal cards (no reescritura) | El diseño glassmorphism existente es visualmente más rico que el spec `border-l-4`; se añade el accent sin destruir el diseño |
+| `defaultTheme="dark"` en Providers.tsx | KINEXIS es dark-first; usuarios nuevos ven dark por defecto; pueden cambiar con ThemeToggle |
+
+---
+## COMMITS DE SESIÓN 2 (2026-04-27)
+
+| Commit | Descripción |
+|--------|-------------|
+| `18ef37b` | feat(security): rate limiting slowapi en backend Python |
+| `9d62bbd` | feat(theme): Light Mode Fase 1 - theme system setup |
+| `aa0e591` | feat(light-mode): base components con CSS custom property tokens |
+| `61abed1` | feat(theme): dashboards con CSS vars y soporte light mode - Fase 3 |
+
+**STATUS SESIÓN 2:** COMPLETA ✅ | Último commit: `61abed1` | Build: PASS ✅ | Próxima: Fase 4 Navigation
