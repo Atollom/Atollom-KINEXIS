@@ -11,6 +11,8 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.routers import samantha_router, dashboard_router, stripe_router
+from src.middleware.rate_limit import limiter, rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Agent imports
@@ -120,6 +122,10 @@ app = FastAPI(
     description="Multi-agent e-commerce automation platform — 43 agents",
     version="1.0.0",
 )
+
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 # CORS — allow Vercel frontends + local dev
 app.add_middleware(

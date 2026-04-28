@@ -6,12 +6,13 @@ Provider: Gemini 2.5 Flash (default) | Anthropic (LLM_PROVIDER=anthropic)
 import logging
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from src.agents.samantha.core import get_samantha
 from src.agents.samantha.credits import check_credits, decrement_credits
 from src.agents.samantha.db_queries import get_tenant_context
+from src.middleware.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +31,10 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
-async def chat(request: ChatRequest):
+@limiter.limit("10/minute")
+async def chat(request: Request, body: ChatRequest):
     # 1. Check credits
-    credits = await check_credits(request.tenant_id)
+    credits = await check_credits(body.tenant_id)
     if not credits["ok"]:
         return {
             "response": (
@@ -47,7 +49,7 @@ async def chat(request: ChatRequest):
 
     # 2. Fetch live DB context
     try:
-        context = await get_tenant_context(request.tenant_id)
+        context = await get_tenant_context(body.tenant_id)
     except Exception as exc:
         logger.warning("DB context fetch failed: %s — using empty context", exc)
         context = {
@@ -76,13 +78,13 @@ async def chat(request: ChatRequest):
         }
 
     history: List[Dict[str, Any]] = [
-        {"role": m.role, "content": m.content} for m in request.history
+        {"role": m.role, "content": m.content} for m in body.history
     ]
     try:
         samantha = get_samantha()
         response_text = await samantha.query(
-            message=request.query,
-            tenant_id=request.tenant_id,
+            message=body.query,
+            tenant_id=body.tenant_id,
             context=context,
             history=history,
         )
@@ -95,7 +97,7 @@ async def chat(request: ChatRequest):
 
     # 4. Decrement credits (fire-and-forget)
     try:
-        await decrement_credits(request.tenant_id)
+        await decrement_credits(body.tenant_id)
     except Exception:
         pass  # non-blocking
 
@@ -109,5 +111,6 @@ async def chat(request: ChatRequest):
 
 
 @router.get("/credits/{tenant_id}")
-async def get_credits(tenant_id: str):
+@limiter.limit("30/minute")
+async def get_credits(request: Request, tenant_id: str):
     return await check_credits(tenant_id)

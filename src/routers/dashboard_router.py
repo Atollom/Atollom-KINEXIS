@@ -8,7 +8,9 @@ from contextlib import contextmanager
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+
+from src.middleware.rate_limit import limiter
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -28,7 +30,8 @@ def get_db():
 
 
 @router.get("/stats/{tenant_id}")
-async def get_stats(tenant_id: str):
+@limiter.limit("30/minute")
+async def get_stats(request: Request, tenant_id: str):
     """
     Estadísticas del dashboard principal.
 
@@ -94,7 +97,8 @@ async def get_stats(tenant_id: str):
 
 
 @router.get("/recent-orders/{tenant_id}")
-async def get_recent_orders(tenant_id: str, limit: int = 5):
+@limiter.limit("30/minute")
+async def get_recent_orders(request: Request, tenant_id: str, limit: int = 5):
     """Órdenes recientes con nombre del cliente."""
     try:
         with get_db() as conn:
