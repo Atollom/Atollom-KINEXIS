@@ -154,7 +154,7 @@ async def _load_memories(
     """Load boot + relevant memories concurrently."""
     import asyncio
     boot, relevant = await asyncio.gather(
-        memory_svc.get_boot_memories(tenant_id, user_id, min_importance=7),
+        memory_svc.get_boot_memory(tenant_id, user_id, min_importance=7),
         memory_svc.search_memories(tenant_id, user_id, query, threshold=0.70, limit=5),
         return_exceptions=True,
     )
@@ -211,5 +211,5 @@ async def boot_memories(tenant_id: str, supabase_user_id: str, min_importance: i
     """Return boot-sequence memories for a user session."""
     internal_user_id = await _resolve_user_id(supabase_user_id)
     memory_svc = get_memory_service()
-    memories = await memory_svc.get_boot_memories(tenant_id, internal_user_id, min_importance)
+    memories = await memory_svc.get_boot_memory(tenant_id, internal_user_id, min_importance)
     return {"memories": memories, "count": len(memories)}
