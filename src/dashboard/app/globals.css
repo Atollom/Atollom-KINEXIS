@@ -394,3 +394,26 @@ html.light .drop-shadow-glow { filter: drop-shadow(0 0 6px rgba(165,200,0,0.3));
 }
 /* animate-luxe */
 .animate-luxe { animation: luxeFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ========== LIGHT MODE: Legacy hardcoded dark-palette overrides ========== */
+/* These classes appear in older components that predate the CSS var system.   */
+/* Rather than rewrite every component, we override them here for light mode. */
+
+/* Near-white text (#E8EAF0, #8DA4C4) → invisible on white bg */
+html.light .text-\[\#E8EAF0\] { color: var(--text-primary)   !important; }
+html.light .text-\[\#8DA4C4\] { color: var(--text-secondary) !important; }
+
+/* Very dark backgrounds used as "dark cards" */
+html.light .bg-\[\#000103\]  { background-color: var(--bg-surface) !important; }
+html.light .bg-\[\#0a1622\]  { background-color: var(--bg-surface) !important; }
+html.light .bg-\[\#040f1b\]  { background-color: var(--bg-surface) !important; }
+html.light .bg-\[\#061422\]  { background-color: var(--bg-surface) !important; }
+
+/* Dark-on-dark border & divider colors */
+html.light [class*="border-white\/"] { border-color: var(--border-color) !important; }
+
+/* Frosted-glass backgrounds that are almost invisible on white */
+html.light .backdrop-blur-\[40px\] { backdrop-filter: none !important; }
+
+/* Shell layout background */
+html.light .bg-black\/80 { background-color: var(--bg-surface) !important; }

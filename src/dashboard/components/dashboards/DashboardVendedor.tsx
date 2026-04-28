@@ -1,23 +1,24 @@
 'use client'
 
 import React from 'react'
-import { 
-  TrendingUp, 
-  Users, 
-  Target, 
-  DollarSign, 
-  BarChart3, 
+import { useTheme } from 'next-themes'
+import {
+  TrendingUp,
+  Users,
+  Target,
+  DollarSign,
+  BarChart3,
   History,
   ArrowUpRight,
   MoreVertical
 } from 'lucide-react'
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Cell
 } from 'recharts'
@@ -40,6 +41,13 @@ const LEADS = [
 ]
 
 export default function DashboardVendedor() {
+  const { resolvedTheme } = useTheme()
+  const tooltipBg     = resolvedTheme === 'dark' ? '#0a1622' : '#ffffff'
+  const tooltipBorder = resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : '#e5e5e5'
+  const tooltipText   = resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a'
+  const axisColor     = resolvedTheme === 'dark' ? 'rgba(255,255,255,0.3)' : '#999999'
+  const gridColor     = resolvedTheme === 'dark' ? '#ffffff05' : '#e5e5e5'
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-700">
       {/* HEADER */}
@@ -109,24 +117,24 @@ export default function DashboardVendedor() {
                     <stop offset="95%" stopColor="#CCFF00" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 700}}
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: axisColor, fontSize: 10, fontWeight: 700 }}
                   dy={10}
                 />
                 <YAxis hide />
-                <Tooltip 
-                  cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                <Tooltip
+                  cursor={{ fill: 'rgba(128,128,128,0.05)' }}
                   contentStyle={{
-                    backgroundColor: '#0a1622',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    backgroundColor: tooltipBg,
+                    border: `1px solid ${tooltipBorder}`,
                     borderRadius: '16px',
                     fontSize: '10px',
-                    fontWeight: 'black',
-                    color: '#fff'
+                    fontWeight: 'bold',
+                    color: tooltipText,
                   }}
                 />
                 <Bar 

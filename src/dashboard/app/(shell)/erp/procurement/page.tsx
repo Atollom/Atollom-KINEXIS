@@ -89,8 +89,8 @@ export default function ProcurementPage() {
     return (
       <div className="px-6 py-20 text-center">
         <span className="material-symbols-outlined text-[#EF4444] text-5xl mb-4 block">lock</span>
-        <h1 className="text-xl font-bold font-headline text-[#E8EAF0]">Acceso Restringido</h1>
-        <p className="text-[#8DA4C4] text-[12px] mt-2">Solo personal administrativo puede gestionar Órdenes de Compra</p>
+        <h1 className="text-xl font-bold font-headline text-[color:var(--text-primary)]">Acceso Restringido</h1>
+        <p className="text-[color:var(--text-secondary)] text-[12px] mt-2">Solo personal administrativo puede gestionar Órdenes de Compra</p>
       </div>
     );
   }
@@ -120,8 +120,8 @@ export default function ProcurementPage() {
             <span className="material-symbols-outlined text-[#22C55E] text-lg">shopping_basket</span>
           </div>
           <div>
-            <h1 className="text-2xl font-headline font-bold text-[#E8EAF0]">Órdenes de Compra</h1>
-            <p className="text-[11px] text-[#8DA4C4]">Gestión & Aprobación de Procura</p>
+            <h1 className="text-2xl font-headline font-bold text-[color:var(--text-primary)]">Órdenes de Compra</h1>
+            <p className="text-[11px] text-[color:var(--text-secondary)]">Gestión & Aprobación de Procura</p>
           </div>
         </div>
 
@@ -132,8 +132,8 @@ export default function ProcurementPage() {
             <p className="text-lg font-headline font-bold text-[#F59E0B]">{counts.PENDING_APPROVAL}</p>
           </div>
           <div className="bg-white/[0.04] rounded-xl px-4 py-2 text-center">
-            <p className="text-[9px] text-[#8DA4C4] uppercase tracking-wider">Total</p>
-            <p className="text-lg font-headline font-bold text-[#E8EAF0]">{counts.all}</p>
+            <p className="text-[9px] text-[color:var(--text-secondary)] uppercase tracking-wider">Total</p>
+            <p className="text-lg font-headline font-bold text-[color:var(--text-primary)]">{counts.all}</p>
           </div>
         </div>
       </header>
@@ -168,8 +168,8 @@ export default function ProcurementPage() {
                 ${isActive
                   ? cfg
                     ? `border-[${cfg.color}]/20 text-[${cfg.color}]`
-                    : "bg-white/[0.06] text-[#E8EAF0] border-white/[0.08]"
-                  : "bg-white/[0.03] text-[#8DA4C4] hover:text-[#E8EAF0] border-transparent"
+                    : "bg-white/[0.06] text-[color:var(--text-primary)] border-white/[0.08]"
+                  : "bg-white/[0.03] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] border-transparent"
                 }
               `}
               style={isActive && cfg ? { color: cfg.color, backgroundColor: `${cfg.color}15`, borderColor: `${cfg.color}30` } : {}}
@@ -193,7 +193,7 @@ export default function ProcurementPage() {
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center bg-white/[0.02] rounded-2xl border border-dashed border-white/[0.06]">
             <span className="material-symbols-outlined text-4xl text-[#506584] mb-3 block opacity-40">fact_check</span>
-            <p className="text-[12px] text-[#8DA4C4]">
+            <p className="text-[12px] text-[color:var(--text-secondary)]">
               {statusFilter === "all" ? "Sin órdenes de compra" : `Sin órdenes con status "${STATUS_CONFIG[statusFilter as POStatus]?.label}"`}
             </p>
           </div>
@@ -228,7 +228,7 @@ export default function ProcurementPage() {
                         <span className={`text-[10px] font-bold flex items-center gap-1 ${
                           isExpired ? "text-[#EF4444]" :
                           isUrgent ? "text-[#F59E0B] animate-pulse" :
-                          "text-[#8DA4C4]"
+                          "text-[color:var(--text-secondary)]"
                         }`}>
                           <span className="material-symbols-outlined text-sm">schedule</span>
                           {isExpired ? "EXPIRADO" : `${hoursLeft}h restantes`}
@@ -236,13 +236,13 @@ export default function ProcurementPage() {
                       )}
                     </div>
 
-                    <h2 className="text-sm font-bold text-[#E8EAF0] mb-1">{po.supplier}</h2>
-                    <p className="text-[10px] text-[#8DA4C4] font-mono">OC #{po.po_id.split("-")[0].toUpperCase()}</p>
+                    <h2 className="text-sm font-bold text-[color:var(--text-primary)] mb-1">{po.supplier}</h2>
+                    <p className="text-[10px] text-[color:var(--text-secondary)] font-mono">OC #{po.po_id.split("-")[0].toUpperCase()}</p>
 
                     {/* Items */}
                     <div className="mt-2 flex items-center gap-2 flex-wrap">
                       {po.items?.map((item, i) => (
-                        <span key={i} className="text-[10px] text-[#8DA4C4] bg-white/[0.04] px-2 py-0.5 rounded">
+                        <span key={i} className="text-[10px] text-[color:var(--text-secondary)] bg-white/[0.04] px-2 py-0.5 rounded">
                           {item.name} ×{item.qty}
                         </span>
                       ))}
@@ -251,8 +251,8 @@ export default function ProcurementPage() {
 
                   {/* Monto */}
                   <div className="text-center md:text-right md:px-6 md:border-l border-white/[0.06]">
-                    <p className="text-[9px] text-[#8DA4C4] uppercase tracking-wider mb-0.5">Total</p>
-                    <p className="text-2xl font-headline font-bold text-[#E8EAF0]">
+                    <p className="text-[9px] text-[color:var(--text-secondary)] uppercase tracking-wider mb-0.5">Total</p>
+                    <p className="text-2xl font-headline font-bold text-[color:var(--text-primary)]">
                       ${po.total.toLocaleString("es-MX")}
                     </p>
                     <p className="text-[9px] text-[#506584] mt-0.5">
