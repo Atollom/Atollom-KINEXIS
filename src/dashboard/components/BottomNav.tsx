@@ -1,72 +1,73 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Home, ShoppingCart, Package, Users } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 
-interface BottomItem {
-  href: string;
-  label: string;
-  icon: string;
-}
-
-const BOTTOM_ITEMS: BottomItem[] = [
-  { href: "/",         label: "Core",    icon: "gpp_good" },
-  { href: "/status",   label: "Status",  icon: "data_exploration" },
-  { href: "/search",   label: "Search",  icon: "search" },
-  { href: "/health",   label: "Nodes",   icon: "sensors" },
-];
+const navItems = [
+  { name: 'INSIGHTS', href: '/dashboard', icon: Home },
+  { name: 'VENTAS',   href: '/ecommerce', icon: ShoppingCart },
+  { name: 'OPS',      href: '/erp',       icon: Package },
+  { name: 'CLIENTE',  href: '/crm',       icon: Users },
+]
 
 export function BottomNav() {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   return (
     <nav
-      aria-label="Neural Mobile Navigation"
-      className="
-        fixed bottom-0 left-0 right-0 z-50
-        flex justify-around items-center
-        h-24 px-6
-        bg-black/80 backdrop-blur-[40px]
-        border-t border-white/5
-        shadow-[0_-4px_30px_rgba(204,255,0,0.05)]
-        md:hidden overflow-hidden
-      "
+      aria-label="Navegación móvil"
+      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
+      style={{
+        backgroundColor: 'var(--background)',
+        borderTop: '1px solid var(--border-color)',
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.10)',
+      }}
     >
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-12 bg-[#ccff00]/5 blur-[40px] pointer-events-none" />
-      
-      {BOTTOM_ITEMS.map(({ href, label, icon }) => {
-        const isActive = pathname === href;
-        return (
-          <Link
-            key={href}
-            href={href}
-            aria-current={isActive ? "page" : undefined}
-            className={`
-              flex flex-col items-center justify-center gap-1.5
-              px-6 py-2.5 rounded-2xl
-              transition-all duration-500 active:scale-90 relative
-              ${
-                isActive
-                  ? "bg-[#ccff00] text-black shadow-volt"
-                  : "text-white/20 hover:text-white"
-              }
-            `}
-          >
-            <span
-              className={`material-symbols-outlined text-xl italic font-black ${isActive ? 'shadow-volt-text' : ''}`}
-              aria-hidden="true"
+      <div className="flex items-stretch justify-around h-16 px-1">
+        {navItems.map((item) => {
+          const isActive = pathname?.startsWith(item.href)
+          const Icon = item.icon
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              aria-current={isActive ? 'page' : undefined}
+              className="relative flex flex-col items-center justify-center flex-1 gap-1 transition-all duration-200 active:scale-90"
             >
-              {icon}
-            </span>
-            <span className="text-[9px] font-black uppercase tracking-widest italic leading-none">
-              {label}
-            </span>
-            {isActive && (
-              <div className="absolute -bottom-1 w-1 h-1 bg-black rounded-full" />
-            )}
-          </Link>
-        );
-      })}
+              {/* Active indicator line at top */}
+              <span
+                className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full transition-all duration-300"
+                style={{
+                  width: isActive ? '32px' : '0px',
+                  backgroundColor: 'var(--accent-primary)',
+                }}
+              />
+
+              <Icon
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
+                  strokeWidth: isActive ? 2.5 : 1.75,
+                  transition: 'color 0.2s, transform 0.2s',
+                  transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                }}
+              />
+              <span
+                className="text-[9px] font-bold uppercase tracking-wider"
+                style={{
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)',
+                  transition: 'color 0.2s',
+                }}
+              >
+                {item.name}
+              </span>
+            </Link>
+          )
+        })}
+      </div>
     </nav>
-  );
+  )
 }
