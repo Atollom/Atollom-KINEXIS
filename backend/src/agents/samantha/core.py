@@ -1,6 +1,11 @@
 """
-SamanthaCore — LLM orchestrator with pluggable provider.
+SamanthaCore — LLM orchestrator with pluggable provider and agent dispatcher.
 Default: Gemini 2.5 Flash (free tier). Swap to Anthropic with LLM_PROVIDER=anthropic.
+
+Flow:
+  1. IntentClassifier detects if query maps to a specific agent
+  2. AgentDispatcher executes the agent and formats the result
+  3. Fallback: direct LLM conversational response (original path)
 """
 
 import asyncio
@@ -9,6 +14,9 @@ import os
 from abc import ABC, abstractmethod
 from functools import partial
 from typing import Any, Dict, List
+
+from src.services.intent_classifier import get_intent_classifier
+from src.services.agent_dispatcher import get_dispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +151,7 @@ class AnthropicProvider(AbstractLLMProvider):
 
 class SamanthaCore:
     """
-    Thin orchestrator: fetches context, selects provider, calls LLM.
+    Orchestrator: intent classification → agent dispatch → LLM fallback.
     Switch provider with LLM_PROVIDER env var: 'gemini' (default) | 'anthropic'.
     """
 
@@ -155,6 +163,8 @@ class SamanthaCore:
         else:
             key = os.getenv("GOOGLE_API_KEY", "")
             self._provider = GeminiProvider(key)
+        self._classifier = get_intent_classifier()
+        self._dispatcher = get_dispatcher()
         logger.info("SamanthaCore initialized with provider: %s", provider_name)
 
     async def query(
@@ -164,6 +174,43 @@ class SamanthaCore:
         context: Dict[str, Any],
         history: List[Dict],
     ) -> str:
+        # ── 1. Classify intent ────────────────────────────────────────────────
+        intent = self._classifier.classify(message)
+        logger.warning(
+            "[ORCHESTRATOR] intent=%s agent=%s confidence=%.2f method=%s",
+            intent.intent, intent.agent_id, intent.confidence, intent.method,
+        )
+
+        # ── 2. Agent path ─────────────────────────────────────────────────────
+        if intent.intent == "agent" and intent.agent_id:
+            # 2a. Enrich args via Gemini if regex returned empty dict
+            if not intent.args:
+                intent = await self._classifier.enrich_with_llm(intent, message, context)
+
+            # 2b. If we still need info from the user, ask for it
+            if intent.needs_clarification:
+                logger.warning("[ORCHESTRATOR] needs_clarification for %s", intent.agent_id)
+                return intent.needs_clarification
+
+            # 2c. Execute agent
+            result = await self._dispatcher.dispatch(intent, tenant_id)
+            logger.warning(
+                "[ORCHESTRATOR] agent=%s success=%s",
+                intent.agent_id, result.get("success"),
+            )
+
+            if result.get("success"):
+                return await self._dispatcher.format_response(
+                    intent.agent_id, result, message, context
+                )
+
+            # 2d. Agent failed → log and fall through to conversational
+            logger.error(
+                "[ORCHESTRATOR] agent %s failed: %s",
+                intent.agent_id, result.get("error"),
+            )
+
+        # ── 3. Conversational path (original) ─────────────────────────────────
         system = _build_system_prompt(context)
         try:
             return await self._provider.generate(system, history, message)
