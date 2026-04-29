@@ -86,11 +86,82 @@ def _extract_sections(query: str) -> List[str]:
 
 def _extract_inventory_action(query: str) -> str:
     q = query.lower()
-    if re.search(r'reorden|reordenar|sugerir\s+compra|qué\s+(pedir|comprar)', q):
+    if re.search(r'reorden|reordenar|sugerir\s+compra|que\s+(pedir|comprar)', q):
         return 'suggest_reorder'
-    if re.search(r'alert|bajo\s+stock|crítico|agotad|sin\s+stock|falt', q):
+    if re.search(r'alert|bajo\s+stock|critico|agotad|sin\s+stock|falt', q):
         return 'get_alerts'
     return 'check_stock'
+
+
+def _extract_amazon_action(query: str) -> str:
+    q = _strip_accents(query).lower()
+    if re.search(r'crea.*shipment|inbound|envia.*amazon|manda.*fba', q):
+        return 'create_shipment'
+    if re.search(r'estado|status|shipment\s+\w+', q):
+        return 'get_status'
+    return 'sync_inventory'
+
+
+def _extract_po_action(query: str) -> str:
+    q = _strip_accents(query).lower()
+    if re.search(r'aproba|aprueba|autoriza', q):
+        return 'approve'
+    if re.search(r'envia|manda.*proveedor', q):
+        return 'send'
+    return 'create'
+
+
+def _extract_ads_action(query: str) -> str:
+    q = _strip_accents(query).lower()
+    if re.search(r'pausa|detiene|desactiva', q):
+        return 'pause'
+    if re.search(r'reactiva|reanuda|activa', q):
+        return 'resume'
+    if re.search(r'stats|metricas|resultados|rendimiento|ctr|roas|impresiones', q):
+        return 'get_stats'
+    return 'create'
+
+
+def _extract_supplier_priority(query: str) -> str:
+    q = _strip_accents(query).lower()
+    if re.search(r'precio|costo|barato|economico|mas\s+barato', q):
+        return 'cost'
+    if re.search(r'rapido|velocidad|entrega\s+rapida|tiempo', q):
+        return 'speed'
+    return 'quality'
+
+
+def _extract_carrier(query: str) -> Optional[str]:
+    q = _strip_accents(query).lower()
+    if 'fedex' in q:
+        return 'fedex'
+    if 'dhl' in q:
+        return 'dhl'
+    if 'estafeta' in q:
+        return 'estafeta'
+    return None
+
+
+def _extract_shipping_service(query: str) -> str:
+    return 'express' if re.search(r'express|urgente|rapido', _strip_accents(query).lower()) else 'standard'
+
+
+def _extract_ticket_channel(query: str) -> str:
+    q = _strip_accents(query).lower()
+    if 'whatsapp' in q:
+        return 'whatsapp'
+    if 'email' in q or 'correo' in q:
+        return 'email'
+    return 'chat'
+
+
+def _extract_label_type(query: str) -> str:
+    q = _strip_accents(query).lower()
+    if re.search(r'envio|guia|shipping', q):
+        return 'shipping_label'
+    if re.search(r'ticket|comprobante|recibo', q):
+        return 'invoice_ticket'
+    return 'product_label'
 
 
 # ── Agent pattern registry ────────────────────────────────────────────────────
@@ -176,6 +247,169 @@ _AGENT_PATTERNS: List[tuple] = [
         ),
         lambda _q, _m: {},  # question_text + product_id from context
     ),
+    # ── E-commerce fulfillment ────────────────────────────────────────────────
+    (
+        "agent_01_ml_fulfillment",
+        re.compile(
+            r'(cumpl[ei]|despacha|fulfillment\s+(de\s+)?ml|procesa.*orden.*ml|'
+            r'enviar?\s+(la\s+)?venta\s+(de\s+)?ml|marcar.*enviado.*ml)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {},  # order_id required — Gemini or clarification
+    ),
+    (
+        "agent_02_amazon_fba",
+        re.compile(
+            r'(amazon\s*fba|fba\b|shipment.*amazon|inventario.*amazon|'
+            r'sincroniza.*amazon|inbound.*amazon)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"action": _extract_amazon_action(q)},
+    ),
+    (
+        "agent_03_shopify_fulfillment",
+        re.compile(
+            r'(shopify|despacha.*shopify|orden.*shopify|fulfillment.*shopify|'
+            r'procesa.*shopify)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {},  # order_id required
+    ),
+    (
+        "agent_14_returns_manager",
+        re.compile(
+            r'(devolucion|devolver|reembolso|retorno\b|'
+            r'cambio.*producto|producto.*defectuoso|llegó\s+dañado)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {},  # order_id + channel + reason
+    ),
+    # ── ERP operations ────────────────────────────────────────────────────────
+    (
+        "agent_16_supplier_evaluator",
+        re.compile(
+            r'(evalua.*proveedor|compara.*proveedor|mejor\s+proveedor|'
+            r'ranking\s+proveedor|que\s+proveedor)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {
+            "action": "recommend",
+            "priority": _extract_supplier_priority(q),
+        },
+    ),
+    (
+        "agent_24_thermal_printer",
+        re.compile(
+            r'(imprim[ei]|etiqueta\s+(de\s+)?(envio|producto)|'
+            r'ticket\s+(de\s+)?impresion|zpl\b|impresora\s+termica)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"label_type": _extract_label_type(q), "format": "zpl"},
+    ),
+    (
+        "agent_25_skydrop_shipping",
+        re.compile(
+            r'(guia\s*(de\s+)?envio|genera\s+guia|skydrop|estafeta\b|'
+            r'dhl\b|fedex\b|paqueteria\b)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {
+            "service": _extract_shipping_service(q),
+            **( {"carrier": _extract_carrier(q)} if _extract_carrier(q) else {} ),
+        },
+    ),
+    (
+        "agent_30_purchase_orders",
+        re.compile(
+            r'(orden\s+(de\s+)?compra|orden\s+a\s+proveedor|\boc\b|'
+            r'compra\s+a\s+proveedor|aproba.*compra|genera.*oc)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"action": _extract_po_action(q)},
+    ),
+    # ── CRM operations ────────────────────────────────────────────────────────
+    (
+        "agent_04_b2b_collector",
+        re.compile(
+            r'(nuevo\s+lead|captura\s+(el\s+)?lead|registra\s+(el\s+)?prospecto|'
+            r'lead\s+b2b|agregar\s+lead)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {},  # contact info — Gemini extraction
+    ),
+    (
+        "agent_19_nps_collector",
+        re.compile(
+            r'(registra.*nps|\bnps\b|satisfaccion.*cliente|encuesta.*cliente|'
+            r'calificacion.*cliente|promotor\b|detractor\b)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {},  # customer_id + score required
+    ),
+    (
+        "agent_31_lead_scorer",
+        re.compile(
+            r'(score\s+(del?\s+)?lead|puntua\s+(el\s+)?lead|califica\s+(el\s+)?lead|'
+            r'scoring\s+lead|puntuacion\s+lead)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {},  # lead_data required
+    ),
+    (
+        "agent_37_support_tickets",
+        re.compile(
+            r'(abre\s+(un\s+)?ticket|crea\s+(un\s+)?ticket|\bticket\s+de\s+soporte|'
+            r'registra\s+(una?\s+)?queja|registra\s+(un\s+)?reclamo|incidencia)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"channel": _extract_ticket_channel(q)},
+    ),
+    # ── Meta / Social ─────────────────────────────────────────────────────────
+    (
+        "agent_12_ads_manager",
+        re.compile(
+            r'(crea\s+(una?\s+)?campana|pausa\s+(la\s+)?campana|reactiva\s+(la\s+)?campana|'
+            r'facebook\s+ads|instagram\s+ads|publicidad\s+pagada|stats\s+(de\s+(?:la\s+)?)?campana)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"action": _extract_ads_action(q)},
+    ),
+    (
+        "agent_content_publisher",
+        re.compile(
+            r'(publica\s+(?:(?:un|una|este|ese|el|la)\s+)?(post|story|reel|contenido)|'
+            r'programa\s+(la\s+)?publicacion|sube\s+(el\s+)?(post|contenido))',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {},  # content + platform required
+    ),
+    (
+        "agent_wa_whatsapp",
+        re.compile(
+            r'(envia\s+(por\s+|el\s+)?whatsapp|manda\s+(por\s+|el\s+)?whatsapp|'
+            r'mensaje\s+(por\s+)?whatsapp|whatsapp\s+(a|para)\s)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {"action": "send"},
+    ),
+    (
+        "agent_ig_instagram",
+        re.compile(
+            r'(instagram\s+dm|dm\s+(de\s+)?instagram|envia\s+(por\s+)?instagram|'
+            r'mensaje\s+(por\s+)?instagram)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {"action": "send"},
+    ),
+    (
+        "agent_fb_facebook",
+        re.compile(
+            r'(messenger\b|envia\s+(por\s+)?facebook|mensaje\s+(por\s+)?facebook|'
+            r'facebook\s+messenger)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {"action": "send"},
+    ),
 ]
 
 # Queries that are clearly conversational (greetings, meta-questions)
@@ -213,6 +447,48 @@ _LLM_SCHEMAS: Dict[str, Dict] = {
         "optional": "question_id, buyer_nickname",
         "clarification": "¿Cuál es la pregunta de Mercado Libre que deseas responder y a qué producto corresponde?",
     },
+    "agent_01_ml_fulfillment": {
+        "label": "ML Fulfillment",
+        "required": "order_id (string)",
+        "optional": "items (list), buyer_phone",
+        "clarification": "¿Cuál es el número de orden de Mercado Libre que deseas despachar?",
+    },
+    "agent_03_shopify_fulfillment": {
+        "label": "Shopify Fulfillment",
+        "required": "order_id (string)",
+        "optional": "items (list), customer_phone",
+        "clarification": "¿Cuál es el número de orden de Shopify que deseas despachar?",
+    },
+    "agent_14_returns_manager": {
+        "label": "Returns Manager",
+        "required": "order_id (string), channel (mercadolibre/amazon/shopify), reason (producto_defectuoso/no_deseado/error_envio/descripcion_incorrecta/llegó_dañado), items (list of {sku, quantity, unit_price})",
+        "optional": "customer_id",
+        "clarification": "Para procesar la devolución necesito: número de orden, canal (ML/Amazon/Shopify), motivo y productos a devolver.",
+    },
+    "agent_04_b2b_collector": {
+        "label": "B2B Lead Collector",
+        "required": "contact.name (string), contact.email (string)",
+        "optional": "contact.company, contact.position, context.budget, context.urgency (high/medium/low), source (web_form/whatsapp/linkedin/referral)",
+        "clarification": "Para registrar el lead necesito: nombre, email y preferiblemente empresa y presupuesto estimado.",
+    },
+    "agent_19_nps_collector": {
+        "label": "NPS Collector",
+        "required": "customer_id (string), score (integer 0-10)",
+        "optional": "feedback (string), order_id",
+        "clarification": "¿De qué cliente es la calificación NPS y cuál fue el puntaje (0-10)?",
+    },
+    "agent_31_lead_scorer": {
+        "label": "Lead Scorer",
+        "required": "lead_data.name (string), lead_data.email (string)",
+        "optional": "lead_data.company, lead_data.budget, lead_data.source",
+        "clarification": "¿Qué información tienes del lead para calcular su score?",
+    },
+    "agent_content_publisher": {
+        "label": "Content Publisher",
+        "required": "action (publish/schedule/delete), content_type (post/story/reel), platforms (list: facebook/instagram)",
+        "optional": "caption, media_url, scheduled_at",
+        "clarification": "Para publicar contenido necesito: tipo (post/story/reel), plataformas y el texto o imagen.",
+    },
 }
 
 
@@ -245,6 +521,15 @@ class IntentClassifier:
         for agent_id, pattern, param_fn in _AGENT_PATTERNS:
             m = pattern.search(q_norm)
             if m:
+                # Platform-specific overrides: skip generic agent when explicit platform mentioned
+                if agent_id == "agent_05_inventory_monitor" and re.search(
+                    r'\b(?:amazon[\s_]*fba|fba)\b', q_norm, re.IGNORECASE
+                ):
+                    continue
+                if agent_id == "agent_01_ml_fulfillment" and re.search(
+                    r'\bshopify\b', q_norm, re.IGNORECASE
+                ):
+                    continue
                 args = param_fn(q, m)
                 has_args = bool(args)
                 logger.warning(

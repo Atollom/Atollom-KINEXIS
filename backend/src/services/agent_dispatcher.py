@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Lazy imports: tuples of (module_path, class_name)
 
 _AGENT_REGISTRY: Dict[str, tuple] = {
+    # Day 2 Phase 1 — priority agents
     "agent_05_inventory_monitor":  ("src.agents.erp.agent_05_inventory_monitor",  "Agent05InventoryMonitor"),
     "agent_18_finance_snapshot":   ("src.agents.erp.agent_18_finance_snapshot",   "Agent18FinanceSnapshot"),
     "agent_06_price_manager":      ("src.agents.ecommerce.agent_06_price_manager", "Agent06PriceManager"),
@@ -29,6 +30,24 @@ _AGENT_REGISTRY: Dict[str, tuple] = {
     "agent_13_cfdi_billing":       ("src.agents.erp.agent_13_cfdi_billing",       "Agent13CFDIBilling"),
     "agent_33_follow_up":          ("src.agents.crm.agent_33_follow_up",          "Agent33FollowUp"),
     "agent_27_ml_questions":       ("src.agents.ecommerce.agent_27_ml_questions", "Agent27MLQuestions"),
+    # Day 2 Phase 2 — all remaining agents
+    "agent_01_ml_fulfillment":     ("src.agents.ecommerce.agent_01_ml_fulfillment",  "Agent01MLFulfillment"),
+    "agent_02_amazon_fba":         ("src.agents.ecommerce.agent_02_amazon_fba",      "Agent02AmazonFBA"),
+    "agent_03_shopify_fulfillment":("src.agents.ecommerce.agent_03_shopify_fulfillment", "Agent03ShopifyFulfillment"),
+    "agent_04_b2b_collector":      ("src.agents.crm.agent_04_b2b_collector",         "Agent04B2BCollector"),
+    "agent_14_returns_manager":    ("src.agents.ecommerce.agent_14_returns_manager",  "Agent14ReturnsManager"),
+    "agent_16_supplier_evaluator": ("src.agents.erp.agent_16_supplier_evaluator",    "Agent16SupplierEvaluator"),
+    "agent_19_nps_collector":      ("src.agents.crm.agent_19_nps_collector",         "Agent19NPSCollector"),
+    "agent_24_thermal_printer":    ("src.agents.erp.agent_24_thermal_printer",       "Agent24ThermalPrinter"),
+    "agent_25_skydrop_shipping":   ("src.agents.erp.agent_25_skydrop_shipping",      "Agent25SkydropShipping"),
+    "agent_30_purchase_orders":    ("src.agents.erp.agent_30_purchase_orders",       "Agent30PurchaseOrders"),
+    "agent_31_lead_scorer":        ("src.agents.crm.agent_31_lead_scorer",           "Agent31LeadScorer"),
+    "agent_37_support_tickets":    ("src.agents.crm.agent_37_support_tickets",       "Agent37SupportTickets"),
+    "agent_12_ads_manager":        ("src.agents.meta.agent_12_ads_manager",          "Agent12AdsManager"),
+    "agent_content_publisher":     ("src.agents.meta.agent_content_publisher",       "AgentContentPublisher"),
+    "agent_wa_whatsapp":           ("src.agents.meta.agent_wa_whatsapp",             "AgentWAWhatsApp"),
+    "agent_ig_instagram":          ("src.agents.meta.agent_ig_instagram",            "AgentIGInstagram"),
+    "agent_fb_facebook":           ("src.agents.meta.agent_fb_facebook",             "AgentFBFacebook"),
 }
 
 # ── Plain-text fallback formatters (used when Gemini is unavailable) ──────────
@@ -158,7 +177,169 @@ def _fmt_ml_questions(data: Dict, query: str) -> str:
     )
 
 
+def _fmt_fulfillment(data: Dict, query: str) -> str:
+    order_id = data.get("order_id", "")
+    status = data.get("status", "procesada")
+    tracking = data.get("tracking_number", "")
+    lines = [f"✅ **Orden {order_id} despachada** — estado: {status}"]
+    if tracking:
+        lines.append(f"- Guía de rastreo: `{tracking}`")
+    return "\n".join(lines)
+
+
+def _fmt_amazon_fba(data: Dict, query: str) -> str:
+    action = data.get("action", "")
+    if action == "sync_inventory":
+        synced = data.get("synced_skus", 0)
+        return f"✅ Inventario Amazon FBA sincronizado — **{synced} SKUs** actualizados."
+    if action == "create_shipment":
+        shipment_id = data.get("shipment_id", "")
+        return f"✅ Shipment FBA creado: **{shipment_id}**"
+    status = data.get("status", "")
+    return f"Estado del shipment Amazon FBA: **{status}**"
+
+
+def _fmt_returns(data: Dict, query: str) -> str:
+    order_id = data.get("order_id", "")
+    refund = data.get("refund_amount", 0)
+    label = data.get("return_label_url", "")
+    lines = [
+        f"✅ **Devolución procesada** — Orden {order_id}",
+        f"- Reembolso: **${refund:,.2f} MXN**",
+    ]
+    if label:
+        lines.append(f"- Etiqueta de retorno: {label}")
+    return "\n".join(lines)
+
+
+def _fmt_supplier(data: Dict, query: str) -> str:
+    recommended = data.get("recommended", {})
+    name = recommended.get("name", "N/A")
+    score = recommended.get("score", 0)
+    lines = [f"**Proveedor recomendado: {name}** (score: {score:.0f}/100)"]
+    all_suppliers = data.get("ranked", [])
+    if len(all_suppliers) > 1:
+        lines.append("\n**Ranking completo:**")
+        for i, s in enumerate(all_suppliers[:5], 1):
+            lines.append(f"{i}. {s.get('name', '')} — {s.get('score', 0):.0f} pts")
+    return "\n".join(lines)
+
+
+def _fmt_nps(data: Dict, query: str) -> str:
+    score = data.get("score", 0)
+    category = data.get("category", "")
+    sentiment = data.get("sentiment", "")
+    icons = {"promotor": "⭐", "pasivo": "😐", "detractor": "⚠️"}
+    return (
+        f"{icons.get(category, '📊')} **NPS registrado**: score **{score}/10** — "
+        f"{category.upper()} ({sentiment})"
+    )
+
+
+def _fmt_thermal(data: Dict, query: str) -> str:
+    label_type = data.get("label_type", "")
+    fmt = data.get("format", "zpl")
+    size = data.get("size_bytes", 0)
+    return (
+        f"✅ **Etiqueta generada** ({label_type.replace('_', ' ')}, {fmt.upper()})\n"
+        f"- Tamaño: {size} bytes — lista para enviar a impresora térmica."
+    )
+
+
+def _fmt_shipping(data: Dict, query: str) -> str:
+    carrier = data.get("carrier", "")
+    tracking = data.get("tracking_number", "")
+    cost = data.get("cost", 0)
+    eta = data.get("estimated_days", "")
+    return (
+        f"✅ **Guía {carrier.upper()} generada**\n"
+        f"- Rastreo: `{tracking}`\n"
+        f"- Costo: **${cost:,.2f} MXN** | Entrega estimada: {eta} días hábiles"
+    )
+
+
+def _fmt_purchase_order(data: Dict, query: str) -> str:
+    po_number = data.get("po_number", "")
+    action = data.get("action", "")
+    total = data.get("total", 0)
+    status = data.get("status", "")
+    return (
+        f"✅ **Orden de compra {po_number}** — acción: {action}\n"
+        f"- Total: **${total:,.2f} MXN** | Estado: {status}"
+    )
+
+
+def _fmt_lead_score(data: Dict, query: str) -> str:
+    score = data.get("score", 0)
+    priority = data.get("priority", "")
+    icons = {"high": "🔥", "medium": "🟡", "low": "❄️"}
+    breakdown = data.get("breakdown", [])
+    lines = [f"{icons.get(priority, '📊')} **Lead score: {score}/100** — prioridad {priority.upper()}"]
+    if breakdown:
+        lines.append("\n**Factores:**")
+        for b in breakdown[:5]:
+            lines.append(f"- {b}")
+    return "\n".join(lines)
+
+
+def _fmt_b2b_lead(data: Dict, query: str) -> str:
+    lead_id = data.get("lead_id", "")
+    score = data.get("score", 0)
+    priority = data.get("priority", "")
+    next_actions = data.get("next_actions", [])
+    lines = [f"✅ **Lead capturado** `{lead_id}` — score {score}/100 ({priority})"]
+    if next_actions:
+        lines.append("**Próximas acciones:**")
+        for a in next_actions[:3]:
+            lines.append(f"- {a}")
+    return "\n".join(lines)
+
+
+def _fmt_support_ticket(data: Dict, query: str) -> str:
+    ticket_id = data.get("ticket_id", "")
+    category = data.get("category", "")
+    priority = data.get("priority", "")
+    sla = data.get("sla", {})
+    return (
+        f"✅ **Ticket {ticket_id}** creado — {category} ({priority})\n"
+        f"- Respuesta esperada: {sla.get('response_deadline', 'N/A')}"
+    )
+
+
+def _fmt_ads(data: Dict, query: str) -> str:
+    action = data.get("action", "")
+    campaign_id = data.get("campaign_id", "")
+    if action == "get_stats":
+        impressions = data.get("impressions", 0)
+        clicks = data.get("clicks", 0)
+        cpc = data.get("cpc", 0)
+        return (
+            f"**Estadísticas campaña {campaign_id}:**\n"
+            f"- Impresiones: **{impressions:,}** | Clics: **{clicks:,}** | CPC: **${cpc:.2f}**"
+        )
+    if action == "create":
+        return f"✅ **Campaña {campaign_id} creada** y activa en Meta."
+    return f"✅ Campaña {campaign_id} — acción `{action}` ejecutada."
+
+
+def _fmt_content(data: Dict, query: str) -> str:
+    post_id = data.get("post_id", "")
+    action = data.get("action", "")
+    platforms = data.get("platforms", [])
+    return (
+        f"✅ **Contenido {action}** (ID: {post_id}) en "
+        f"{', '.join(p.capitalize() for p in platforms)}"
+    )
+
+
+def _fmt_messaging(data: Dict, query: str) -> str:
+    msg_id = data.get("message_id", data.get("wamid", ""))
+    status = data.get("status", "enviado")
+    return f"✅ Mensaje **{status}** — ID: `{msg_id}`"
+
+
 _FORMATTERS = {
+    # Phase 1
     "agent_05_inventory_monitor": _fmt_inventory,
     "agent_18_finance_snapshot":  _fmt_finance,
     "agent_06_price_manager":     _fmt_price,
@@ -166,6 +347,27 @@ _FORMATTERS = {
     "agent_13_cfdi_billing":      _fmt_cfdi,
     "agent_33_follow_up":         _fmt_followup,
     "agent_27_ml_questions":      _fmt_ml_questions,
+    # Phase 2 — e-commerce
+    "agent_01_ml_fulfillment":     _fmt_fulfillment,
+    "agent_02_amazon_fba":         _fmt_amazon_fba,
+    "agent_03_shopify_fulfillment": _fmt_fulfillment,
+    "agent_14_returns_manager":    _fmt_returns,
+    # Phase 2 — ERP
+    "agent_16_supplier_evaluator": _fmt_supplier,
+    "agent_24_thermal_printer":    _fmt_thermal,
+    "agent_25_skydrop_shipping":   _fmt_shipping,
+    "agent_30_purchase_orders":    _fmt_purchase_order,
+    # Phase 2 — CRM
+    "agent_04_b2b_collector":      _fmt_b2b_lead,
+    "agent_19_nps_collector":      _fmt_nps,
+    "agent_31_lead_scorer":        _fmt_lead_score,
+    "agent_37_support_tickets":    _fmt_support_ticket,
+    # Phase 2 — Meta
+    "agent_12_ads_manager":        _fmt_ads,
+    "agent_content_publisher":     _fmt_content,
+    "agent_wa_whatsapp":           _fmt_messaging,
+    "agent_ig_instagram":          _fmt_messaging,
+    "agent_fb_facebook":           _fmt_messaging,
 }
 
 
