@@ -103,6 +103,7 @@ async def chat(request: ChatRequest):
                 memory_context = memory_svc.format_memory_context(boot_memories, relevant_memories)
                 logger.warning("[SAMANTHA DEBUG] memory_context length: %d", len(memory_context))
                 logger.warning("[SAMANTHA DEBUG] memory_context preview: %s", memory_context[:500])
+                logger.error("[MEMORY DEBUG] memory_context final:\n%s", memory_context)
         except Exception as exc:
             logger.warning("[SAMANTHA DEBUG] Memory load failed (non-fatal): %s", exc, exc_info=True)
     else:
@@ -110,6 +111,7 @@ async def chat(request: ChatRequest):
 
     # Inject memory into context so _build_system_prompt can include it
     context["memory_context"] = memory_context
+    logger.error("[MEMORY DEBUG] ctx memory_context set, length=%d", len(memory_context))
 
     # 4. Check API key
     provider = os.getenv("LLM_PROVIDER", "gemini").lower()
@@ -187,8 +189,8 @@ async def get_credits(tenant_id: str):
 @router.get("/debug/memory")
 async def debug_memory(supabase_user_id: str, tenant_id: str):
     """
-    Diagnostic endpoint — exposes full memory system state as JSON.
-    Call: GET /api/samantha/debug/memory?supabase_user_id=XXX&tenant_id=YYY
+    Diagnostic endpoint — full memory system state as JSON.
+    GET /api/samantha/debug/memory?supabase_user_id=XXX&tenant_id=YYY
     """
     result: Dict[str, Any] = {
         "env": {
@@ -199,25 +201,34 @@ async def debug_memory(supabase_user_id: str, tenant_id: str):
         },
         "user_lookup": None,
         "memory_service_initialized": False,
-        "boot_memories": [],
         "boot_memories_count": 0,
-        "error": None,
+        "boot_memories": [],
+        "errors": [],
     }
 
+    # Step 1: user lookup via DATABASE_URL (psycopg2)
     try:
         user_row = await get_user_by_supabase_id(supabase_user_id)
-        result["user_lookup"] = user_row or "NOT FOUND"
-
-        if user_row:
-            internal_user_id = user_row["id"]
-            memory_svc = get_memory_service()
-            result["memory_service_initialized"] = memory_svc._initialized
-
-            boot = await memory_svc.get_boot_memories(tenant_id, internal_user_id, min_importance=1)
-            result["boot_memories"] = boot
-            result["boot_memories_count"] = len(boot)
+        result["user_lookup"] = user_row if user_row else "NOT FOUND — check supabase_user_id in users table"
     except Exception as exc:
-        result["error"] = str(exc)
+        result["errors"].append(f"user_lookup: {exc}")
+        return result
+
+    if not user_row:
+        return result
+
+    # Step 2: boot memories via DATABASE_URL (psycopg2, no Supabase key needed)
+    try:
+        memory_svc = get_memory_service()
+        result["memory_service_initialized"] = memory_svc._initialized
+
+        boot = await memory_svc.get_boot_memories(
+            tenant_id, user_row["id"], min_importance=1  # min=1 to see ALL memories
+        )
+        result["boot_memories_count"] = len(boot)
+        result["boot_memories"] = boot
+    except Exception as exc:
+        result["errors"].append(f"get_boot_memories: {exc}")
 
     return result
 

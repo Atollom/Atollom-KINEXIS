@@ -51,7 +51,7 @@ def _build_system_prompt(ctx: Dict[str, Any]) -> str:
     if memory_block:
         memory_block = memory_block + "\n"
 
-    return _SYSTEM_PROMPT.format(
+    prompt = _SYSTEM_PROMPT.format(
         tenant_name=ctx["tenant_name"],
         plan=ctx["plan"],
         products_count=ctx["products_count"],
@@ -63,6 +63,11 @@ def _build_system_prompt(ctx: Dict[str, Any]) -> str:
         recent_orders_summary=recent_summary,
         memory_block=memory_block,
     )
+    logger.error("[PROMPT DEBUG] System prompt length: %d", len(prompt))
+    logger.error("[PROMPT DEBUG] memory_block length: %d", len(memory_block))
+    logger.error("[PROMPT DEBUG] Contains memories: %s", bool(memory_block))
+    logger.error("[PROMPT DEBUG] Full system prompt:\n%s", prompt)
+    return prompt
 
 
 # ── Abstract provider ─────────────────────────────────────────────────────────

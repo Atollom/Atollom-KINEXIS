@@ -95,11 +95,11 @@ class SamanthaMemoryService:
 
     async def search_memories(
         self,
-        _tenant_id: str,
-        _user_id: str,
-        _query: str,
-        _threshold: float = 0.7,
-        _limit: int = 10,
+        tenant_id: str,
+        user_id: str,
+        query: str,
+        threshold: float = 0.7,
+        limit: int = 10,
     ) -> List[Dict[str, Any]]:
         """Semantic search — disabled in Day 1; returns [] gracefully."""
         return []
