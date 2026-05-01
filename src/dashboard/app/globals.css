@@ -144,6 +144,16 @@ html.light .text-white {
   color: var(--text-primary) !important;
 }
 
+/* Restore colors inside forced-dark containers (e.g. login page) */
+html.light .dark .text-white,
+html.light .dark [class*="text-white\/"] {
+  color: rgba(255, 255, 255, var(--tw-text-opacity, 1)) !important;
+}
+html.light .dark [class*="bg-white\/"] {
+  background: rgba(255, 255, 255, var(--tw-bg-opacity, 1)) !important;
+}
+html.light .dark .bg-\[\#CCFF00\] { background-color: #CCFF00 !important; }
+
 html.light .bg-\[\#CCFF00\] {
   background-color: var(--accent-primary) !important;
   color: #fff !important;
@@ -403,11 +413,11 @@ html.light .drop-shadow-glow { filter: drop-shadow(0 0 6px rgba(165,200,0,0.3));
 html.light .text-\[\#E8EAF0\] { color: var(--text-primary)   !important; }
 html.light .text-\[\#8DA4C4\] { color: var(--text-secondary) !important; }
 
-/* Very dark backgrounds used as "dark cards" */
+/* Very dark backgrounds used as "dark cards" in shell — NOT the login page */
 html.light .bg-\[\#000103\]  { background-color: var(--bg-surface) !important; }
 html.light .bg-\[\#0a1622\]  { background-color: var(--bg-surface) !important; }
-html.light .bg-\[\#040f1b\]  { background-color: var(--bg-surface) !important; }
 html.light .bg-\[\#061422\]  { background-color: var(--bg-surface) !important; }
+/* bg-[#040f1b] intentionally excluded — used by login page which must stay dark */
 
 /* Dark-on-dark border & divider colors */
 html.light [class*="border-white\/"] { border-color: var(--border-color) !important; }

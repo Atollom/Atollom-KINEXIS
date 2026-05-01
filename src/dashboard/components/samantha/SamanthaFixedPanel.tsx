@@ -24,7 +24,6 @@ export function SamanthaFixedPanel() {
   const sessionId = useRef(`session_${Date.now()}`)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Obtener access_token al montar — refresca si expira
   useEffect(() => {
     const supabase = createBrowserSupabaseClient()
 
@@ -93,43 +92,104 @@ export function SamanthaFixedPanel() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-900">
-
+    <div
+      className="flex flex-col h-full"
+      style={{ backgroundColor: 'var(--bg-surface)' }}
+    >
       {/* HEADER */}
-      <div className="flex items-center justify-between px-4 py-4 bg-gradient-to-r from-green-500 to-cyan-500 shrink-0">
+      <div
+        className="flex items-center justify-between px-4 py-4 shrink-0"
+        style={{
+          borderBottom: '1px solid var(--border-color)',
+          backgroundColor: 'var(--bg-card)',
+        }}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shadow-lg backdrop-blur-sm">
-            <Sparkles className="w-4 h-4 text-white" />
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg"
+            style={{ backgroundColor: 'rgba(204,255,0,0.12)', border: '1px solid rgba(204,255,0,0.2)' }}
+          >
+            <Sparkles className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           </div>
           <div>
-            <h3 className="text-sm font-black text-white tracking-wide">Samantha AI</h3>
-            <p className="text-[10px] text-white/90 font-bold uppercase tracking-widest flex items-center gap-1">
-              <span className={`w-1.5 h-1.5 rounded-full ${token ? 'bg-white animate-pulse' : 'bg-white/40'}`}></span>
+            <h3
+              className="text-sm font-black tracking-wide"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Samantha AI
+            </h3>
+            <p
+              className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${token ? 'animate-pulse' : ''}`}
+                style={{ backgroundColor: token ? 'var(--accent-primary)' : 'var(--text-muted)' }}
+              />
               {token ? 'En línea' : 'Sin sesión'}
             </p>
           </div>
         </div>
+        <div
+          className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
+          style={{
+            backgroundColor: 'rgba(204,255,0,0.08)',
+            color: 'var(--accent-primary)',
+            border: '1px solid rgba(204,255,0,0.15)',
+          }}
+        >
+          Neural v4
+        </div>
       </div>
 
       {/* BODY */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"
+        style={{ backgroundColor: 'var(--bg-surface)' }}
+      >
         {messages.map(m => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
-              m.role === 'user'
-                ? 'bg-green-500 text-white rounded-tr-sm'
-                : 'bg-gray-800 text-gray-100 border border-gray-700 rounded-tl-sm'
-            }`}>
-              <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
-            </div>
+            {m.role === 'user' ? (
+              <div
+                className="max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-2.5 text-sm shadow-sm"
+                style={{
+                  backgroundColor: 'var(--accent-primary)',
+                  color: '#000000',
+                  fontWeight: 600,
+                }}
+              >
+                <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
+              </div>
+            ) : (
+              <div
+                className="max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm shadow-sm"
+                style={{
+                  backgroundColor: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                }}
+              >
+                <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>
+              </div>
+            )}
           </div>
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-800 border border-gray-700 text-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2 shadow-sm">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce"></span>
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+            <div
+              className="rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2 shadow-sm"
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+              }}
+            >
+              {[0, 200, 400].map(delay => (
+                <span
+                  key={delay}
+                  className="w-1.5 h-1.5 rounded-full animate-bounce"
+                  style={{ backgroundColor: 'var(--accent-primary)', animationDelay: `${delay}ms` }}
+                />
+              ))}
             </div>
           </div>
         )}
@@ -137,7 +197,13 @@ export function SamanthaFixedPanel() {
       </div>
 
       {/* INPUT */}
-      <div className="p-4 border-t border-gray-800 bg-gray-900 shrink-0">
+      <div
+        className="p-4 shrink-0"
+        style={{
+          borderTop: '1px solid var(--border-color)',
+          backgroundColor: 'var(--bg-card)',
+        }}
+      >
         <div className="relative flex items-center">
           <input
             type="text"
@@ -146,21 +212,33 @@ export function SamanthaFixedPanel() {
             onKeyDown={e => e.key === 'Enter' && handleSend()}
             placeholder="Escribe a Samantha..."
             disabled={!token}
-            className="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl pl-4 pr-10 py-3 focus:outline-none focus:border-green-500/50 focus:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full text-sm rounded-xl pl-4 pr-10 py-3 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none"
+            style={{
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-primary)',
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(204,255,0,0.4)' }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)' }}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading || !token}
-            className="absolute right-2 p-2 text-gray-400 hover:text-green-500 disabled:opacity-50 transition-colors"
+            className="absolute right-2 p-2 disabled:opacity-40 transition-colors"
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-primary)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)' }}
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
-        <p className="text-[9px] text-center text-gray-500 font-semibold uppercase tracking-widest mt-2">
+        <p
+          className="text-[9px] text-center font-semibold uppercase tracking-widest mt-2"
+          style={{ color: 'var(--text-muted)' }}
+        >
           KINEXIS Neural Network v4.2
         </p>
       </div>
-
     </div>
   )
 }

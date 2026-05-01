@@ -12,7 +12,7 @@ export default function LoginLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#000f21] min-h-screen text-on-surface">
+    <div style={{ background: '#040f1b', minHeight: '100vh' }}>
       {children}
     </div>
   );

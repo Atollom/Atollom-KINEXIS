@@ -36,7 +36,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#040f1b] relative overflow-hidden flex items-center justify-center p-6 selection:bg-[#CCFF00] selection:text-black font-inter">
+    <div className="dark min-h-screen relative overflow-hidden flex items-center justify-center p-6 selection:bg-[#CCFF00] selection:text-black font-inter" style={{ background: '#040f1b' }}>
       
       {/* ── Neural Atmospheric Background ────────────────────────── */}
       <div className="absolute inset-0 z-0">
