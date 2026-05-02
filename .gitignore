@@ -9,10 +9,17 @@
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 .pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
 .venv/
 venv/
+env/
 *.egg-info/
+dist/
+build/
 
 # Node / Next.js
 node_modules/
@@ -60,3 +67,11 @@ vercel_login.html
 # One-off scripts
 fix_parens.py
 replace_script.py
+
+# Test artifacts
+test.webp
+*.webp
+
+# IDE
+.vscode/settings.json
+.idea/
