@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
+import { useToast } from "@/components/ToastProvider";
 
 export default function MercadoLibrePage() {
+  const { showToast } = useToast();
+
   const stats = useMemo(() => [
     { label: "Publicaciones Activas", value: "1,240", icon: "inventory", color: "text-blue-400" },
     { label: "Reputación del Vendedor", value: "Platino", icon: "verified", color: "text-primary" },
@@ -38,7 +41,14 @@ export default function MercadoLibrePage() {
               <span className="material-symbols-outlined !text-[16px]">sync</span>
               SYNC API
            </button>
-           <button className="px-8 py-4 neon-disruptor rounded-2xl text-[10px] font-black label-tracking shadow-glow">
+           <button
+              className="px-8 py-4 neon-disruptor rounded-2xl text-[10px] font-black label-tracking shadow-glow"
+              onClick={() => showToast({
+                type: 'success',
+                title: 'Surtido Full Solicitado',
+                message: 'El equipo de almacén recibirá la solicitud en breve. ETA: 24–48 h.',
+              })}
+           >
               SOLICITAR SURTIDO FULL
            </button>
         </div>
