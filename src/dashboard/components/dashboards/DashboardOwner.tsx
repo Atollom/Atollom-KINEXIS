@@ -16,6 +16,7 @@ import {
   Truck,
   ArrowUpRight
 } from 'lucide-react'
+import UrgencyPanel from '@/components/UrgencyPanel'
 import {
   AreaChart,
   Area,
@@ -68,7 +69,7 @@ export default function DashboardOwner() {
   }, [])
 
   return (
-    <div className="flex flex-col h-full gap-6 animate-in fade-in zoom-in-95 duration-1000">
+    <div className="dark flex flex-col h-full gap-6 animate-in fade-in zoom-in-95 duration-1000" style={{ background: '#040f1b' }}>
       <header className="flex justify-between items-center px-2">
         <div>
            <h1 className="text-3xl font-black text-white tracking-tighter uppercase italic">
@@ -215,38 +216,8 @@ export default function DashboardOwner() {
               </p>
            </div>
 
-           {/* Row 2: Recent Activity List (Simplified) */}
-           <div className="md:col-span-2 bg-white/5 rounded-[2.5rem] p-8 border border-white/5 flex flex-col h-full">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xs font-black text-white uppercase tracking-[0.3em]">Operaciones Críticas</h3>
-                <button className="text-[9px] font-black text-[#CCFF00] uppercase tracking-widest hover:underline transition-all flex items-center gap-2">
-                  AUDITORÍA COMPLETA <ArrowUpRight size={14} />
-                </button>
-              </div>
-              <div className="space-y-4">
-                 {[
-                   { id: "A-801", label: "Auditoría de Inventario", val: "Cumplimiento", info: "Almacén A", icon: ShieldCheck, color: "text-[#CCFF00]" },
-                   { id: "L-224", label: "Sincronización Logística", val: "Activo", info: "Ruta 04", icon: MapPin, color: "text-white/40" },
-                   { id: "P-109", label: "Autorización de Compras", val: "Pendiente", info: "$12.4k sol.", icon: Clock, color: "text-[#FF0055]" },
-                 ].map((item, idx) => (
-                   <div key={idx} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0 group cursor-pointer">
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 rounded-xl bg-white/3 flex items-center justify-center group-hover:bg-[#CCFF00]/10 transition-colors">
-                            <item.icon className="w-4 h-4 text-white/30 group-hover:text-[#CCFF00] transition-colors" />
-                         </div>
-                         <div>
-                            <p className="text-[11px] font-black text-white uppercase">{item.label}</p>
-                            <p className="text-[9px] font-bold text-white/20 uppercase">{item.info}</p>
-                         </div>
-                      </div>
-                      <div className="text-right">
-                         <p className={`text-[10px] font-black uppercase ${item.color}`}>{item.val}</p>
-                         <p className="text-[8px] font-bold text-white/10">{item.id}</p>
-                      </div>
-                   </div>
-                 ))}
-              </div>
-           </div>
+           {/* Row 2: Live urgency alerts */}
+           <UrgencyPanel />
         </div>
 
       </div>

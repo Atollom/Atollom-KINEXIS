@@ -278,3 +278,46 @@ async def boot_memories(tenant_id: str, supabase_user_id: str, min_importance: i
     memory_svc = get_memory_service()
     memories = await memory_svc.get_boot_memories(tenant_id, internal_user_id, min_importance)
     return {"memories": memories, "count": len(memories)}
+
+
+@router.post("/memory/seed")
+async def seed_memories(tenant_id: str, supabase_user_id: str):
+    """
+    Seed initial memories for a user. Idempotent — safe to call multiple times.
+    Uses psycopg2 direct write; does not require SUPABASE_SERVICE_ROLE_KEY.
+    """
+    internal_user_id = await _resolve_user_id(supabase_user_id)
+    memory_svc = get_memory_service()
+
+    seed_memories_data = [
+        {
+            "content": (
+                "El usuario prefiere comunicación formal y directa. "
+                "Sin emojis. Respuestas concisas y accionables."
+            ),
+            "summary": "Preferencia de comunicación: formal, directa, sin emojis, respuestas cortas.",
+            "importance": 9,
+            "tags": ["preferencia", "comunicación", "estilo"],
+        },
+        {
+            "content": (
+                "Cliente principal de Kap Tools: Constructora ABC. "
+                "Realizan pedidos de taladros y brocas cada mes."
+            ),
+            "summary": "Cliente principal: Constructora ABC — pedidos mensuales de taladros y brocas.",
+            "importance": 8,
+            "tags": ["cliente", "patrón", "ventas"],
+        },
+        {
+            "content": (
+                "El producto TAL-003 (taladro percutor 850W) genera alertas de stock crítico frecuentemente. "
+                "Mantener mínimo 10 unidades en almacén."
+            ),
+            "summary": "TAL-003 genera alertas de stock crítico. Stock mínimo recomendado: 10 unidades.",
+            "importance": 8,
+            "tags": ["inventario", "urgencia", "TAL-003"],
+        },
+    ]
+
+    result = await memory_svc.seed_initial_memories(tenant_id, internal_user_id, seed_memories_data)
+    return result

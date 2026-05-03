@@ -182,6 +182,66 @@ class SamanthaMemoryService:
             logger.warning("MemoryService.search_by_tags failed: %s", exc)
             return []
 
+    # ── Seed (psycopg2 — no Supabase key needed) ─────────────────────────────
+
+    def _seed_sync(
+        self, tenant_id: str, user_id: str, memories: List[Dict]
+    ) -> Dict:
+        """Direct INSERT via psycopg2. Idempotent: skips if session_id='initial_seed' exists."""
+        conn = psycopg2.connect(self._db_url, cursor_factory=RealDictCursor)
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT COUNT(*) AS cnt FROM samantha_memories "
+                "WHERE tenant_id = %s AND user_id = %s AND session_id = 'initial_seed'",
+                (tenant_id, user_id),
+            )
+            if cur.fetchone()["cnt"] > 0:
+                return {"skipped": True, "reason": "Initial seed already applied", "inserted": 0}
+
+            inserted_ids = []
+            for mem in memories:
+                cur.execute(
+                    """INSERT INTO samantha_memories
+                           (tenant_id, user_id, content, summary, importance, tags,
+                            agent_source, session_id)
+                       VALUES (%s, %s, %s, %s, %s, %s, 'seed', 'initial_seed')
+                       RETURNING id""",
+                    (
+                        tenant_id,
+                        user_id,
+                        mem["content"],
+                        mem.get("summary"),
+                        mem["importance"],
+                        mem.get("tags", []),
+                    ),
+                )
+                row = cur.fetchone()
+                if row:
+                    inserted_ids.append(str(row["id"]))
+            conn.commit()
+            return {"skipped": False, "inserted": len(inserted_ids), "ids": inserted_ids}
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    async def seed_initial_memories(
+        self, tenant_id: str, user_id: str, memories: List[Dict]
+    ) -> Dict:
+        """Seed initial memories via direct DB write. Uses psycopg2 — no Supabase key needed."""
+        if not self._initialized:
+            return {"error": "DATABASE_URL not set", "inserted": 0}
+        try:
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(
+                None, partial(self._seed_sync, tenant_id, user_id, memories)
+            )
+        except Exception as exc:
+            logger.error("MemoryService.seed_initial_memories failed: %s", exc)
+            return {"error": str(exc), "inserted": 0}
+
     # ── Format for system prompt ──────────────────────────────────────────────
 
     @staticmethod

@@ -10,6 +10,8 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from fastapi import APIRouter, HTTPException
 
+from src.services.context_analyzer import get_context_analyzer
+
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 _DATABASE_URL = os.getenv("DATABASE_URL")
@@ -89,6 +91,17 @@ async def get_stats(tenant_id: str):
 
     except HTTPException:
         raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/urgencies/{tenant_id}")
+async def get_urgencies(tenant_id: str):
+    """Proactive urgencies detected by ContextAnalyzer."""
+    try:
+        analyzer = get_context_analyzer()
+        result = await analyzer.analyze(tenant_id)
+        return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 

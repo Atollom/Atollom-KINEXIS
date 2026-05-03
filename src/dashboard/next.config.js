@@ -1,25 +1,29 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.supabase.co' },
+      { protocol: 'https', hostname: '*.supabase.in' },
+    ],
+  },
+
   async headers() {
     return [
       {
-        // Apply to all routes — forces CDN to always revalidate
-        source: '/(.*)',
+        // HTML pages — no-store forces Vercel CDN to never serve stale builds
+        source: '/((?!_next/static|_next/image|favicon.ico|branding).*)',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
-          },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
         ],
       },
       {
-        // Static assets can be cached longer (hashed filenames change on deploy)
+        // Static assets are content-hashed — safe to cache permanently
         source: '/_next/static/(.*)',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
     ]

@@ -132,35 +132,62 @@ html.light .shell-bg {
 }
 
 html.light [class*="bg-white/"] {
-  background: rgba(0,0,0,0.04) !important;
+  background: rgba(0,0,0,0.06) !important;
   border-color: var(--glass-border) !important;
 }
 
+/* Graduated light-mode replacements for dark opacity text tokens */
 html.light [class*="text-white/"] {
-  color: var(--text-secondary) !important;
+  color: var(--text-muted) !important;      /* #999 — muted by default */
+}
+html.light .text-white\/40,
+html.light .text-white\/50,
+html.light .text-white\/60 {
+  color: var(--text-secondary) !important;  /* #666 — medium emphasis */
+}
+html.light .text-white\/70,
+html.light .text-white\/80,
+html.light .text-white\/90 {
+  color: var(--text-primary) !important;    /* #1A1A1A — high emphasis */
 }
 
 html.light .text-white {
   color: var(--text-primary) !important;
 }
 
-/* Restore colors inside forced-dark containers (e.g. login page) */
+/* ── Forced-dark context restores (login, DashboardOwner, etc.) ──────────── */
+/* Elements inside class="dark" wrappers must keep their dark-mode colours     */
+/* even when html.light is active — the wrapper signals intentional dark UI.   */
 html.light .dark .text-white,
 html.light .dark [class*="text-white\/"] {
   color: rgba(255, 255, 255, var(--tw-text-opacity, 1)) !important;
 }
 html.light .dark [class*="bg-white\/"] {
-  background: rgba(255, 255, 255, var(--tw-bg-opacity, 1)) !important;
+  background-color: rgba(255, 255, 255, var(--tw-bg-opacity, 1)) !important;
 }
-html.light .dark .bg-\[\#CCFF00\] { background-color: #CCFF00 !important; }
+html.light .dark [class*="border-white\/"] {
+  border-color: rgba(255, 255, 255, var(--tw-border-opacity, 1)) !important;
+}
+/* Brand accent tokens inside dark wrappers stay vivid */
+html.light .dark .bg-\[\#CCFF00\]             { background-color: #CCFF00 !important; }
+html.light .dark .text-\[\#CCFF00\]           { color: #CCFF00 !important; }
+html.light .dark .text-\[\#FF0055\]           { color: #FF0055 !important; }
+html.light .dark [class*="border-\[\#CCFF00"] { border-color: #CCFF00 !important; }
+html.light .dark [class*="border-\[\#FF005"]  { border-color: #FF0055 !important; }
+html.light .dark [class*="bg-\[\#CCFF00"]     { background-color: rgba(204,255,0,var(--tw-bg-opacity,1)) !important; }
+html.light .dark [class*="bg-\[\#FF005"]      { background-color: rgba(255,0,85,var(--tw-bg-opacity,1)) !important; }
 
+/* ── Light-mode global overrides (outside forced-dark) ───────────────────── */
+
+/* Lime (#CCFF00) is illegible on white (1.4:1). Remap to a readable dark olive */
+html.light .text-\[\#CCFF00\] {
+  color: #3A7A00 !important;  /* 4.7:1 on white — WCAG AA */
+}
+
+/* bg-[#CCFF00] as a background: lime needs BLACK text, not white */
 html.light .bg-\[\#CCFF00\] {
   background-color: var(--accent-primary) !important;
-  color: #fff !important;
-}
-
-html.light .text-\[\#CCFF00\] {
-  color: var(--accent-primary) !important;
+  color: #000 !important;
 }
 
 /* ========== BODY ========== */
