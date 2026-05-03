@@ -12,20 +12,21 @@
   --primary: #CDFF00;
   --primary-foreground: #1A1A1A;
 
-  --bg-base:       #F5F5F7;
-  --bg-surface:    rgba(255, 255, 255, 0.90);
-  --bg-card:       rgba(255, 255, 255, 0.85);
+  /* bg-base slightly off-white so white cards stand out */
+  --bg-base:       #EAEAEC;
+  --bg-surface:    rgba(255, 255, 255, 0.95);
+  --bg-card:       rgba(255, 255, 255, 0.98);
   --bg-card-hover: rgba(255, 255, 255, 1);
 
-  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-border: rgba(0, 0, 0, 0.10);
   --glass-shine:  rgba(255, 255, 255, 0.9);
   --blur-sm: 12px;
   --blur-md: 24px;
   --blur-lg: 40px;
 
-  --text-primary:   #1A1A1A;
-  --text-secondary: #666666;
-  --text-muted:     #999999;
+  --text-primary:   #111111;
+  --text-secondary: #444444;
+  --text-muted:     #777777;
 
   --accent-primary:   #CDFF00;
   --accent-secondary: #B8E600;
@@ -36,16 +37,17 @@
   --gradient-subtle: linear-gradient(135deg, rgba(205,255,0,0.08) 0%, rgba(184,230,0,0.08) 100%);
 
   --shadow-ambient: 0 0 40px rgba(0,0,0,0.04);
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
-  --shadow-md:  0 2px 8px rgba(0,0,0,0.08);
-  --shadow-lg:  0 4px 16px rgba(0,0,0,0.12);
+  --shadow-sm:  0 1px 4px rgba(0,0,0,0.10);
+  --shadow-md:  0 2px 12px rgba(0,0,0,0.12);
+  --shadow-lg:  0 4px 24px rgba(0,0,0,0.16);
   --shadow-glow: 0 0 24px rgba(205,255,0,0.25);
 
-  --border-color:   #E5E5E5;
-  --border-subtle:  #D1D1D1;
-  --border-light:   #E5E5E5;
-  --border-medium:  #D1D1D1;
-  --border-heavy:   #999999;
+  /* borders visible against white cards */
+  --border-color:   #C8C8C8;
+  --border-subtle:  #D8D8D8;
+  --border-light:   #D8D8D8;
+  --border-medium:  #BBBBBB;
+  --border-heavy:   #888888;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -98,21 +100,21 @@
 
 /* next-themes sets .light on <html> when light mode is active */
 .light {
-  --bg-base:       #F5F5F7;
-  --bg-surface:    rgba(255, 255, 255, 0.90);
-  --bg-card:       rgba(255, 255, 255, 0.85);
+  --bg-base:       #EAEAEC;
+  --bg-surface:    rgba(255, 255, 255, 0.95);
+  --bg-card:       rgba(255, 255, 255, 0.98);
   --bg-card-hover: rgba(255, 255, 255, 1);
-  --text-primary:   #1A1A1A;
-  --text-secondary: #666666;
-  --text-muted:     #999999;
+  --text-primary:   #111111;
+  --text-secondary: #444444;
+  --text-muted:     #777777;
   --accent-primary:   #CDFF00;
-  --border-color:   #E5E5E5;
-  --border-subtle:  #D1D1D1;
-  --glass-border:  rgba(0, 0, 0, 0.06);
+  --border-color:   #C8C8C8;
+  --border-subtle:  #D8D8D8;
+  --glass-border:  rgba(0, 0, 0, 0.10);
   --glass-shine:   rgba(255, 255, 255, 0.9);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-  --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.10);
+  --shadow-md: 0 2px 12px rgba(0,0,0,0.12);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,0.16);
 }
 
 /* Note: We remove the html.light specific overrides here and use variables instead where possible.
@@ -131,24 +133,30 @@ html.light .shell-bg {
   box-shadow: var(--shadow-sm) !important;
 }
 
-html.light [class*="bg-white/"] {
+/* :not(.dark *) excludes elements inside forced-dark wrappers (login, DashboardOwner).
+   Without this, bg-white/5 inside .dark became rgba(255,255,255,1) — fully white. */
+html.light [class*="bg-white/"]:not(.dark *) {
   background: rgba(0,0,0,0.06) !important;
   border-color: var(--glass-border) !important;
 }
 
-/* Graduated light-mode replacements for dark opacity text tokens */
+/* Graduated light-mode replacements for dark opacity text tokens.
+   Targets: text-white/{n} utility classes used in dark-first components.
+   Minimum #777 (4.48:1 on white) to pass WCAG AA for normal text. */
 html.light [class*="text-white/"] {
-  color: var(--text-muted) !important;      /* #999 — muted by default */
+  color: var(--text-muted) !important;      /* #777 — lowest legible muted */
 }
+html.light .text-white\/30,
 html.light .text-white\/40,
 html.light .text-white\/50,
 html.light .text-white\/60 {
-  color: var(--text-secondary) !important;  /* #666 — medium emphasis */
+  color: var(--text-secondary) !important;  /* #444 — medium emphasis */
 }
 html.light .text-white\/70,
 html.light .text-white\/80,
-html.light .text-white\/90 {
-  color: var(--text-primary) !important;    /* #1A1A1A — high emphasis */
+html.light .text-white\/90,
+html.light .text-white\/95 {
+  color: var(--text-primary) !important;    /* #111 — high emphasis */
 }
 
 html.light .text-white {
@@ -162,9 +170,7 @@ html.light .dark .text-white,
 html.light .dark [class*="text-white\/"] {
   color: rgba(255, 255, 255, var(--tw-text-opacity, 1)) !important;
 }
-html.light .dark [class*="bg-white\/"] {
-  background-color: rgba(255, 255, 255, var(--tw-bg-opacity, 1)) !important;
-}
+/* bg-white/* inside .dark: handled by :not(.dark *) exclusion above — no override needed */
 html.light .dark [class*="border-white\/"] {
   border-color: rgba(255, 255, 255, var(--tw-border-opacity, 1)) !important;
 }
@@ -454,3 +460,35 @@ html.light .backdrop-blur-\[40px\] { backdrop-filter: none !important; }
 
 /* Shell layout background */
 html.light .bg-black\/80 { background-color: var(--bg-surface) !important; }
+
+/* ========== BROWSER AUTOFILL OVERRIDE ========== */
+/* Chrome/Safari apply a white/yellow background to autofilled fields that
+   overrides custom bg classes. Inset box-shadow is the only override that works. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  /* Light mode: keep field background consistent */
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-surface) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Dark context (login page wrapper has class="dark") */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.07) inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+}
+
+/* ========== INPUT BASE RESET FIX ========== */
+/* The global * { border: none } reset strips Tailwind border utilities from inputs.
+   Restore border rendering so focus rings and border classes work correctly. */
+input, textarea, select {
+  border-style: solid;
+  border-width: 0;
+}
