@@ -190,11 +190,9 @@ async def debug_memory(supabase_user_id: str, tenant_id: str):
     """
     Diagnostic endpoint — full memory system state as JSON.
     GET /api/samantha/debug/memory?supabase_user_id=XXX&tenant_id=YYY
-    Disabled in production.
-    Checks ENVIRONMENT or Railway's auto-injected RAILWAY_ENVIRONMENT_NAME.
+    Blocked by default. Set DEBUG_ALLOWED=true in Railway/local env to enable.
     """
-    env = os.getenv("ENVIRONMENT") or os.getenv("RAILWAY_ENVIRONMENT_NAME", "development")
-    if env.lower() == "production":
+    if not os.getenv("DEBUG_ALLOWED"):
         raise HTTPException(status_code=404, detail="Not found")
 
     result: Dict[str, Any] = {
