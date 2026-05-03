@@ -37,8 +37,7 @@ class ChatRequest(BaseModel):
 
 @router.post("/chat")
 async def chat(request: ChatRequest):
-    print("[EMERGENCY] chat() called — Railway IS running new code", flush=True)
-    logger.warning("[EMERGENCY] chat() called — supabase_user_id=%s", request.supabase_user_id)
+    logger.info("chat() called — supabase_user_id=%s", request.supabase_user_id)
 
     # 1. Check credits
     credits = await check_credits(request.tenant_id)
@@ -191,7 +190,11 @@ async def debug_memory(supabase_user_id: str, tenant_id: str):
     """
     Diagnostic endpoint — full memory system state as JSON.
     GET /api/samantha/debug/memory?supabase_user_id=XXX&tenant_id=YYY
+    Disabled in production (ENVIRONMENT=production).
     """
+    if os.getenv("ENVIRONMENT", "development") == "production":
+        raise HTTPException(status_code=404, detail="Not found")
+
     result: Dict[str, Any] = {
         "env": {
             "SUPABASE_URL": "SET" if os.getenv("SUPABASE_URL") else "MISSING",

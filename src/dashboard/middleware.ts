@@ -3,8 +3,10 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const PUBLIC_PATHS = ['/', '/login', '/unauthorized', '/api/health']
 
-// E2E test bypass — set PLAYWRIGHT_BYPASS_AUTH=true in test environment only
-const E2E_BYPASS = process.env.PLAYWRIGHT_BYPASS_AUTH === 'true'
+// E2E test bypass — only active outside production (never set PLAYWRIGHT_BYPASS_AUTH in Railway/Vercel)
+const E2E_BYPASS =
+  process.env.PLAYWRIGHT_BYPASS_AUTH === 'true' &&
+  process.env.NODE_ENV !== 'production'
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some(p => pathname.startsWith(p))

@@ -8,6 +8,7 @@ from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 # Configure root logger so all logger.info() calls in the app are visible in Railway
 logging.basicConfig(
@@ -47,7 +48,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS
+# GZIP compression — reduces JSON response size ~60-70%
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
+# CORS — origins from env, explicit methods only
 origins = os.getenv(
     "ALLOWED_ORIGINS",
     "http://localhost:3000,http://localhost:3001,https://kinexis.atollom.com,https://dashboard.atollom.com"
@@ -56,8 +60,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Tenant-ID"],
 )
 
 # Health check
