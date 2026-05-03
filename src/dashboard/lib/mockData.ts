@@ -288,3 +288,268 @@ export const CFDI_STATS = {
     pac_latencia_ms: 42,
   },
 }
+
+// ── CRM INBOX ─────────────────────────────────────────────────────────────────
+
+export interface InboxMessage {
+  id: string
+  conversation_id: string
+  sender: 'customer' | 'agent' | 'bot'
+  sender_name: string
+  content: string
+  timestamp: string
+  read: boolean
+  type: 'text' | 'image' | 'audio' | 'file'
+}
+
+export interface Conversation {
+  id: string
+  platform: 'whatsapp' | 'instagram' | 'facebook'
+  customer: {
+    name: string
+    phone?: string
+    username?: string
+  }
+  status: 'open' | 'pending' | 'resolved' | 'archived'
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  assigned_to?: string | null
+  tags: string[]
+  last_message: string
+  last_message_at: string
+  unread_count: number
+  messages: InboxMessage[]
+}
+
+export const mockConversations: Conversation[] = [
+  // ── WhatsApp ─────────────────────────────────────────────
+  {
+    id: 'wa-001',
+    platform: 'whatsapp',
+    customer: { name: 'Carlos García', phone: '+52 222 123 4567' },
+    status: 'open',
+    priority: 'high',
+    assigned_to: 'Samantha AI',
+    tags: ['vip', 'pedido-pendiente'],
+    last_message: '¿Cuándo llega mi pedido del taladro?',
+    last_message_at: '2026-05-03T10:15:00Z',
+    unread_count: 2,
+    messages: [
+      { id: 'wa001-1', conversation_id: 'wa-001', sender: 'customer', sender_name: 'Carlos García', content: 'Hola, hice un pedido hace 3 días del Taladro Percutor 800W.', timestamp: '2026-05-03T09:00:00Z', read: true, type: 'text' },
+      { id: 'wa001-2', conversation_id: 'wa-001', sender: 'bot', sender_name: 'Samantha AI', content: 'Hola Carlos, déjame revisar tu pedido. ¿Me das tu número de orden?', timestamp: '2026-05-03T09:02:00Z', read: true, type: 'text' },
+      { id: 'wa001-3', conversation_id: 'wa-001', sender: 'customer', sender_name: 'Carlos García', content: 'ML-45892', timestamp: '2026-05-03T09:05:00Z', read: true, type: 'text' },
+      { id: 'wa001-4', conversation_id: 'wa-001', sender: 'bot', sender_name: 'Samantha AI', content: 'Perfecto Carlos. Tu pedido ML-45892 (Taladro Percutor 800W × 2) está en camino. Guía: FX123456789MX. Llegará el lunes 5 de mayo.', timestamp: '2026-05-03T09:07:00Z', read: true, type: 'text' },
+      { id: 'wa001-5', conversation_id: 'wa-001', sender: 'customer', sender_name: 'Carlos García', content: '¿Cuándo llega mi pedido del taladro?', timestamp: '2026-05-03T10:15:00Z', read: false, type: 'text' },
+      { id: 'wa001-6', conversation_id: 'wa-001', sender: 'bot', sender_name: 'Samantha AI', content: 'Como te comenté antes, llega el lunes 5 de mayo. Puedes rastrear tu paquete con la guía FX123456789MX en la paquetería.', timestamp: '2026-05-03T10:16:00Z', read: false, type: 'text' },
+    ],
+  },
+  {
+    id: 'wa-002',
+    platform: 'whatsapp',
+    customer: { name: 'María López', phone: '+52 222 987 6543' },
+    status: 'pending',
+    priority: 'urgent',
+    assigned_to: null,
+    tags: ['cotización', 'volumen'],
+    last_message: 'Necesito 100 taladros para el lunes',
+    last_message_at: '2026-05-03T11:30:00Z',
+    unread_count: 1,
+    messages: [
+      { id: 'wa002-1', conversation_id: 'wa-002', sender: 'customer', sender_name: 'María López', content: 'Buenos días, necesito cotización urgente para mi empresa.', timestamp: '2026-05-03T11:25:00Z', read: true, type: 'text' },
+      { id: 'wa002-2', conversation_id: 'wa-002', sender: 'customer', sender_name: 'María López', content: 'Necesito 100 taladros para el lunes, ¿es posible?', timestamp: '2026-05-03T11:30:00Z', read: false, type: 'text' },
+    ],
+  },
+  {
+    id: 'wa-003',
+    platform: 'whatsapp',
+    customer: { name: 'Roberto Herrera', phone: '+52 442 555 8899' },
+    status: 'open',
+    priority: 'medium',
+    assigned_to: 'Samantha AI',
+    tags: ['seguimiento'],
+    last_message: 'Perfecto, espero la confirmación',
+    last_message_at: '2026-05-03T09:40:00Z',
+    unread_count: 0,
+    messages: [
+      { id: 'wa003-1', conversation_id: 'wa-003', sender: 'customer', sender_name: 'Roberto Herrera', content: 'Buen día, quiero saber el estado de mi pedido KAP-2026-089', timestamp: '2026-05-03T09:30:00Z', read: true, type: 'text' },
+      { id: 'wa003-2', conversation_id: 'wa-003', sender: 'bot', sender_name: 'Samantha AI', content: 'Hola Roberto, tu pedido KAP-2026-089 ya fue surtido y está listo para recolección en almacén. ¿Prefieres envío o recolección en sucursal?', timestamp: '2026-05-03T09:35:00Z', read: true, type: 'text' },
+      { id: 'wa003-3', conversation_id: 'wa-003', sender: 'customer', sender_name: 'Roberto Herrera', content: 'Envío por favor, a la misma dirección de siempre.', timestamp: '2026-05-03T09:38:00Z', read: true, type: 'text' },
+      { id: 'wa003-4', conversation_id: 'wa-003', sender: 'bot', sender_name: 'Samantha AI', content: 'Listo, procesando envío a Blvd. Hermanos Serdán 100, Puebla. Te llega la guía en 30 minutos.', timestamp: '2026-05-03T09:39:00Z', read: true, type: 'text' },
+      { id: 'wa003-5', conversation_id: 'wa-003', sender: 'customer', sender_name: 'Roberto Herrera', content: 'Perfecto, espero la confirmación', timestamp: '2026-05-03T09:40:00Z', read: true, type: 'text' },
+    ],
+  },
+  {
+    id: 'wa-004',
+    platform: 'whatsapp',
+    customer: { name: 'Constructora ABC', phone: '+52 222 100 2000' },
+    status: 'open',
+    priority: 'low',
+    assigned_to: 'Samantha AI',
+    tags: ['cliente-mensual', 'vip'],
+    last_message: 'El pedido de brocas del mes',
+    last_message_at: '2026-05-02T16:00:00Z',
+    unread_count: 0,
+    messages: [
+      { id: 'wa004-1', conversation_id: 'wa-004', sender: 'customer', sender_name: 'Constructora ABC', content: 'Hola Kap Tools, les mando el pedido de brocas del mes: SET-BRO-002 × 20 juegos.', timestamp: '2026-05-02T16:00:00Z', read: true, type: 'text' },
+      { id: 'wa004-2', conversation_id: 'wa-004', sender: 'bot', sender_name: 'Samantha AI', content: 'Perfecto, recibido. 20 juegos SET-BRO-002 — total: $7,400 MXN + IVA. Generando orden de compra y CFDI automático. ¿Confirmamos?', timestamp: '2026-05-02T16:05:00Z', read: true, type: 'text' },
+    ],
+  },
+  {
+    id: 'wa-005',
+    platform: 'whatsapp',
+    customer: { name: 'Ferretería El Martillo', phone: '+52 222 300 4500' },
+    status: 'pending',
+    priority: 'high',
+    assigned_to: null,
+    tags: ['queja', 'garantía'],
+    last_message: 'Las brocas llegaron defectuosas, necesito reposición',
+    last_message_at: '2026-05-03T08:20:00Z',
+    unread_count: 3,
+    messages: [
+      { id: 'wa005-1', conversation_id: 'wa-005', sender: 'customer', sender_name: 'Ferretería El Martillo', content: 'Buenos días, tenemos un problema con el pedido F-2026-046.', timestamp: '2026-05-03T08:10:00Z', read: true, type: 'text' },
+      { id: 'wa005-2', conversation_id: 'wa-005', sender: 'customer', sender_name: 'Ferretería El Martillo', content: 'Las brocas llegaron defectuosas, necesito reposición urgente.', timestamp: '2026-05-03T08:20:00Z', read: false, type: 'text' },
+      { id: 'wa005-3', conversation_id: 'wa-005', sender: 'customer', sender_name: 'Ferretería El Martillo', content: '¿Pueden llamarme hoy?', timestamp: '2026-05-03T08:21:00Z', read: false, type: 'text' },
+      { id: 'wa005-4', conversation_id: 'wa-005', sender: 'customer', sender_name: 'Ferretería El Martillo', content: 'Es urgente, tenemos obra mañana', timestamp: '2026-05-03T08:22:00Z', read: false, type: 'text' },
+    ],
+  },
+
+  // ── Instagram ─────────────────────────────────────────────
+  {
+    id: 'ig-001',
+    platform: 'instagram',
+    customer: { name: '@ferreteria_moderna', username: 'ferreteria_moderna' },
+    status: 'open',
+    priority: 'medium',
+    assigned_to: 'Samantha AI',
+    tags: ['prospecto'],
+    last_message: '¿Tienen envíos a Guadalajara?',
+    last_message_at: '2026-05-03T08:45:00Z',
+    unread_count: 1,
+    messages: [
+      { id: 'ig001-1', conversation_id: 'ig-001', sender: 'customer', sender_name: '@ferreteria_moderna', content: 'Hola! Vi su publicación del compresor 25L, ¿qué precio tiene?', timestamp: '2026-05-03T08:30:00Z', read: true, type: 'text' },
+      { id: 'ig001-2', conversation_id: 'ig-001', sender: 'bot', sender_name: 'Samantha AI', content: 'Hola! El Compresor 25L 2HP está en $3,890 MXN. Tenemos en stock. ¿Te interesa?', timestamp: '2026-05-03T08:32:00Z', read: true, type: 'text' },
+      { id: 'ig001-3', conversation_id: 'ig-001', sender: 'customer', sender_name: '@ferreteria_moderna', content: '¿Tienen envíos a Guadalajara?', timestamp: '2026-05-03T08:45:00Z', read: false, type: 'text' },
+    ],
+  },
+  {
+    id: 'ig-002',
+    platform: 'instagram',
+    customer: { name: '@taller_mecanico_mx', username: 'taller_mecanico_mx' },
+    status: 'open',
+    priority: 'high',
+    assigned_to: 'Samantha AI',
+    tags: ['prospecto', 'taller'],
+    last_message: 'Necesito 3 unidades para mi taller',
+    last_message_at: '2026-05-03T10:50:00Z',
+    unread_count: 2,
+    messages: [
+      { id: 'ig002-1', conversation_id: 'ig-002', sender: 'customer', sender_name: '@taller_mecanico_mx', content: 'Buenas, vi su post del taladro de banco. ¿Tienen más modelos?', timestamp: '2026-05-03T10:30:00Z', read: true, type: 'text' },
+      { id: 'ig002-2', conversation_id: 'ig-002', sender: 'bot', sender_name: 'Samantha AI', content: 'Claro! Tenemos 3 modelos de taladro de banco: TB-350W (entrada), TB-600W (semiprofesional) y TB-900W (profesional). ¿Para qué uso lo necesitas?', timestamp: '2026-05-03T10:33:00Z', read: true, type: 'text' },
+      { id: 'ig002-3', conversation_id: 'ig-002', sender: 'customer', sender_name: '@taller_mecanico_mx', content: 'Para taller automotriz, metales duros principalmente', timestamp: '2026-05-03T10:45:00Z', read: false, type: 'text' },
+      { id: 'ig002-4', conversation_id: 'ig-002', sender: 'customer', sender_name: '@taller_mecanico_mx', content: 'Necesito 3 unidades para mi taller', timestamp: '2026-05-03T10:50:00Z', read: false, type: 'text' },
+    ],
+  },
+  {
+    id: 'ig-003',
+    platform: 'instagram',
+    customer: { name: '@obra_norte_mex', username: 'obra_norte_mex' },
+    status: 'resolved',
+    priority: 'low',
+    assigned_to: 'Samantha AI',
+    tags: ['catálogo'],
+    last_message: 'Recibí el catálogo, muchas gracias',
+    last_message_at: '2026-05-02T12:00:00Z',
+    unread_count: 0,
+    messages: [
+      { id: 'ig003-1', conversation_id: 'ig-003', sender: 'customer', sender_name: '@obra_norte_mex', content: '¿Pueden mandarme su catálogo completo?', timestamp: '2026-05-02T11:45:00Z', read: true, type: 'text' },
+      { id: 'ig003-2', conversation_id: 'ig-003', sender: 'bot', sender_name: 'Samantha AI', content: 'Claro, te envío el catálogo 2026 por DM ahora mismo. También puedes verlo en nuestro sitio: kaptools.mx/catalogo', timestamp: '2026-05-02T11:47:00Z', read: true, type: 'text' },
+      { id: 'ig003-3', conversation_id: 'ig-003', sender: 'customer', sender_name: '@obra_norte_mex', content: 'Recibí el catálogo, muchas gracias', timestamp: '2026-05-02T12:00:00Z', read: true, type: 'text' },
+    ],
+  },
+  {
+    id: 'ig-004',
+    platform: 'instagram',
+    customer: { name: '@distribuidora_pro', username: 'distribuidora_pro' },
+    status: 'pending',
+    priority: 'urgent',
+    assigned_to: null,
+    tags: ['distribuidor', 'volumen'],
+    last_message: 'Somos distribuidores, ¿tienen precios mayoreo?',
+    last_message_at: '2026-05-03T11:55:00Z',
+    unread_count: 4,
+    messages: [
+      { id: 'ig004-1', conversation_id: 'ig-004', sender: 'customer', sender_name: '@distribuidora_pro', content: 'Hola! Somos distribuidores en Monterrey con 15 puntos de venta.', timestamp: '2026-05-03T11:45:00Z', read: true, type: 'text' },
+      { id: 'ig004-2', conversation_id: 'ig-004', sender: 'customer', sender_name: '@distribuidora_pro', content: 'Somos distribuidores, ¿tienen precios mayoreo?', timestamp: '2026-05-03T11:55:00Z', read: false, type: 'text' },
+      { id: 'ig004-3', conversation_id: 'ig-004', sender: 'customer', sender_name: '@distribuidora_pro', content: 'Manejamos volúmenes de 200-500 piezas mensuales', timestamp: '2026-05-03T11:56:00Z', read: false, type: 'text' },
+      { id: 'ig004-4', conversation_id: 'ig-004', sender: 'customer', sender_name: '@distribuidora_pro', content: 'Necesito hablar con el área comercial', timestamp: '2026-05-03T11:57:00Z', read: false, type: 'text' },
+      { id: 'ig004-5', conversation_id: 'ig-004', sender: 'customer', sender_name: '@distribuidora_pro', content: '¿Me pueden contactar hoy?', timestamp: '2026-05-03T11:58:00Z', read: false, type: 'text' },
+    ],
+  },
+
+  // ── Facebook ─────────────────────────────────────────────
+  {
+    id: 'fb-001',
+    platform: 'facebook',
+    customer: { name: 'Pedro Ramírez', username: 'pedro.ramirez.123' },
+    status: 'resolved',
+    priority: 'low',
+    assigned_to: 'Samantha AI',
+    tags: ['soporte', 'resuelto'],
+    last_message: 'Muchas gracias, ya funcionó!',
+    last_message_at: '2026-05-02T16:20:00Z',
+    unread_count: 0,
+    messages: [
+      { id: 'fb001-1', conversation_id: 'fb-001', sender: 'customer', sender_name: 'Pedro Ramírez', content: 'El taladro que compré no enciende, lo revisé y está bien conectado.', timestamp: '2026-05-02T15:00:00Z', read: true, type: 'text' },
+      { id: 'fb001-2', conversation_id: 'fb-001', sender: 'bot', sender_name: 'Samantha AI', content: '¿Ya verificaste que el switch lateral esté en posición ON? También revisa el fusible de protección que está en la base del mango.', timestamp: '2026-05-02T15:05:00Z', read: true, type: 'text' },
+      { id: 'fb001-3', conversation_id: 'fb-001', sender: 'customer', sender_name: 'Pedro Ramírez', content: 'Era el fusible! Ya lo cambié y funciona perfecto', timestamp: '2026-05-02T16:15:00Z', read: true, type: 'text' },
+      { id: 'fb001-4', conversation_id: 'fb-001', sender: 'customer', sender_name: 'Pedro Ramírez', content: 'Muchas gracias, ya funcionó!', timestamp: '2026-05-02T16:20:00Z', read: true, type: 'text' },
+    ],
+  },
+  {
+    id: 'fb-002',
+    platform: 'facebook',
+    customer: { name: 'Ana Silva', username: 'ana.silva.puebla' },
+    status: 'pending',
+    priority: 'medium',
+    assigned_to: null,
+    tags: ['garantía', 'soporte'],
+    last_message: '¿Cómo proceso la garantía?',
+    last_message_at: '2026-05-03T07:50:00Z',
+    unread_count: 1,
+    messages: [
+      { id: 'fb002-1', conversation_id: 'fb-002', sender: 'customer', sender_name: 'Ana Silva', content: 'Buenos días, compré un compresor hace 6 meses y tiene una fuga de aire.', timestamp: '2026-05-03T07:40:00Z', read: true, type: 'text' },
+      { id: 'fb002-2', conversation_id: 'fb-002', sender: 'customer', sender_name: 'Ana Silva', content: '¿Cómo proceso la garantía?', timestamp: '2026-05-03T07:50:00Z', read: false, type: 'text' },
+    ],
+  },
+  {
+    id: 'fb-003',
+    platform: 'facebook',
+    customer: { name: 'Industrias del Norte', username: 'industrias.norte.official' },
+    status: 'open',
+    priority: 'low',
+    assigned_to: 'Samantha AI',
+    tags: ['visita', 'prospecto'],
+    last_message: '¿Tienen showroom en Puebla?',
+    last_message_at: '2026-05-02T14:30:00Z',
+    unread_count: 0,
+    messages: [
+      { id: 'fb003-1', conversation_id: 'fb-003', sender: 'customer', sender_name: 'Industrias del Norte', content: 'Hola, queremos conocer su catálogo de herramientas industriales. ¿Tienen showroom en Puebla?', timestamp: '2026-05-02T14:30:00Z', read: true, type: 'text' },
+      { id: 'fb003-2', conversation_id: 'fb-003', sender: 'bot', sender_name: 'Samantha AI', content: 'Bienvenidos! Sí, tenemos showroom en Blvd. Hermanos Serdán 100, Puebla. Horario: Lun-Vie 9am-6pm. ¿Les gustaría agendar una visita con asesor?', timestamp: '2026-05-02T14:35:00Z', read: true, type: 'text' },
+    ],
+  },
+]
+
+export const mockInboxStats = {
+  total_conversations: 47,
+  open: 12,
+  pending: 8,
+  resolved: 23,
+  archived: 4,
+  by_platform: {
+    whatsapp: 28,
+    instagram: 12,
+    facebook: 7,
+  },
+  avg_response_time: '4 min',
+  resolution_rate: 89,
+  satisfaction_score: 4.7,
+}
