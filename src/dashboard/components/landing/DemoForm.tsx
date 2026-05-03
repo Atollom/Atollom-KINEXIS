@@ -6,7 +6,7 @@ import { Send, CheckCircle, Loader2 } from 'lucide-react'
 type Status = 'idle' | 'loading' | 'success' | 'error'
 
 const INPUT_CLASS =
-  'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-[#CCFF00]/50 transition-colors text-sm'
+  'w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#CCFF00] focus:bg-white/[0.14] transition-colors text-sm'
 
 export function DemoForm() {
   const [form, setForm]   = useState({ name: '', email: '', company: '', phone: '', message: '' })

@@ -209,9 +209,11 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:divide-x md:divide-white/5">
             {STATS.map(({ v, l, icon: Icon }, i) => (
               <div key={i} className="text-center md:px-8">
-                <Icon className="w-5 h-5 text-[#CCFF00] mx-auto mb-2" />
+                <div className="w-12 h-12 rounded-2xl bg-[#CCFF00]/10 flex items-center justify-center mx-auto mb-3">
+                  <Icon className="w-6 h-6 text-[#CCFF00]" />
+                </div>
                 <p className="text-3xl font-bold text-white">{v}</p>
-                <p className="text-sm text-white/40 mt-1">{l}</p>
+                <p className="text-sm text-white/50 mt-1">{l}</p>
               </div>
             ))}
           </div>
@@ -300,8 +302,8 @@ export default function LandingPage() {
                   key={i}
                   className="rounded-2xl bg-white/5 border border-white/10 p-6 hover:border-white/20 transition-colors"
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${f.color}`}>
-                    <Icon className="w-5 h-5" />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${f.color}`}>
+                    <Icon className="w-6 h-6" />
                   </div>
                   <h3 className="text-base font-semibold text-white mb-2">{f.title}</h3>
                   <p className="text-sm text-white/50 leading-relaxed">{f.desc}</p>
@@ -391,31 +393,45 @@ export default function LandingPage() {
               <Image
                 src="/screenshots/logo.webp"
                 alt="KINEXIS"
-                width={100}
-                height={28}
-                className="h-7 w-auto mb-3"
+                width={140}
+                height={40}
+                className="h-10 w-auto mb-4"
                 unoptimized
               />
-              <p className="text-sm text-white/40 max-w-xs leading-relaxed">
+              <p className="text-sm text-white/50 max-w-xs leading-relaxed">
                 Plataforma SaaS multi-tenant para empresas de e-commerce en México.
                 43 agentes de IA, 0 complejidad operativa.
               </p>
-              <p className="text-xs text-white/30 mt-4">contacto@atollom.com</p>
+              <a
+                href="mailto:contacto@atollom.com"
+                className="text-xs text-white/40 hover:text-[#CCFF00] transition-colors mt-4 block"
+              >
+                contacto@atollom.com
+              </a>
             </div>
             <div>
               <p className="text-sm font-semibold text-white mb-3">Producto</p>
               <div className="space-y-2">
-                {['Funcionalidades', 'Precios', 'Seguridad', 'API Docs'].map(l => (
-                  <p key={l} className="text-sm text-white/40 hover:text-white/70 cursor-pointer transition-colors">{l}</p>
-                ))}
+                <a href="#features"  className="block text-sm text-white/50 hover:text-white transition-colors">Funcionalidades</a>
+                <a href="#pricing"   className="block text-sm text-white/50 hover:text-white transition-colors">Precios</a>
+                <a href="#samantha"  className="block text-sm text-white/50 hover:text-white transition-colors">Samantha AI</a>
+                <a href="#demo"      className="block text-sm text-white/50 hover:text-white transition-colors">Demo gratuita</a>
               </div>
             </div>
             <div>
-              <p className="text-sm font-semibold text-white mb-3">Empresa</p>
+              <p className="text-sm font-semibold text-white mb-3">Legal</p>
               <div className="space-y-2">
-                {['Acerca de', 'Blog', 'Contacto', 'Términos y Privacidad'].map(l => (
-                  <p key={l} className="text-sm text-white/40 hover:text-white/70 cursor-pointer transition-colors">{l}</p>
-                ))}
+                <Link href="/terminos"   className="block text-sm text-white/50 hover:text-white transition-colors">Términos y Condiciones</Link>
+                <Link href="/privacidad" className="block text-sm text-white/50 hover:text-white transition-colors">Aviso de Privacidad</Link>
+                <a
+                  href="https://atollom.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-white/50 hover:text-white transition-colors"
+                >
+                  Atollom Labs
+                </a>
+                <a href="#demo" className="block text-sm text-white/50 hover:text-white transition-colors">Contacto</a>
               </div>
             </div>
           </div>
@@ -423,9 +439,15 @@ export default function LandingPage() {
             <p className="text-xs text-white/30">
               © 2026 Atollom Labs S. de R.L. de C.V. Todos los derechos reservados.
             </p>
-            <div className="flex items-center gap-2 text-xs text-white/30">
-              <Lock className="w-3 h-3" />
-              <span>Datos protegidos · ISO 27001 · LFPDPPP</span>
+            <div className="flex items-center gap-4 text-xs text-white/30">
+              <div className="flex items-center gap-1.5">
+                <Lock className="w-3 h-3" />
+                <span>Datos protegidos · ISO 27001 · LFPDPPP</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link href="/terminos"   className="hover:text-white/60 transition-colors">Términos</Link>
+                <Link href="/privacidad" className="hover:text-white/60 transition-colors">Privacidad</Link>
+              </div>
             </div>
           </div>
         </div>

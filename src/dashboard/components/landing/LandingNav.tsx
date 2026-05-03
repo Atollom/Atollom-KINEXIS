@@ -35,9 +35,9 @@ export function LandingNav() {
             <Image
               src="/screenshots/logo.webp"
               alt="KINEXIS"
-              width={120}
-              height={32}
-              className="h-8 w-auto"
+              width={160}
+              height={44}
+              className="h-10 w-auto"
               priority
               unoptimized
             />
