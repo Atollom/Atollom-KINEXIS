@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/', '/login', '/unauthorized', '/api/health']
+const PUBLIC_PATHS = ['/', '/login', '/unauthorized', '/api/health', '/error']
 
 // E2E test bypass — only active outside production (never set PLAYWRIGHT_BYPASS_AUTH in Railway/Vercel)
 const E2E_BYPASS =
@@ -26,10 +26,12 @@ export async function middleware(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    // Env vars missing → fail open (let pages handle auth)
+    // Env vars missing → fail closed (hard redirect to error page)
     if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('[Middleware] Missing Supabase env vars — skipping auth check')
-      return NextResponse.next()
+      console.error('[Middleware] Missing critical Supabase env vars — blocking request')
+      return NextResponse.redirect(
+        new URL('/error?reason=configuration', request.url)
+      )
     }
 
     let response = NextResponse.next({ request: { headers: request.headers } })

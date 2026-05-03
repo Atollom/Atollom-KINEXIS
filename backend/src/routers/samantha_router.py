@@ -5,14 +5,17 @@ Provider: Gemini 2.5 Flash (default) | Anthropic (LLM_PROVIDER=anthropic)
 
 import logging
 import os
+import uuid as uuid_lib
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from src.agents.samantha.core import get_samantha
 from src.agents.samantha.credits import check_credits, decrement_credits
 from src.agents.samantha.db_queries import get_tenant_context, get_user_by_supabase_id
+from src.auth.jwt_validator import get_current_user
+from src.core.limiter import limiter
 from src.services.memory_service import get_memory_service
 
 logger = logging.getLogger(__name__)
@@ -36,7 +39,12 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
-async def chat(request: ChatRequest):
+@limiter.limit("20/minute")
+async def chat(fastapi_request: Request, request: ChatRequest):
+    """
+    Main Samantha chat endpoint.
+    Rate limited to 20 req/min per IP (LLM calls are expensive).
+    """
     logger.info("chat() called — supabase_user_id=%s", request.supabase_user_id)
 
     # 1. Check credits
@@ -95,13 +103,10 @@ async def chat(request: ChatRequest):
                     query=request.query,
                 )
                 logger.warning("[SAMANTHA DEBUG] boot_memories count: %d", len(boot_memories))
-                logger.warning("[SAMANTHA DEBUG] boot_memories: %s", boot_memories)
                 logger.warning("[SAMANTHA DEBUG] relevant_memories count: %d", len(relevant_memories))
-                logger.warning("[SAMANTHA DEBUG] relevant_memories: %s", relevant_memories)
 
                 memory_context = memory_svc.format_memory_context(boot_memories, relevant_memories)
                 logger.warning("[SAMANTHA DEBUG] memory_context length: %d", len(memory_context))
-                logger.warning("[SAMANTHA DEBUG] memory_context preview: %s", memory_context[:500])
                 logger.error("[MEMORY DEBUG] memory_context final:\n%s", memory_context)
         except Exception as exc:
             logger.warning("[SAMANTHA DEBUG] Memory load failed (non-fatal): %s", exc, exc_info=True)
@@ -181,7 +186,29 @@ async def _load_memories(
 
 
 @router.get("/credits/{tenant_id}")
-async def get_credits(tenant_id: str):
+@limiter.limit("100/minute")
+async def get_credits(
+    fastapi_request: Request,
+    tenant_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Get Samantha credit balance for a tenant.
+    Requires authentication — callers can only query their own tenant.
+    """
+    # Validate UUID format first
+    try:
+        uuid_lib.UUID(tenant_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid tenant_id: must be a valid UUID")
+
+    # Tenant isolation: JWT tenant must match path param
+    if current_user["tenant_id"] != tenant_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: you may only query credits for your own tenant",
+        )
+
     return await check_credits(tenant_id)
 
 
@@ -257,8 +284,15 @@ async def save_memory(
     agent_source: Optional[str] = "samantha_chat",
     session_id: Optional[str] = None,
     summary: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
 ):
-    """Persist a memory manually (e.g. from agent actions)."""
+    """Persist a memory. Requires authentication — callers can only write to their own tenant."""
+    if current_user["tenant_id"] != tenant_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: cannot save memories for another tenant",
+        )
+
     internal_user_id = await _resolve_user_id(supabase_user_id)
     memory_svc = get_memory_service()
     result = await memory_svc.save_memory(
@@ -275,8 +309,19 @@ async def save_memory(
 
 
 @router.get("/memory/boot")
-async def boot_memories(tenant_id: str, supabase_user_id: str, min_importance: int = 7):
-    """Return boot-sequence memories for a user session."""
+async def boot_memories(
+    tenant_id: str,
+    supabase_user_id: str,
+    min_importance: int = 7,
+    current_user: dict = Depends(get_current_user),
+):
+    """Return boot-sequence memories for a user session. Requires authentication."""
+    if current_user["tenant_id"] != tenant_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: cannot read memories for another tenant",
+        )
+
     internal_user_id = await _resolve_user_id(supabase_user_id)
     memory_svc = get_memory_service()
     memories = await memory_svc.get_boot_memories(tenant_id, internal_user_id, min_importance)
@@ -284,11 +329,21 @@ async def boot_memories(tenant_id: str, supabase_user_id: str, min_importance: i
 
 
 @router.post("/memory/seed")
-async def seed_memories(tenant_id: str, supabase_user_id: str):
+async def seed_memories(
+    tenant_id: str,
+    supabase_user_id: str,
+    current_user: dict = Depends(get_current_user),
+):
     """
     Seed initial memories for a user. Idempotent — safe to call multiple times.
-    Uses psycopg2 direct write; does not require SUPABASE_SERVICE_ROLE_KEY.
+    Requires authentication — callers can only seed their own tenant.
     """
+    if current_user["tenant_id"] != tenant_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: cannot seed memories for another tenant",
+        )
+
     internal_user_id = await _resolve_user_id(supabase_user_id)
     memory_svc = get_memory_service()
 

@@ -9,6 +9,11 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+from src.core.limiter import limiter
+from src.middleware.security_headers import SecurityHeadersMiddleware
 
 # Configure root logger so all logger.info() calls in the app are visible in Railway
 logging.basicConfig(
@@ -47,6 +52,13 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# Rate limiting — shared limiter instance, 429 handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Security headers — outermost layer, added to every response
+app.add_middleware(SecurityHeadersMiddleware)
 
 # GZIP compression — reduces JSON response size ~60-70%
 app.add_middleware(GZipMiddleware, minimum_size=500)
