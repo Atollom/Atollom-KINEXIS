@@ -4,6 +4,7 @@ KINEXIS Backend — FastAPI application entry point.
 import logging
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -62,7 +63,12 @@ app.add_middleware(
 # Health check
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "KINEXIS"}
+    return {
+        "status": "ok",
+        "service": "KINEXIS",
+        "agents": 43,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 # Mount routers
 app.include_router(onboarding_router.router)
