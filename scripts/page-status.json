@@ -1,0 +1,1514 @@
+{
+  "summary": {
+    "total_pages": 96,
+    "functional_real": 7,
+    "functional_mock": 36,
+    "placeholder": 43,
+    "wrapper": 5,
+    "auth": 5
+  },
+  "by_status": {
+    "functional_real": [
+      "/atollom",
+      "/atollom/central",
+      "/dashboard",
+      "/erp/procurement",
+      "/meta",
+      "/meta/inbox",
+      "/settings"
+    ],
+    "functional_mock": [
+      "/",
+      "/chat",
+      "/crm",
+      "/crm/b2b",
+      "/crm/leads",
+      "/crm/pipeline",
+      "/ecommerce",
+      "/ecommerce/amazon",
+      "/ecommerce/b2b",
+      "/ecommerce/catalog",
+      "/ecommerce/fulfillment",
+      "/ecommerce/ml",
+      "/ecommerce/ml/orders",
+      "/ecommerce/ml/products",
+      "/ecommerce/orders",
+      "/ecommerce/prices",
+      "/ecommerce/reviews",
+      "/ecommerce/shopify",
+      "/erp",
+      "/erp/accounting",
+      "/erp/cashflow",
+      "/erp/cfdi",
+      "/erp/cfdi/billing",
+      "/erp/cfdi/compliance",
+      "/erp/cfdi/generate",
+      "/erp/cfdi/invoices",
+      "/erp/cfdi/print",
+      "/erp/cfdi/usage",
+      "/erp/finance",
+      "/erp/inventory",
+      "/erp/tax",
+      "/meta/whatsapp",
+      "/onboarding",
+      "/qa-test",
+      "/settings/billing",
+      "/warehouse"
+    ],
+    "placeholder": [
+      "/crm/inbox/unified",
+      "/crm/pipeline/b2b",
+      "/crm/pipeline/leads",
+      "/crm/pipeline/scorer",
+      "/crm/sales/deals",
+      "/crm/sales/follow-ups",
+      "/crm/sales/opportunities",
+      "/crm/sales/quotes",
+      "/crm/support/kb",
+      "/crm/support/nps",
+      "/crm/support/tickets",
+      "/ecommerce/amazon/analytics",
+      "/ecommerce/amazon/fba",
+      "/ecommerce/amazon/inventory",
+      "/ecommerce/amazon/products",
+      "/ecommerce/management/inventory",
+      "/ecommerce/management/pricing",
+      "/ecommerce/management/returns",
+      "/ecommerce/management/shipping",
+      "/ecommerce/ml/analytics",
+      "/ecommerce/ml/fulfillment",
+      "/ecommerce/ml/questions",
+      "/ecommerce/shopify/analytics",
+      "/ecommerce/shopify/fulfillment",
+      "/ecommerce/shopify/orders",
+      "/ecommerce/shopify/products",
+      "/erp/accounting/chart",
+      "/erp/accounting/journal",
+      "/erp/accounting/reports",
+      "/erp/finance/banking",
+      "/erp/finance/cashflow",
+      "/erp/finance/payables",
+      "/erp/finance/receivables",
+      "/erp/inventory/movements",
+      "/erp/inventory/products",
+      "/erp/inventory/valuation",
+      "/erp/inventory/warehouses",
+      "/erp/logistics/carriers",
+      "/erp/logistics/shipping",
+      "/erp/logistics/tracking",
+      "/erp/purchases/orders",
+      "/erp/purchases/receiving",
+      "/erp/purchases/suppliers"
+    ],
+    "wrapper": [
+      "/crm/inbox",
+      "/crm/inbox/facebook",
+      "/crm/inbox/instagram",
+      "/crm/inbox/whatsapp",
+      "/ecommerce/mercadolibre"
+    ],
+    "auth": [
+      "/error",
+      "/login",
+      "/privacidad",
+      "/terminos",
+      "/unauthorized"
+    ]
+  },
+  "pages": [
+    {
+      "route": "/atollom",
+      "file": "src/dashboard/app/(shell)/atollom/page.tsx",
+      "status": "functional_real",
+      "lines": 508,
+      "chars": 27342,
+      "signals": {
+        "real": [
+          "uses browser supabase client",
+          "queries supabase table"
+        ],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/atollom/central",
+      "file": "src/dashboard/app/(shell)/atollom/central/page.tsx",
+      "status": "functional_real",
+      "lines": 176,
+      "chars": 7563,
+      "signals": {
+        "real": [
+          "uses browser supabase client"
+        ],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/dashboard",
+      "file": "src/dashboard/app/(shell)/dashboard/page.tsx",
+      "status": "functional_real",
+      "lines": 38,
+      "chars": 1083,
+      "signals": {
+        "real": [
+          "imports supabase client",
+          "calls createClient()",
+          "uses getUserRole",
+          "imports auth lib"
+        ],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/procurement",
+      "file": "src/dashboard/app/(shell)/erp/procurement/page.tsx",
+      "status": "functional_real",
+      "lines": 368,
+      "chars": 16350,
+      "signals": {
+        "real": [
+          "uses browser supabase client"
+        ],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/meta",
+      "file": "src/dashboard/app/(shell)/meta/page.tsx",
+      "status": "functional_real",
+      "lines": 384,
+      "chars": 20240,
+      "signals": {
+        "real": [
+          "uses browser supabase client"
+        ],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/meta/inbox",
+      "file": "src/dashboard/app/(shell)/meta/inbox/page.tsx",
+      "status": "functional_real",
+      "lines": 361,
+      "chars": 16695,
+      "signals": {
+        "real": [
+          "uses browser supabase client"
+        ],
+        "mock": [
+          "useMemo with computed data"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/settings",
+      "file": "src/dashboard/app/(shell)/settings/page.tsx",
+      "status": "functional_real",
+      "lines": 760,
+      "chars": 37117,
+      "signals": {
+        "real": [
+          "uses browser supabase client",
+          "queries supabase table"
+        ],
+        "mock": [
+          "inline data array literal"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/",
+      "file": "src/dashboard/app/page.tsx",
+      "status": "functional_mock",
+      "lines": 457,
+      "chars": 20281,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/chat",
+      "file": "src/dashboard/app/(shell)/chat/page.tsx",
+      "status": "functional_mock",
+      "lines": 172,
+      "chars": 6548,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/crm",
+      "file": "src/dashboard/app/(shell)/crm/page.tsx",
+      "status": "functional_mock",
+      "lines": 158,
+      "chars": 9290,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal",
+          "useMemo with computed data"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/crm/b2b",
+      "file": "src/dashboard/app/(shell)/crm/b2b/page.tsx",
+      "status": "functional_mock",
+      "lines": 34,
+      "chars": 1534,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/crm/leads",
+      "file": "src/dashboard/app/(shell)/crm/leads/page.tsx",
+      "status": "functional_mock",
+      "lines": 129,
+      "chars": 6565,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/crm/pipeline",
+      "file": "src/dashboard/app/(shell)/crm/pipeline/page.tsx",
+      "status": "functional_mock",
+      "lines": 24,
+      "chars": 861,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce",
+      "file": "src/dashboard/app/(shell)/ecommerce/page.tsx",
+      "status": "functional_mock",
+      "lines": 176,
+      "chars": 7663,
+      "signals": {
+        "real": [],
+        "mock": [
+          "useMemo with computed data"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/amazon",
+      "file": "src/dashboard/app/(shell)/ecommerce/amazon/page.tsx",
+      "status": "functional_mock",
+      "lines": 174,
+      "chars": 9039,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/b2b",
+      "file": "src/dashboard/app/(shell)/ecommerce/b2b/page.tsx",
+      "status": "functional_mock",
+      "lines": 181,
+      "chars": 10359,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal",
+          "useMemo with computed data"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/catalog",
+      "file": "src/dashboard/app/(shell)/ecommerce/catalog/page.tsx",
+      "status": "functional_mock",
+      "lines": 24,
+      "chars": 909,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/fulfillment",
+      "file": "src/dashboard/app/(shell)/ecommerce/fulfillment/page.tsx",
+      "status": "functional_mock",
+      "lines": 186,
+      "chars": 7613,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/ml",
+      "file": "src/dashboard/app/(shell)/ecommerce/ml/page.tsx",
+      "status": "functional_mock",
+      "lines": 202,
+      "chars": 11455,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal",
+          "useMemo with computed data"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/ml/orders",
+      "file": "src/dashboard/app/(shell)/ecommerce/ml/orders/page.tsx",
+      "status": "functional_mock",
+      "lines": 258,
+      "chars": 9969,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/ml/products",
+      "file": "src/dashboard/app/(shell)/ecommerce/ml/products/page.tsx",
+      "status": "functional_mock",
+      "lines": 254,
+      "chars": 9326,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/orders",
+      "file": "src/dashboard/app/(shell)/ecommerce/orders/page.tsx",
+      "status": "functional_mock",
+      "lines": 216,
+      "chars": 11931,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/prices",
+      "file": "src/dashboard/app/(shell)/ecommerce/prices/page.tsx",
+      "status": "functional_mock",
+      "lines": 34,
+      "chars": 1537,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/reviews",
+      "file": "src/dashboard/app/(shell)/ecommerce/reviews/page.tsx",
+      "status": "functional_mock",
+      "lines": 34,
+      "chars": 1544,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/shopify",
+      "file": "src/dashboard/app/(shell)/ecommerce/shopify/page.tsx",
+      "status": "functional_mock",
+      "lines": 122,
+      "chars": 6828,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp",
+      "file": "src/dashboard/app/(shell)/erp/page.tsx",
+      "status": "functional_mock",
+      "lines": 193,
+      "chars": 9544,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/accounting",
+      "file": "src/dashboard/app/(shell)/erp/accounting/page.tsx",
+      "status": "functional_mock",
+      "lines": 96,
+      "chars": 5184,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/cashflow",
+      "file": "src/dashboard/app/(shell)/erp/cashflow/page.tsx",
+      "status": "functional_mock",
+      "lines": 43,
+      "chars": 2065,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/cfdi",
+      "file": "src/dashboard/app/(shell)/erp/cfdi/page.tsx",
+      "status": "functional_mock",
+      "lines": 127,
+      "chars": 4668,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/cfdi/billing",
+      "file": "src/dashboard/app/(shell)/erp/cfdi/billing/page.tsx",
+      "status": "functional_mock",
+      "lines": 208,
+      "chars": 9032,
+      "signals": {
+        "real": [],
+        "mock": [
+          "imports mockData",
+          "imports mock lib",
+          "uses mock constants",
+          "useMemo with computed data"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/cfdi/compliance",
+      "file": "src/dashboard/app/(shell)/erp/cfdi/compliance/page.tsx",
+      "status": "functional_mock",
+      "lines": 264,
+      "chars": 14271,
+      "signals": {
+        "real": [],
+        "mock": [
+          "imports mockData",
+          "imports mock lib",
+          "uses mock constants",
+          "inline data array literal"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/cfdi/generate",
+      "file": "src/dashboard/app/(shell)/erp/cfdi/generate/page.tsx",
+      "status": "functional_mock",
+      "lines": 258,
+      "chars": 8891,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/cfdi/invoices",
+      "file": "src/dashboard/app/(shell)/erp/cfdi/invoices/page.tsx",
+      "status": "functional_mock",
+      "lines": 210,
+      "chars": 9572,
+      "signals": {
+        "real": [],
+        "mock": [
+          "imports mockData",
+          "imports mock lib",
+          "uses mock constants",
+          "useMemo with computed data"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/cfdi/print",
+      "file": "src/dashboard/app/(shell)/erp/cfdi/print/page.tsx",
+      "status": "functional_mock",
+      "lines": 237,
+      "chars": 12058,
+      "signals": {
+        "real": [],
+        "mock": [
+          "imports mockData",
+          "imports mock lib",
+          "uses mock constants"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/cfdi/usage",
+      "file": "src/dashboard/app/(shell)/erp/cfdi/usage/page.tsx",
+      "status": "functional_mock",
+      "lines": 70,
+      "chars": 1894,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/finance",
+      "file": "src/dashboard/app/(shell)/erp/finance/page.tsx",
+      "status": "functional_mock",
+      "lines": 131,
+      "chars": 7121,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal",
+          "useMemo with computed data"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/inventory",
+      "file": "src/dashboard/app/(shell)/erp/inventory/page.tsx",
+      "status": "functional_mock",
+      "lines": 149,
+      "chars": 7668,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/erp/tax",
+      "file": "src/dashboard/app/(shell)/erp/tax/page.tsx",
+      "status": "functional_mock",
+      "lines": 43,
+      "chars": 2037,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/meta/whatsapp",
+      "file": "src/dashboard/app/(shell)/meta/whatsapp/page.tsx",
+      "status": "functional_mock",
+      "lines": 157,
+      "chars": 7577,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/onboarding",
+      "file": "src/dashboard/app/(shell)/onboarding/page.tsx",
+      "status": "functional_mock",
+      "lines": 114,
+      "chars": 3766,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/qa-test",
+      "file": "src/dashboard/app/(shell)/qa-test/page.tsx",
+      "status": "functional_mock",
+      "lines": 137,
+      "chars": 7871,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/settings/billing",
+      "file": "src/dashboard/app/(shell)/settings/billing/page.tsx",
+      "status": "functional_mock",
+      "lines": 185,
+      "chars": 6533,
+      "signals": {
+        "real": [],
+        "mock": [
+          "inline data array literal"
+        ],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/warehouse",
+      "file": "src/dashboard/app/(shell)/warehouse/page.tsx",
+      "status": "functional_mock",
+      "lines": 212,
+      "chars": 9710,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/crm/inbox/unified",
+      "file": "src/dashboard/app/(shell)/crm/inbox/unified/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1160,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/pipeline/b2b",
+      "file": "src/dashboard/app/(shell)/crm/pipeline/b2b/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1175,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/pipeline/leads",
+      "file": "src/dashboard/app/(shell)/crm/pipeline/leads/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1117,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/pipeline/scorer",
+      "file": "src/dashboard/app/(shell)/crm/pipeline/scorer/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1180,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/sales/deals",
+      "file": "src/dashboard/app/(shell)/crm/sales/deals/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1138,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/sales/follow-ups",
+      "file": "src/dashboard/app/(shell)/crm/sales/follow-ups/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1187,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/sales/opportunities",
+      "file": "src/dashboard/app/(shell)/crm/sales/opportunities/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1165,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/sales/quotes",
+      "file": "src/dashboard/app/(shell)/crm/sales/quotes/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1192,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/support/kb",
+      "file": "src/dashboard/app/(shell)/crm/support/kb/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1248,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/support/nps",
+      "file": "src/dashboard/app/(shell)/crm/support/nps/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1184,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/support/tickets",
+      "file": "src/dashboard/app/(shell)/crm/support/tickets/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1184,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/amazon/analytics",
+      "file": "src/dashboard/app/(shell)/ecommerce/amazon/analytics/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1141,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/amazon/fba",
+      "file": "src/dashboard/app/(shell)/ecommerce/amazon/fba/page.tsx",
+      "status": "placeholder",
+      "lines": 33,
+      "chars": 1194,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/amazon/inventory",
+      "file": "src/dashboard/app/(shell)/ecommerce/amazon/inventory/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1127,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/amazon/products",
+      "file": "src/dashboard/app/(shell)/ecommerce/amazon/products/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1123,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/management/inventory",
+      "file": "src/dashboard/app/(shell)/ecommerce/management/inventory/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1228,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/management/pricing",
+      "file": "src/dashboard/app/(shell)/ecommerce/management/pricing/page.tsx",
+      "status": "placeholder",
+      "lines": 33,
+      "chars": 1236,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/management/returns",
+      "file": "src/dashboard/app/(shell)/ecommerce/management/returns/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1229,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/management/shipping",
+      "file": "src/dashboard/app/(shell)/ecommerce/management/shipping/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1193,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/ml/analytics",
+      "file": "src/dashboard/app/(shell)/ecommerce/ml/analytics/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1169,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/ml/fulfillment",
+      "file": "src/dashboard/app/(shell)/ecommerce/ml/fulfillment/page.tsx",
+      "status": "placeholder",
+      "lines": 33,
+      "chars": 1208,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/ml/questions",
+      "file": "src/dashboard/app/(shell)/ecommerce/ml/questions/page.tsx",
+      "status": "placeholder",
+      "lines": 33,
+      "chars": 1195,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/shopify/analytics",
+      "file": "src/dashboard/app/(shell)/ecommerce/shopify/analytics/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1139,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/shopify/fulfillment",
+      "file": "src/dashboard/app/(shell)/ecommerce/shopify/fulfillment/page.tsx",
+      "status": "placeholder",
+      "lines": 33,
+      "chars": 1208,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/shopify/orders",
+      "file": "src/dashboard/app/(shell)/ecommerce/shopify/orders/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1152,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/ecommerce/shopify/products",
+      "file": "src/dashboard/app/(shell)/ecommerce/shopify/products/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1146,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/accounting/chart",
+      "file": "src/dashboard/app/(shell)/erp/accounting/chart/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1179,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/accounting/journal",
+      "file": "src/dashboard/app/(shell)/erp/accounting/journal/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1148,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/accounting/reports",
+      "file": "src/dashboard/app/(shell)/erp/accounting/reports/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1192,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/finance/banking",
+      "file": "src/dashboard/app/(shell)/erp/finance/banking/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1188,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/finance/cashflow",
+      "file": "src/dashboard/app/(shell)/erp/finance/cashflow/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1156,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/finance/payables",
+      "file": "src/dashboard/app/(shell)/erp/finance/payables/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1146,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/finance/receivables",
+      "file": "src/dashboard/app/(shell)/erp/finance/receivables/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1186,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/inventory/movements",
+      "file": "src/dashboard/app/(shell)/erp/inventory/movements/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1185,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/inventory/products",
+      "file": "src/dashboard/app/(shell)/erp/inventory/products/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1164,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/inventory/valuation",
+      "file": "src/dashboard/app/(shell)/erp/inventory/valuation/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1199,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/inventory/warehouses",
+      "file": "src/dashboard/app/(shell)/erp/inventory/warehouses/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1153,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/logistics/carriers",
+      "file": "src/dashboard/app/(shell)/erp/logistics/carriers/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1163,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/logistics/shipping",
+      "file": "src/dashboard/app/(shell)/erp/logistics/shipping/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1127,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/logistics/tracking",
+      "file": "src/dashboard/app/(shell)/erp/logistics/tracking/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1153,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/purchases/orders",
+      "file": "src/dashboard/app/(shell)/erp/purchases/orders/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1211,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/purchases/receiving",
+      "file": "src/dashboard/app/(shell)/erp/purchases/receiving/page.tsx",
+      "status": "placeholder",
+      "lines": 31,
+      "chars": 1195,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/erp/purchases/suppliers",
+      "file": "src/dashboard/app/(shell)/erp/purchases/suppliers/page.tsx",
+      "status": "placeholder",
+      "lines": 32,
+      "chars": 1165,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": [
+          "glassmorphism stub card",
+          "Fase 2/3 reference",
+          "disponible en Fase N"
+        ]
+      }
+    },
+    {
+      "route": "/crm/inbox",
+      "file": "src/dashboard/app/(shell)/crm/inbox/page.tsx",
+      "status": "wrapper",
+      "lines": 7,
+      "chars": 143,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/crm/inbox/facebook",
+      "file": "src/dashboard/app/(shell)/crm/inbox/facebook/page.tsx",
+      "status": "wrapper",
+      "lines": 7,
+      "chars": 171,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/crm/inbox/instagram",
+      "file": "src/dashboard/app/(shell)/crm/inbox/instagram/page.tsx",
+      "status": "wrapper",
+      "lines": 7,
+      "chars": 173,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/crm/inbox/whatsapp",
+      "file": "src/dashboard/app/(shell)/crm/inbox/whatsapp/page.tsx",
+      "status": "wrapper",
+      "lines": 7,
+      "chars": 171,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/ecommerce/mercadolibre",
+      "file": "src/dashboard/app/(shell)/ecommerce/mercadolibre/page.tsx",
+      "status": "wrapper",
+      "lines": 5,
+      "chars": 123,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/error",
+      "file": "src/dashboard/app/error/page.tsx",
+      "status": "auth",
+      "lines": 81,
+      "chars": 2850,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/login",
+      "file": "src/dashboard/app/login/page.tsx",
+      "status": "auth",
+      "lines": 152,
+      "chars": 7000,
+      "signals": {
+        "real": [
+          "uses browser supabase client"
+        ],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/privacidad",
+      "file": "src/dashboard/app/privacidad/page.tsx",
+      "status": "auth",
+      "lines": 193,
+      "chars": 9563,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/terminos",
+      "file": "src/dashboard/app/terminos/page.tsx",
+      "status": "auth",
+      "lines": 157,
+      "chars": 7313,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    },
+    {
+      "route": "/unauthorized",
+      "file": "src/dashboard/app/unauthorized/page.tsx",
+      "status": "auth",
+      "lines": 30,
+      "chars": 1123,
+      "signals": {
+        "real": [],
+        "mock": [],
+        "placeholder": []
+      }
+    }
+  ]
+}
