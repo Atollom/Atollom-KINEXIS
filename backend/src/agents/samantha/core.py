@@ -229,7 +229,7 @@ class SamanthaCore:
     """
 
     def __init__(self) -> None:
-        provider_name = os.getenv("LLM_PROVIDER", "gemini").lower()
+        provider_name = os.getenv("LLM_PROVIDER", "anthropic").lower()
         if provider_name == "anthropic":
             key = os.getenv("ANTHROPIC_API_KEY", "")
             self._provider: AbstractLLMProvider = AnthropicProvider(key)

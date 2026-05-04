@@ -97,18 +97,19 @@ def _inv_check(cur: Any, tenant_id: str) -> List[Dict]:
 def _invoice_check(cur: Any, tenant_id: str) -> List[Dict]:
     """Detect completed orders that haven't been invoiced (CFDI pending)."""
     try:
+        # orders has no invoice_id FK — approximate by comparing counts
         cur.execute(
-            """SELECT COUNT(*) AS cnt
-               FROM orders
-               WHERE tenant_id = %s
-                 AND status = 'completed'
-                 AND invoice_id IS NULL""",
-            (tenant_id,),
+            """SELECT
+                 (SELECT COUNT(*) FROM orders
+                  WHERE tenant_id = %s AND status = 'completed') -
+                 (SELECT COUNT(*) FROM cfdi_invoices
+                  WHERE tenant_id = %s AND status = 'valid') AS cnt""",
+            (tenant_id, tenant_id),
         )
         row = cur.fetchone()
-        cnt = int(row["cnt"]) if row else 0
+        cnt = max(int(row["cnt"]) if row and row["cnt"] is not None else 0, 0)
     except Exception as exc:
-        logger.warning("[CONTEXT_ANALYZER] invoice query failed: %s", exc)
+        logger.debug("[CONTEXT_ANALYZER] invoice query skipped: %s", exc)
         return []
 
     if cnt == 0:

@@ -8,8 +8,9 @@ from contextlib import contextmanager
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from src.auth.jwt_validator import get_current_user
 from src.services.context_analyzer import get_context_analyzer
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -96,8 +97,13 @@ async def get_stats(tenant_id: str):
 
 
 @router.get("/urgencies/{tenant_id}")
-async def get_urgencies(tenant_id: str):
-    """Proactive urgencies detected by ContextAnalyzer."""
+async def get_urgencies(
+    tenant_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Proactive urgencies detected by ContextAnalyzer. Requires authentication."""
+    if current_user["tenant_id"] != tenant_id:
+        raise HTTPException(status_code=403, detail="Forbidden: cannot read urgencies for another tenant")
     try:
         analyzer = get_context_analyzer()
         result = await analyzer.analyze(tenant_id)
