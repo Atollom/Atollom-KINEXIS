@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Send, Sparkles } from 'lucide-react'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
+import { authenticatedFetch } from '@/lib/api-client'
 
 interface Message {
   id: string;
@@ -21,21 +22,29 @@ export function SamanthaFixedPanel() {
   ])
   const [isLoading, setIsLoading] = useState(false)
   const [token, setToken] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [tenantId, setTenantId] = useState<string | null>(null)
   const sessionId = useRef(`session_${Date.now()}`)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const supabase = createBrowserSupabaseClient()
 
-    async function loadToken() {
-      const { data: { session } } = await supabase.auth.getSession()
+    function applySession(session: { access_token: string; user: { id: string; user_metadata?: Record<string, unknown> } } | null) {
       setToken(session?.access_token ?? null)
+      setUserId(session?.user?.id ?? null)
+      setTenantId((session?.user?.user_metadata?.tenant_id as string | undefined) ?? null)
     }
 
-    loadToken()
+    async function loadSession() {
+      const { data: { session } } = await supabase.auth.getSession()
+      applySession(session)
+    }
+
+    loadSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setToken(session?.access_token ?? null)
+      applySession(session)
     })
 
     return () => subscription.unsubscribe()
@@ -58,16 +67,14 @@ export function SamanthaFixedPanel() {
     setIsLoading(true)
 
     try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-      if (token) headers['Authorization'] = `Bearer ${token}`
-
-      const res = await fetch('/api/samantha/chat', {
+      const res = await authenticatedFetch('/api/samantha/chat', {
         method: 'POST',
-        headers,
         body: JSON.stringify({
           query: userMessage.content,
           history: messages,
-          session_id: sessionId.current
+          session_id: sessionId.current,
+          tenant_id: tenantId,
+          supabase_user_id: userId,
         })
       })
 
