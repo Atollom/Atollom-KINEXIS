@@ -1801,3 +1801,114 @@ export const mockFacebookStats = {
   page_views: 5678,
   messages_received: 234,
 }
+
+// ── CONFIG USUARIOS ────────────────────────────────────────────────────────────
+
+type ModulePerms = { view: boolean; edit: boolean; manage: boolean }
+
+export interface User {
+  id: string
+  email: string
+  full_name: string
+  role: 'owner' | 'admin' | 'manager' | 'user' | 'viewer'
+  status: 'active' | 'inactive' | 'invited'
+  avatar_initials: string
+  created_at: string
+  last_login?: string
+  permissions: {
+    ecommerce: ModulePerms
+    crm:       ModulePerms
+    erp:       ModulePerms
+    meta:      ModulePerms
+    settings:  ModulePerms
+  }
+}
+
+export interface Role {
+  id: string
+  name: string
+  description: string
+  users_count: number
+  permissions: {
+    ecommerce: ModulePerms
+    crm:       ModulePerms
+    erp:       ModulePerms
+    meta:      ModulePerms
+    settings:  ModulePerms
+  }
+}
+
+const ALL:  ModulePerms = { view: true,  edit: true,  manage: true  }
+const EDIT: ModulePerms = { view: true,  edit: true,  manage: false }
+const VIEW: ModulePerms = { view: true,  edit: false, manage: false }
+const NONE: ModulePerms = { view: false, edit: false, manage: false }
+
+export const mockUsers: User[] = [
+  {
+    id: 'u1', email: 'admin@kaptools.com.mx', full_name: 'Carlos Cortés',
+    role: 'owner', status: 'active', avatar_initials: 'CC',
+    created_at: '2025-12-01', last_login: '2026-05-10T09:30:00Z',
+    permissions: { ecommerce: ALL, crm: ALL, erp: ALL, meta: ALL, settings: ALL },
+  },
+  {
+    id: 'u2', email: 'ventas@kaptools.com.mx', full_name: 'Laura Méndez',
+    role: 'admin', status: 'active', avatar_initials: 'LM',
+    created_at: '2026-01-15', last_login: '2026-05-10T11:45:00Z',
+    permissions: { ecommerce: ALL, crm: ALL, erp: EDIT, meta: EDIT, settings: VIEW },
+  },
+  {
+    id: 'u3', email: 'almacen@kaptools.com.mx', full_name: 'Roberto Silva',
+    role: 'manager', status: 'active', avatar_initials: 'RS',
+    created_at: '2026-02-10', last_login: '2026-05-09T16:20:00Z',
+    permissions: { ecommerce: EDIT, crm: VIEW, erp: EDIT, meta: NONE, settings: NONE },
+  },
+  {
+    id: 'u4', email: 'marketing@kaptools.com.mx', full_name: 'Ana Patricia Rivas',
+    role: 'user', status: 'active', avatar_initials: 'AR',
+    created_at: '2026-03-05', last_login: '2026-05-10T08:15:00Z',
+    permissions: { ecommerce: VIEW, crm: EDIT, erp: NONE, meta: EDIT, settings: NONE },
+  },
+  {
+    id: 'u5', email: 'contabilidad@kaptools.com.mx', full_name: 'Miguel Torres',
+    role: 'user', status: 'invited', avatar_initials: 'MT',
+    created_at: '2026-05-08',
+    permissions: { ecommerce: VIEW, crm: NONE, erp: EDIT, meta: NONE, settings: NONE },
+  },
+  {
+    id: 'u6', email: 'soporte@kaptools.com.mx', full_name: 'Sofía Herrera',
+    role: 'viewer', status: 'active', avatar_initials: 'SH',
+    created_at: '2026-04-01', last_login: '2026-05-08T14:00:00Z',
+    permissions: { ecommerce: VIEW, crm: VIEW, erp: VIEW, meta: VIEW, settings: NONE },
+  },
+]
+
+export const mockRoles: Role[] = [
+  {
+    id: 'r1', name: 'Owner', description: 'Acceso completo a todas las funciones', users_count: 1,
+    permissions: { ecommerce: ALL, crm: ALL, erp: ALL, meta: ALL, settings: ALL },
+  },
+  {
+    id: 'r2', name: 'Admin', description: 'Administrador con gestión de módulos', users_count: 2,
+    permissions: { ecommerce: ALL, crm: ALL, erp: EDIT, meta: EDIT, settings: VIEW },
+  },
+  {
+    id: 'r3', name: 'Manager', description: 'Gerente de operaciones con edición', users_count: 3,
+    permissions: { ecommerce: EDIT, crm: VIEW, erp: EDIT, meta: NONE, settings: NONE },
+  },
+  {
+    id: 'r4', name: 'User', description: 'Usuario estándar con acceso limitado', users_count: 5,
+    permissions: { ecommerce: VIEW, crm: EDIT, erp: NONE, meta: VIEW, settings: NONE },
+  },
+  {
+    id: 'r5', name: 'Viewer', description: 'Solo lectura en todos los módulos', users_count: 2,
+    permissions: { ecommerce: VIEW, crm: VIEW, erp: VIEW, meta: VIEW, settings: NONE },
+  },
+]
+
+export const mockUserStats = {
+  total: 6,
+  active: 4,
+  invited: 1,
+  inactive: 1,
+  by_role: { owner: 1, admin: 1, manager: 1, user: 2, viewer: 1 },
+}
