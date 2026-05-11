@@ -2,44 +2,45 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockAmazonSales, mockAmazonProducts, mockAmazonStats } from "@/lib/mockData";
+import { mockAmazonAnalytics, mockAmazonSales } from "@/lib/mockData";
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from "recharts";
 
 type Period = "7d" | "30d" | "90d";
+const COLORS_PIE = ["#fb923c", "#60a5fa"];
+const FEE_COLORS = ["#fb923c", "#60a5fa", "#c084fc", "#fbbf24"];
 
-const TOP_PRODUCTS = mockAmazonProducts
-  .map(p => ({
-    ...p,
-    monthly_revenue: Math.round(p.price * p.sold_quantity_mock),
-  }))
-  // We compute a mock sold count for analytics only
-  .sort((a, b) => b.price * (b.sales_rank ? 10000 / b.sales_rank : 0) - a.price * (a.sales_rank ? 10000 / a.sales_rank : 0))
-  .slice(0, 5);
-
-// Sold units per product for analytics (mock, not stored in interface)
-const SOLD_MOCK: Record<string, number> = {
-  "1": 187, "2": 56, "3": 134, "4": 29, "5": 47, "6": 82, "7": 61, "8": 211,
-};
-
-const FEE_BREAKDOWN = [
-  { label: "Comisión Referral",    pct: 52, amount: 35067, color: "bg-orange-400" },
-  { label: "Fulfillment (FBA)",    pct: 31, amount: 20938, color: "bg-blue-400"   },
-  { label: "Almacenamiento",       pct: 9,  amount: 6079,  color: "bg-purple-400" },
-  { label: "Publicidad (AMS)",     pct: 8,  amount: 5403,  color: "bg-amber-400"  },
-];
-
-const maxRevenue = Math.max(...mockAmazonSales.map(m => m.revenue));
-
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getDate()} ${d.toLocaleDateString("es-MX", { month: "short" })}`;
+}
 function fmtK(n: number) { return n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n}`; }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ChartTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: "rgba(8,8,8,0.96)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "10px 14px" }}>
+      <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "9px", fontWeight: 900, marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
+      {payload.map((p: { color: string; name: string; value: number }, i: number) => (
+        <p key={i} style={{ color: p.color, fontSize: "11px", fontWeight: 900 }}>{p.name}: {fmtK(p.value)}</p>
+      ))}
+    </div>
+  );
+}
 
 export default function AmazonAnalyticsPage() {
   const { showToast } = useToast();
   const [period, setPeriod] = useState<Period>("30d");
+  const d = mockAmazonAnalytics;
 
-  const currentMonth   = mockAmazonSales[mockAmazonSales.length - 1];
-  const previousMonth  = mockAmazonSales[mockAmazonSales.length - 2];
-  const revGrowth      = ((currentMonth.revenue - previousMonth.revenue) / previousMonth.revenue * 100).toFixed(1);
-  const unitsGrowth    = ((currentMonth.units - previousMonth.units) / previousMonth.units * 100).toFixed(1);
-  const totalFees      = FEE_BREAKDOWN.reduce((s, f) => s + f.amount, 0);
+  const trend = period === "7d" ? d.sales_trend.slice(-7) : d.sales_trend;
+  const totalFees = d.fees.reduce((s, f) => s + f.amount, 0);
+  const netRevenue = d.summary.total_sales - totalFees;
+
+  const monthlyChart = mockAmazonSales.map(m => ({ month: m.month.split(" ")[0].toUpperCase(), revenue: m.revenue, units: m.units }));
 
   return (
     <div className="space-y-10 animate-in">
@@ -52,12 +53,8 @@ export default function AmazonAnalyticsPage() {
           <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">
             Analytics Amazon
           </h1>
-          <p className="text-sm text-on-surface-variant">
-            Rendimiento de ventas · BSR · Rentabilidad
-          </p>
+          <p className="text-sm text-on-surface-variant">Rendimiento de ventas · BSR · Rentabilidad</p>
         </div>
-
-        {/* Period selector */}
         <div className="flex gap-2 self-start md:self-auto">
           {(["7d", "30d", "90d"] as Period[]).map(p => (
             <button key={p} onClick={() => setPeriod(p)}
@@ -81,22 +78,10 @@ export default function AmazonAnalyticsPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          {
-            label: "Revenue (mes)", value: `$${(mockAmazonStats.monthly_revenue/1000).toFixed(1)}k`,
-            sub: `+${revGrowth}% vs mes anterior`, subColor: "text-[#CCFF00]", icon: "attach_money", color: "text-[#CCFF00]",
-          },
-          {
-            label: "Unidades Vendidas", value: currentMonth.units,
-            sub: `+${unitsGrowth}% vs mes anterior`, subColor: "text-[#CCFF00]", icon: "shopping_cart", color: "text-blue-400",
-          },
-          {
-            label: "Margen Promedio", value: `${mockAmazonStats.avg_profit_margin}%`,
-            sub: "Neto después de fees", subColor: "text-on-surface/30", icon: "percent", color: "text-amber-400",
-          },
-          {
-            label: "Mejor BSR", value: `#${mockAmazonStats.best_seller_rank}`,
-            sub: "Set Brocas 29 Piezas", subColor: "text-on-surface/30", icon: "military_tech", color: "text-orange-400",
-          },
+          { label: "Revenue (mes)",   value: `$${(d.summary.total_sales / 1000).toFixed(1)}k`, sub: `+${d.summary.growth_vs_prev}% vs anterior`, subColor: "text-[#CCFF00]", icon: "attach_money",  color: "text-[#CCFF00]"  },
+          { label: "Órdenes",         value: d.summary.total_orders,     sub: `Ticket $${d.summary.avg_ticket.toFixed(0)}`,                      subColor: "text-on-surface/30", icon: "shopping_cart",  color: "text-blue-400"   },
+          { label: "Margen Neto",     value: `${d.summary.avg_profit_margin}%`,                sub: "Después de fees",                                                 subColor: "text-on-surface/30", icon: "percent",        color: "text-amber-400"  },
+          { label: "FBA Share",       value: `${d.summary.fba_percentage}%`,                   sub: "del revenue",                                                     subColor: "text-on-surface/30", icon: "warehouse",      color: "text-orange-400" },
         ].map(kpi => (
           <div key={kpi.label} className="glass-card rounded-[1.5rem] border border-white/5 p-6 space-y-1">
             <div className="flex items-center gap-3 mb-3">
@@ -109,85 +94,96 @@ export default function AmazonAnalyticsPage() {
         ))}
       </div>
 
-      {/* Sales chart + Top products side by side */}
+      {/* Daily trend + Monthly trend side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
-        {/* Bar chart */}
+        {/* Daily LineChart */}
         <div className="glass-card rounded-[2rem] border border-white/5 p-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="text-sm font-black text-on-surface">Ventas Mensuales</h3>
-              <p className="text-[10px] text-on-surface/40 mt-0.5">Revenue USD · últimos 7 meses</p>
-            </div>
-            <span className="text-[9px] font-black label-tracking text-on-surface/30 uppercase">MXN</span>
-          </div>
-
-          <div className="flex items-end gap-3 h-48">
-            {mockAmazonSales.map((m, i) => {
-              const pct  = (m.revenue / maxRevenue) * 100;
-              const isLast = i === mockAmazonSales.length - 1;
-              return (
-                <div key={m.month} className="flex flex-col items-center gap-2 flex-1">
-                  <span className="text-[9px] font-black text-on-surface/40">{fmtK(m.revenue)}</span>
-                  <div className="w-full rounded-t-lg transition-all relative" style={{ height: `${pct}%` }}>
-                    <div className={`w-full h-full rounded-t-lg ${isLast ? "bg-orange-400" : "bg-white/10 hover:bg-white/20"} transition-colors`} />
-                  </div>
-                  <span className={`text-[8px] font-black label-tracking text-center leading-tight ${
-                    isLast ? "text-orange-400" : "text-on-surface/30"
-                  }`}>{m.month.split(" ")[0].toUpperCase()}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Revenue / Units row */}
-          <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-white/5">
-            {[
-              { label: "Órdenes (mes)",  value: currentMonth.orders },
-              { label: "Unidades",       value: currentMonth.units  },
-              { label: "Revenue",        value: fmtK(currentMonth.revenue) },
-            ].map(s => (
-              <div key={s.label}>
-                <p className="text-[9px] font-black label-tracking text-on-surface/30 uppercase">{s.label}</p>
-                <p className="text-lg font-black tight-tracking text-on-surface mt-0.5">{s.value}</p>
-              </div>
-            ))}
+          <h3 className="text-sm font-black text-on-surface mb-1">Tendencia Diaria</h3>
+          <p className="text-[10px] text-on-surface/40 mb-6">Revenue USD · últimos 10 días</p>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trend} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="date" tickFormatter={fmtDate} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 900 }} axisLine={{ stroke: "rgba(255,255,255,0.05)" }} tickLine={false} />
+                <YAxis tickFormatter={v => fmtK(v as number)} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 900 }} axisLine={false} tickLine={false} width={48} />
+                <Tooltip content={<ChartTooltip />} />
+                <Line type="monotone" dataKey="sales" name="Ventas" stroke="#fb923c" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: "#fb923c" }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
+        {/* Monthly BarChart */}
+        <div className="glass-card rounded-[2rem] border border-white/5 p-8">
+          <h3 className="text-sm font-black text-on-surface mb-1">Ventas Mensuales</h3>
+          <p className="text-[10px] text-on-surface/40 mb-6">Últimos 7 meses</p>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyChart} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 8, fontWeight: 900 }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={v => fmtK(v as number)} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 8, fontWeight: 900 }} axisLine={false} tickLine={false} width={44} />
+                <Tooltip content={<ChartTooltip />} />
+                <Bar dataKey="revenue" name="Revenue" radius={[4, 4, 0, 0]}>
+                  {monthlyChart.map((_, i) => (
+                    <Cell key={i} fill={i === monthlyChart.length - 1 ? "#fb923c" : "rgba(255,255,255,0.10)"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Top products + FBA split */}
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-6">
         {/* Top products */}
         <div className="glass-card rounded-[2rem] border border-white/5 p-8">
           <h3 className="text-sm font-black text-on-surface mb-1">Top Productos</h3>
-          <p className="text-[10px] text-on-surface/40 mb-6">Por BSR · Mayo 2026</p>
+          <p className="text-[10px] text-on-surface/40 mb-6">Por revenue · Mayo 2026</p>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={d.top_products} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                <XAxis type="number" tickFormatter={v => fmtK(v as number)} tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 8, fontWeight: 900 }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="sku" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 8, fontWeight: 900 }} axisLine={false} tickLine={false} width={100} />
+                <Tooltip content={<ChartTooltip />} />
+                <Bar dataKey="revenue" name="Revenue" radius={[0, 4, 4, 0]}>
+                  {d.top_products.map((_, i) => (
+                    <Cell key={i} fill={i === 0 ? "#fb923c" : "rgba(255,255,255,0.10)"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
-          <div className="space-y-4">
-            {mockAmazonProducts
-              .sort((a, b) => a.sales_rank - b.sales_rank)
-              .slice(0, 5)
-              .map((p, i) => {
-                const units = SOLD_MOCK[p.id] ?? 0;
-                const rev   = Math.round(p.price * units);
-                const barPct = Math.min((units / (SOLD_MOCK["8"] ?? 1)) * 100, 100);
-                return (
-                  <div key={p.id} className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[10px] font-black text-on-surface/30 w-4 flex-shrink-0">#{i + 1}</span>
-                        <p className="text-[10px] font-bold text-on-surface truncate">{p.title.split(" ").slice(0, 4).join(" ")}</p>
-                      </div>
-                      <div className="text-right flex-shrink-0 ml-2">
-                        <p className="text-[10px] font-black text-on-surface">{fmtK(rev)}</p>
-                        <p className="text-[8px] text-on-surface/30">{units} uds</p>
-                      </div>
-                    </div>
-                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${i === 0 ? "bg-orange-400" : "bg-white/20"}`}
-                        style={{ width: `${barPct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+        {/* FBA/FBM pie */}
+        <div className="glass-card rounded-[2rem] border border-white/5 p-8">
+          <h3 className="text-sm font-black text-on-surface mb-1">Split FBA / FBM</h3>
+          <p className="text-[10px] text-on-surface/40 mb-4">Por revenue mensual</p>
+          <div className="h-36">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={d.fulfillment_split} cx="50%" cy="50%" innerRadius={36} outerRadius={60} dataKey="value" paddingAngle={4}>
+                  {d.fulfillment_split.map((_, i) => (
+                    <Cell key={i} fill={COLORS_PIE[i % COLORS_PIE.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<ChartTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="space-y-2 mt-2">
+            {d.fulfillment_split.map((item, i) => (
+              <div key={item.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS_PIE[i % COLORS_PIE.length] }} />
+                  <span className="text-[10px] font-bold text-on-surface">{item.name}</span>
+                </div>
+                <span className="text-[9px] font-black text-on-surface/50">{item.value}% · {fmtK(item.sales)}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -201,16 +197,15 @@ export default function AmazonAnalyticsPage() {
           </div>
           <div className="text-right">
             <p className="text-[9px] text-on-surface/30 label-tracking uppercase">Revenue neto</p>
-            <p className="text-xl font-black text-[#CCFF00]">${(mockAmazonStats.monthly_revenue - totalFees).toLocaleString()}</p>
+            <p className="text-xl font-black text-[#CCFF00]">${netRevenue.toLocaleString()}</p>
           </div>
         </div>
-
         <div className="space-y-4">
-          {FEE_BREAKDOWN.map(fee => (
+          {d.fees.map((fee, i) => (
             <div key={fee.label} className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-2.5 h-2.5 rounded-full ${fee.color}`} />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: FEE_COLORS[i % FEE_COLORS.length] }} />
                   <span className="text-xs font-bold text-on-surface">{fee.label}</span>
                 </div>
                 <div className="flex items-center gap-4">
@@ -219,21 +214,24 @@ export default function AmazonAnalyticsPage() {
                 </div>
               </div>
               <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${fee.color}`} style={{ width: `${fee.pct}%` }} />
+                <div className="h-full rounded-full" style={{ width: `${fee.pct}%`, backgroundColor: FEE_COLORS[i % FEE_COLORS.length] }} />
               </div>
             </div>
           ))}
         </div>
-
         <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
-          <span className="text-[10px] font-black label-tracking text-on-surface/30 uppercase">Revenue bruto</span>
-          <span className="text-[10px] font-black label-tracking text-on-surface/30 uppercase">Fees totales</span>
-          <span className="text-[10px] font-black label-tracking text-on-surface/30 uppercase">Revenue neto</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-black text-on-surface">${mockAmazonStats.monthly_revenue.toLocaleString()}</span>
-          <span className="text-lg font-black text-red-400">-${totalFees.toLocaleString()}</span>
-          <span className="text-lg font-black text-[#CCFF00]">${(mockAmazonStats.monthly_revenue - totalFees).toLocaleString()}</span>
+          <div>
+            <p className="text-[9px] font-black label-tracking text-on-surface/30 uppercase">Revenue bruto</p>
+            <p className="text-lg font-black text-on-surface">${d.summary.total_sales.toLocaleString()}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-[9px] font-black label-tracking text-on-surface/30 uppercase">Fees totales</p>
+            <p className="text-lg font-black text-red-400">-${totalFees.toLocaleString()}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[9px] font-black label-tracking text-on-surface/30 uppercase">Revenue neto</p>
+            <p className="text-lg font-black text-[#CCFF00]">${netRevenue.toLocaleString()}</p>
+          </div>
         </div>
       </div>
 

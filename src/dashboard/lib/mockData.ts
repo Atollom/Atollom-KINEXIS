@@ -1036,3 +1036,139 @@ export const mockERPInventoryStats = {
   overstocked: 12,
   warehouses: 3,
 }
+
+// ============================================
+// ANALYTICS - MOCK DATA
+// ============================================
+
+export interface AnalyticsTrendPoint {
+  date: string
+  sales: number
+  orders: number
+  avg_ticket: number
+}
+
+export interface AnalyticsTopProduct {
+  name: string
+  sku: string
+  units_sold: number
+  revenue: number
+  growth: number
+}
+
+export const mockMLAnalytics = {
+  summary: {
+    total_sales: 87650,
+    total_orders: 234,
+    avg_ticket: 374.57,
+    conversion_rate: 3.2,
+    growth_vs_prev: 12.5,
+    total_products: 47,
+    active_listings: 42,
+  },
+  sales_trend: [
+    { date: '2026-05-01', sales: 8450,  orders: 24, avg_ticket: 352 },
+    { date: '2026-05-02', sales: 9200,  orders: 28, avg_ticket: 329 },
+    { date: '2026-05-03', sales: 7800,  orders: 19, avg_ticket: 411 },
+    { date: '2026-05-04', sales: 10500, orders: 31, avg_ticket: 339 },
+    { date: '2026-05-05', sales: 12300, orders: 35, avg_ticket: 351 },
+    { date: '2026-05-06', sales: 11200, orders: 29, avg_ticket: 386 },
+    { date: '2026-05-07', sales: 9100,  orders: 22, avg_ticket: 414 },
+    { date: '2026-05-08', sales: 10400, orders: 27, avg_ticket: 385 },
+    { date: '2026-05-09', sales: 9200,  orders: 23, avg_ticket: 400 },
+    { date: '2026-05-10', sales: 9500,  orders: 26, avg_ticket: 365 },
+  ] as AnalyticsTrendPoint[],
+  top_products: [
+    { name: 'Taladro Percutor 800W',     sku: 'KAP-TAL-003', units_sold: 89,  revenue: 115611, growth: 23.5  },
+    { name: 'Kit Destornilladores 32pz', sku: 'KAP-KIT-032', units_sold: 234, revenue: 69966,  growth: 45.2  },
+    { name: 'Compresor 25L 2HP',         sku: 'KAP-COM-007', units_sold: 34,  revenue: 84966,  growth: 8.7   },
+    { name: 'Sierra Circular 1400W',     sku: 'KAP-SIE-140', units_sold: 28,  revenue: 53172,  growth: -5.3  },
+    { name: 'Lijadora Orbital 2.4A',     sku: 'KAP-LIJ-450', units_sold: 67,  revenue: 30803,  growth: 67.8  },
+  ] as AnalyticsTopProduct[],
+  listing_types: [
+    { name: 'Premium', value: 45, percentage: 42 },
+    { name: 'Clásica', value: 35, percentage: 33 },
+    { name: 'Gratis',  value: 27, percentage: 25 },
+  ],
+  questions_stats: { total: 145, answered: 132, avg_response_time: '2.5 hrs', answer_rate: 91 },
+}
+
+export const mockAmazonAnalytics = {
+  summary: {
+    total_sales: 67543,
+    total_orders: 187,
+    avg_ticket: 361.20,
+    conversion_rate: 4.8,
+    growth_vs_prev: 18.3,
+    fba_percentage: 73,
+    avg_profit_margin: 38.5,
+  },
+  sales_trend: [
+    { date: '2026-05-01', sales: 6200, orders: 18, avg_ticket: 344 },
+    { date: '2026-05-02', sales: 7100, orders: 21, avg_ticket: 338 },
+    { date: '2026-05-03', sales: 6800, orders: 17, avg_ticket: 400 },
+    { date: '2026-05-04', sales: 8200, orders: 24, avg_ticket: 342 },
+    { date: '2026-05-05', sales: 9100, orders: 28, avg_ticket: 325 },
+    { date: '2026-05-06', sales: 7900, orders: 20, avg_ticket: 395 },
+    { date: '2026-05-07', sales: 6500, orders: 16, avg_ticket: 406 },
+    { date: '2026-05-08', sales: 7400, orders: 19, avg_ticket: 389 },
+    { date: '2026-05-09', sales: 6800, orders: 18, avg_ticket: 378 },
+    { date: '2026-05-10', sales: 7543, orders: 20, avg_ticket: 377 },
+  ] as AnalyticsTrendPoint[],
+  top_products: [
+    { name: 'Taladro Percutor 20V',      sku: 'KAP-TAL-003-FBA', units_sold: 67,  revenue: 60267, growth: 34.2  },
+    { name: 'Kit Herramientas 128pz',    sku: 'KAP-KIT-105-FBM', units_sold: 145, revenue: 95685, growth: 52.7  },
+    { name: 'Compresor Portátil 6 Gal',  sku: 'KAP-COM-007-FBA', units_sold: 23,  revenue: 34500, growth: 15.8  },
+    { name: 'Sierra Circular 7-1/4"',    sku: 'KAP-SIE-210-FBA', units_sold: 19,  revenue: 22800, growth: -8.2  },
+    { name: 'Lijadora Orbital 14k OPM',  sku: 'KAP-LIJ-450-FBA', units_sold: 89,  revenue: 40930, growth: 78.3  },
+  ] as AnalyticsTopProduct[],
+  fulfillment_split: [
+    { name: 'FBA', value: 73, sales: 49326 },
+    { name: 'FBM', value: 27, sales: 18217 },
+  ],
+  fees: [
+    { label: 'Referral',       amount: 8234, pct: 52 },
+    { label: 'FBA Fulfil.',    amount: 3109, pct: 31 },
+    { label: 'Almacenamiento', amount: 1200, pct: 9  },
+    { label: 'AMS',            amount: 1000, pct: 8  },
+  ],
+}
+
+export const mockShopifyAnalytics = {
+  summary: {
+    total_sales: 134567,
+    total_orders: 287,
+    avg_ticket: 468.95,
+    conversion_rate: 2.9,
+    growth_vs_prev: 25.7,
+    total_sessions: 9185,
+    abandoned_carts: 145,
+  },
+  sales_trend: [
+    { date: '2026-05-01', sales: 12300, orders: 28, avg_ticket: 439 },
+    { date: '2026-05-02', sales: 14100, orders: 32, avg_ticket: 441 },
+    { date: '2026-05-03', sales: 11800, orders: 24, avg_ticket: 492 },
+    { date: '2026-05-04', sales: 15200, orders: 35, avg_ticket: 434 },
+    { date: '2026-05-05', sales: 17500, orders: 39, avg_ticket: 449 },
+    { date: '2026-05-06', sales: 14900, orders: 31, avg_ticket: 481 },
+    { date: '2026-05-07', sales: 11200, orders: 22, avg_ticket: 509 },
+    { date: '2026-05-08', sales: 13400, orders: 27, avg_ticket: 496 },
+    { date: '2026-05-09', sales: 12600, orders: 26, avg_ticket: 485 },
+    { date: '2026-05-10', sales: 14567, orders: 31, avg_ticket: 470 },
+  ] as AnalyticsTrendPoint[],
+  top_products: [
+    { name: 'Taladro Percutor 800W',     sku: 'KAP-TAL-003', units_sold: 78,  revenue: 101322, growth: 28.9 },
+    { name: 'Compresor de Aire 25L',     sku: 'KAP-COM-007', units_sold: 45,  revenue: 112455, growth: 42.3 },
+    { name: 'Kit Destornilladores 32pz', sku: 'KAP-KIT-032', units_sold: 189, revenue: 56511,  growth: 67.2 },
+    { name: 'Sierra Circular 1400W',     sku: 'KAP-SIE-140', units_sold: 34,  revenue: 64566,  growth: 12.5 },
+    { name: 'Lijadora Orbital',          sku: 'KAP-LIJ-450', units_sold: 123, revenue: 56547,  growth: 89.4 },
+  ] as AnalyticsTopProduct[],
+  traffic_sources: [
+    { name: 'Orgánico', sessions: 4523, orders: 87, conversion: 1.9 },
+    { name: 'Directo',  sessions: 2145, orders: 76, conversion: 3.5 },
+    { name: 'Social',   sessions: 1876, orders: 45, conversion: 2.4 },
+    { name: 'Email',    sessions: 987,  orders: 52, conversion: 5.3 },
+    { name: 'Referral', sessions: 654,  orders: 27, conversion: 4.1 },
+  ],
+  cart_recovery: { abandoned: 145, recovered: 38, recovery_rate: 26.2, recovered_revenue: 17845 },
+}
