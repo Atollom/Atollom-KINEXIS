@@ -1172,3 +1172,195 @@ export const mockShopifyAnalytics = {
   ],
   cart_recovery: { abandoned: 145, recovered: 38, recovery_rate: 26.2, recovered_revenue: 17845 },
 }
+
+// ── ERP FINANCE ────────────────────────────────────────────────────────────────
+
+export const mockFinanceHistory = [
+  { month: 'Ene', revenue: 285600, expenses: 175400, profit: 110200 },
+  { month: 'Feb', revenue: 298450, expenses: 182300, profit: 116150 },
+  { month: 'Mar', revenue: 312890, expenses: 189700, profit: 123190 },
+  { month: 'Abr', revenue: 325670, expenses: 195200, profit: 130470 },
+  { month: 'May', revenue: 342567, expenses: 198453, profit: 144114 },
+]
+
+export const mockFinanceByChannel = [
+  { channel: 'ML',      revenue: 128450, pct: 37.5 },
+  { channel: 'Amazon',  revenue: 89340,  pct: 26.1 },
+  { channel: 'Shopify', revenue: 74230,  pct: 21.7 },
+  { channel: 'Directo', revenue: 50547,  pct: 14.7 },
+]
+
+export const mockARAging = [
+  { range: '0-30d',  amount: 234500, count: 12 },
+  { range: '31-60d', amount: 87300,  count: 5  },
+  { range: '61-90d', amount: 34200,  count: 3  },
+  { range: '>90d',   amount: 12800,  count: 2  },
+]
+
+export const mockAPSummary = [
+  { supplier: 'Herramientas Bosch MX',   due: '2026-05-15', amount: 48750,  status: 'pending'   as const },
+  { supplier: 'Makita Distribuciones',   due: '2026-05-20', amount: 32400,  status: 'pending'   as const },
+  { supplier: 'DeWalt Industrial S.A.',  due: '2026-05-10', amount: 19800,  status: 'overdue'   as const },
+  { supplier: 'Stanley Black & Decker',  due: '2026-05-25', amount: 28600,  status: 'scheduled' as const },
+]
+
+export interface FinanceSnapshot {
+  revenue_mtd: number
+  expenses_mtd: number
+  profit_mtd: number
+  profit_margin: number
+  ar_total: number
+  ap_total: number
+  cash_balance: number
+  burn_rate: number
+  growth_vs_prev: number
+}
+
+export const mockFinanceSnapshot: FinanceSnapshot = {
+  revenue_mtd:    342567,
+  expenses_mtd:   198453,
+  profit_mtd:     144114,
+  profit_margin:  42.1,
+  ar_total:       368800,
+  ap_total:       129550,
+  cash_balance:   487320,
+  burn_rate:      198453,
+  growth_vs_prev: 15.4,
+}
+
+// ── CRM QUOTES ─────────────────────────────────────────────────────────────────
+
+export interface Quote {
+  id: string
+  folio: string
+  client: string
+  rfc: string
+  amount: number
+  items: number
+  status: 'draft' | 'sent' | 'viewed' | 'accepted' | 'rejected'
+  created_at: string
+  expires_at: string
+  agent: string
+  channel: string
+}
+
+export const mockQuotes: Quote[] = [
+  { id: 'q1', folio: 'COT-2026-089', client: 'Constructora ABC S.A.',      rfc: 'CAB850101ABC', amount: 87450,  items: 12, status: 'accepted', created_at: '2026-05-01', expires_at: '2026-05-31', agent: 'Ana López',    channel: 'WhatsApp' },
+  { id: 'q2', folio: 'COT-2026-090', client: 'Ferretería El Martillo',     rfc: 'FEM920301XYZ', amount: 34200,  items: 6,  status: 'viewed',   created_at: '2026-05-03', expires_at: '2026-06-02', agent: 'Carlos R.',    channel: 'Email'    },
+  { id: 'q3', folio: 'COT-2026-091', client: 'Industrias Monterrey S.A.',  rfc: 'IMO780615DEF', amount: 156780, items: 23, status: 'sent',     created_at: '2026-05-05', expires_at: '2026-06-04', agent: 'María G.',     channel: 'Email'    },
+  { id: 'q4', folio: 'COT-2026-092', client: 'Grupo Constructor Norte',    rfc: 'GCN910204GHI', amount: 45300,  items: 8,  status: 'draft',    created_at: '2026-05-07', expires_at: '2026-06-06', agent: 'Roberto M.',   channel: 'Directo'  },
+  { id: 'q5', folio: 'COT-2026-093', client: 'Tornillos y Perfiles SA',    rfc: 'TYP850722JKL', amount: 23100,  items: 4,  status: 'rejected', created_at: '2026-05-02', expires_at: '2026-05-22', agent: 'Ana López',    channel: 'WhatsApp' },
+  { id: 'q6', folio: 'COT-2026-094', client: 'Herramientas Durango S.A.',  rfc: 'HDU930918MNO', amount: 98560,  items: 17, status: 'viewed',   created_at: '2026-05-08', expires_at: '2026-06-07', agent: 'Carlos R.',    channel: 'Email'    },
+]
+
+export const mockQuotesStats = {
+  total: 6,
+  draft: 1,
+  sent: 1,
+  viewed: 2,
+  accepted: 1,
+  rejected: 1,
+  total_amount: 445390,
+  accepted_amount: 87450,
+  conversion_rate: 16.7,
+  avg_ticket: 74232,
+}
+
+// ── CRM LEAD SCORER ────────────────────────────────────────────────────────────
+
+export interface Lead {
+  id: string
+  name: string
+  company: string
+  email: string
+  phone: string
+  score: number
+  grade: 'A' | 'B' | 'C' | 'D'
+  source: string
+  stage: string
+  potential_value: number
+  last_activity: string
+  days_inactive: number
+  engagement: { emails_opened: number; messages_replied: number; site_visits: number }
+  scoring_factors: { label: string; score: number; max: number }[]
+}
+
+export const mockLeads: Lead[] = [
+  {
+    id: 'l1', name: 'Ing. Roberto Sánchez', company: 'Constructora Norte S.A.', email: 'r.sanchez@cnorte.mx', phone: '+52 818 234 5678',
+    score: 92, grade: 'A', source: 'WhatsApp', stage: 'proposal', potential_value: 245000, last_activity: '2026-05-09', days_inactive: 1,
+    engagement: { emails_opened: 8, messages_replied: 12, site_visits: 34 },
+    scoring_factors: [
+      { label: 'Perfil empresa',   score: 25, max: 25 },
+      { label: 'Engagement',       score: 28, max: 30 },
+      { label: 'Presupuesto',      score: 22, max: 25 },
+      { label: 'Timing',           score: 17, max: 20 },
+    ],
+  },
+  {
+    id: 'l2', name: 'Lic. Patricia Vera', company: 'Ferretera Central MX', email: 'pvera@fercentral.com', phone: '+52 55 4567 8901',
+    score: 78, grade: 'B', source: 'Email', stage: 'qualified', potential_value: 128000, last_activity: '2026-05-07', days_inactive: 3,
+    engagement: { emails_opened: 5, messages_replied: 6, site_visits: 18 },
+    scoring_factors: [
+      { label: 'Perfil empresa',   score: 20, max: 25 },
+      { label: 'Engagement',       score: 22, max: 30 },
+      { label: 'Presupuesto',      score: 20, max: 25 },
+      { label: 'Timing',           score: 16, max: 20 },
+    ],
+  },
+  {
+    id: 'l3', name: 'Dr. Marcos Fuentes', company: 'Industrias Jalisco S.A.', email: 'm.fuentes@indjalisco.mx', phone: '+52 33 9876 5432',
+    score: 85, grade: 'A', source: 'LinkedIn', stage: 'negotiation', potential_value: 380000, last_activity: '2026-05-08', days_inactive: 2,
+    engagement: { emails_opened: 11, messages_replied: 9, site_visits: 47 },
+    scoring_factors: [
+      { label: 'Perfil empresa',   score: 24, max: 25 },
+      { label: 'Engagement',       score: 26, max: 30 },
+      { label: 'Presupuesto',      score: 23, max: 25 },
+      { label: 'Timing',           score: 12, max: 20 },
+    ],
+  },
+  {
+    id: 'l4', name: 'C.P. Sofía Torres', company: 'Grupo Herramientas del Bajío', email: 's.torres@ghbajio.com', phone: '+52 477 321 0987',
+    score: 61, grade: 'C', source: 'Facebook', stage: 'lead', potential_value: 65000, last_activity: '2026-05-04', days_inactive: 6,
+    engagement: { emails_opened: 2, messages_replied: 3, site_visits: 9 },
+    scoring_factors: [
+      { label: 'Perfil empresa',   score: 15, max: 25 },
+      { label: 'Engagement',       score: 16, max: 30 },
+      { label: 'Presupuesto',      score: 16, max: 25 },
+      { label: 'Timing',           score: 14, max: 20 },
+    ],
+  },
+  {
+    id: 'l5', name: 'Arq. Diego Ramírez', company: 'Constructora del Pacífico', email: 'dramirez@cpac.mx', phone: '+52 669 654 3210',
+    score: 44, grade: 'D', source: 'Instagram', stage: 'lead', potential_value: 42000, last_activity: '2026-04-28', days_inactive: 12,
+    engagement: { emails_opened: 1, messages_replied: 1, site_visits: 4 },
+    scoring_factors: [
+      { label: 'Perfil empresa',   score: 12, max: 25 },
+      { label: 'Engagement',       score: 10, max: 30 },
+      { label: 'Presupuesto',      score: 12, max: 25 },
+      { label: 'Timing',           score: 10, max: 20 },
+    ],
+  },
+  {
+    id: 'l6', name: 'Ing. Carmen Olivares', company: 'Metal Works Monterrey', email: 'c.olivares@mwm.mx', phone: '+52 81 7654 3210',
+    score: 73, grade: 'B', source: 'Referral', stage: 'qualified', potential_value: 195000, last_activity: '2026-05-06', days_inactive: 4,
+    engagement: { emails_opened: 4, messages_replied: 7, site_visits: 22 },
+    scoring_factors: [
+      { label: 'Perfil empresa',   score: 19, max: 25 },
+      { label: 'Engagement',       score: 20, max: 30 },
+      { label: 'Presupuesto',      score: 19, max: 25 },
+      { label: 'Timing',           score: 15, max: 20 },
+    ],
+  },
+]
+
+export const mockLeadScoringStats = {
+  total_leads: 6,
+  grade_a: 2,
+  grade_b: 2,
+  grade_c: 1,
+  grade_d: 1,
+  avg_score: 72.2,
+  total_potential: 1055000,
+  hot_leads: 2,
+}
