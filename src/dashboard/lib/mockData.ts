@@ -885,3 +885,154 @@ export const mockAmazonStats = {
   units_sold_month: 511,
   best_seller_rank: 634,
 }
+
+// ============================================
+// SHOPIFY - MOCK DATA
+// ============================================
+
+export interface ShopifyProduct {
+  id: string
+  shopify_id: string
+  handle: string
+  title: string
+  vendor: string
+  product_type: string
+  variants: Array<{ id: string; title: string; sku: string; price: number; inventory_quantity: number; weight: number }>
+  status: 'active' | 'draft' | 'archived'
+  published_at?: string
+  tags: string[]
+  total_inventory: number
+  total_variants: number
+}
+
+export interface ShopifyOrder {
+  id: string
+  order_number: number
+  email: string
+  created_at: string
+  financial_status: 'pending' | 'authorized' | 'paid' | 'partially_paid' | 'refunded' | 'voided'
+  fulfillment_status: 'fulfilled' | 'partial' | 'unfulfilled' | null
+  customer: { first_name: string; last_name: string; email: string; phone?: string }
+  line_items: Array<{ title: string; variant_title: string; quantity: number; price: number; sku: string }>
+  total_price: number
+  subtotal_price: number
+  total_tax: number
+  shipping_address: { name: string; address1: string; city: string; province: string; zip: string; country: string }
+}
+
+export const mockShopifyProducts: ShopifyProduct[] = [
+  { id:'1', shopify_id:'gid://shopify/Product/7891234567890', handle:'taladro-percutor-800w', title:'Taladro Percutor 800W Profesional', vendor:'Kap Tools', product_type:'Herramientas Eléctricas', variants:[{ id:'v1', title:'Azul / 800W', sku:'KAP-TAL-003-BLUE', price:1299, inventory_quantity:34, weight:2.5 },{ id:'v2', title:'Negro / 800W', sku:'KAP-TAL-003-BLACK', price:1299, inventory_quantity:28, weight:2.5 }], status:'active', published_at:'2026-03-15T10:00:00Z', tags:['herramientas','taladros','profesional','nuevo'], total_inventory:62, total_variants:2 },
+  { id:'2', shopify_id:'gid://shopify/Product/7891234567891', handle:'compresor-aire-25l-2hp', title:'Compresor de Aire 25L 2HP', vendor:'Kap Tools', product_type:'Compresores', variants:[{ id:'v3', title:'Estándar', sku:'KAP-COM-007', price:2499, inventory_quantity:12, weight:18.5 }], status:'active', published_at:'2026-04-01T12:00:00Z', tags:['compresores','aire','profesional'], total_inventory:12, total_variants:1 },
+  { id:'3', shopify_id:'gid://shopify/Product/7891234567892', handle:'kit-destornilladores-32pz', title:'Kit Destornilladores Precisión 32 Piezas', vendor:'Kap Tools', product_type:'Kits de Herramientas', variants:[{ id:'v4', title:'Kit Completo', sku:'KAP-KIT-032', price:299, inventory_quantity:156, weight:0.8 }], status:'active', published_at:'2026-02-10T09:00:00Z', tags:['kits','destornilladores','best-seller'], total_inventory:156, total_variants:1 },
+  { id:'4', shopify_id:'gid://shopify/Product/7891234567893', handle:'sierra-circular-1400w-laser', title:'Sierra Circular 1400W con Láser', vendor:'Kap Tools', product_type:'Sierras', variants:[{ id:'v5', title:'185mm / 1400W', sku:'KAP-SIE-140', price:1899, inventory_quantity:0, weight:4.2 }], status:'active', published_at:'2026-03-20T14:00:00Z', tags:['sierras','laser','profesional','agotado'], total_inventory:0, total_variants:1 },
+  { id:'5', shopify_id:'gid://shopify/Product/7891234567894', handle:'amoladora-angular-115mm-700w', title:'Amoladora Angular 115mm 700W', vendor:'Kap Tools', product_type:'Amoladoras', variants:[{ id:'v6', title:'Estándar 700W', sku:'KAP-AMO-700', price:849, inventory_quantity:45, weight:1.8 }], status:'active', published_at:'2026-04-05T11:00:00Z', tags:['amoladoras','electrico'], total_inventory:45, total_variants:1 },
+  { id:'6', shopify_id:'gid://shopify/Product/7891234567895', handle:'nivel-laser-3-lineas', title:'Nivel Láser Autonivelante 3 Líneas', vendor:'Kap Tools', product_type:'Medición', variants:[{ id:'v7', title:'Verde / 30m', sku:'KAP-NIV-3LG', price:1649, inventory_quantity:8, weight:0.6 },{ id:'v8', title:'Rojo / 15m', sku:'KAP-NIV-3LR', price:1199, inventory_quantity:11, weight:0.5 }], status:'active', published_at:'2026-04-18T09:30:00Z', tags:['medicion','laser','construccion'], total_inventory:19, total_variants:2 },
+  { id:'7', shopify_id:'gid://shopify/Product/7891234567896', handle:'set-llaves-allen-10pz', title:'Set Llaves Allen 10 Piezas Pro', vendor:'Kap Tools', product_type:'Llaves y Fijadores', variants:[{ id:'v9', title:'Métrico', sku:'KAP-LLA-010M', price:189, inventory_quantity:0, weight:0.3 },{ id:'v10', title:'SAE', sku:'KAP-LLA-010S', price:189, inventory_quantity:0, weight:0.3 }], status:'draft', tags:['llaves','allen'], total_inventory:0, total_variants:2 },
+  { id:'8', shopify_id:'gid://shopify/Product/7891234567897', handle:'esmeriladora-banco-6-350w', title:'Esmeriladora de Banco 6" 350W', vendor:'Kap Tools', product_type:'Herramientas de Banco', variants:[{ id:'v11', title:'Estándar 350W', sku:'KAP-ESM-350', price:1349, inventory_quantity:17, weight:8.5 }], status:'active', published_at:'2026-05-02T16:00:00Z', tags:['esmeriladora','banco'], total_inventory:17, total_variants:1 },
+]
+
+export const mockShopifyOrders: ShopifyOrder[] = [
+  { id:'1', order_number:1045, email:'cliente@email.com', created_at:'2026-05-10T10:30:00Z', financial_status:'paid', fulfillment_status:'unfulfilled', customer:{ first_name:'Juan', last_name:'Pérez', email:'cliente@email.com', phone:'+52 222 555 1234' }, line_items:[{ title:'Taladro Percutor 800W Profesional', variant_title:'Azul / 800W', quantity:1, price:1299, sku:'KAP-TAL-003-BLUE' },{ title:'Kit Destornilladores 32 Piezas', variant_title:'Kit Completo', quantity:2, price:299, sku:'KAP-KIT-032' }], total_price:1897, subtotal_price:1897, total_tax:0, shipping_address:{ name:'Juan Pérez', address1:'Av. Juárez 123', city:'Puebla', province:'Puebla', zip:'72000', country:'México' } },
+  { id:'2', order_number:1046, email:'empresa@construccion.com', created_at:'2026-05-10T11:45:00Z', financial_status:'paid', fulfillment_status:'fulfilled', customer:{ first_name:'María', last_name:'González', email:'empresa@construccion.com', phone:'+52 222 555 5678' }, line_items:[{ title:'Compresor de Aire 25L 2HP', variant_title:'Estándar', quantity:1, price:2499, sku:'KAP-COM-007' }], total_price:2499, subtotal_price:2499, total_tax:0, shipping_address:{ name:'María González', address1:'Calle Reforma 456', city:'Cholula', province:'Puebla', zip:'72810', country:'México' } },
+  { id:'3', order_number:1047, email:'taller@mecanica.com', created_at:'2026-05-09T14:20:00Z', financial_status:'paid', fulfillment_status:'unfulfilled', customer:{ first_name:'Carlos', last_name:'Ramírez', email:'taller@mecanica.com' }, line_items:[{ title:'Amoladora Angular 115mm 700W', variant_title:'Estándar 700W', quantity:3, price:849, sku:'KAP-AMO-700' }], total_price:2547, subtotal_price:2547, total_tax:0, shipping_address:{ name:'Carlos Ramírez', address1:'Industrial Norte Km 4', city:'San Martín', province:'Puebla', zip:'74120', country:'México' } },
+  { id:'4', order_number:1048, email:'ferreteria@regional.com', created_at:'2026-05-09T09:00:00Z', financial_status:'paid', fulfillment_status:'partial', customer:{ first_name:'Ana', last_name:'Torres', email:'ferreteria@regional.com', phone:'+52 222 777 8899' }, line_items:[{ title:'Kit Destornilladores 32 Piezas', variant_title:'Kit Completo', quantity:10, price:299, sku:'KAP-KIT-032' },{ title:'Nivel Láser 3 Líneas', variant_title:'Verde / 30m', quantity:2, price:1649, sku:'KAP-NIV-3LG' }], total_price:6288, subtotal_price:6288, total_tax:0, shipping_address:{ name:'Ana Torres', address1:'Benito Juárez 78', city:'Tlaxcala', province:'Tlaxcala', zip:'90000', country:'México' } },
+  { id:'5', order_number:1049, email:'construye@mx.com', created_at:'2026-05-08T16:30:00Z', financial_status:'pending', fulfillment_status:null, customer:{ first_name:'Roberto', last_name:'Sánchez', email:'construye@mx.com', phone:'+52 222 111 2233' }, line_items:[{ title:'Sierra Circular 1400W con Láser', variant_title:'185mm / 1400W', quantity:1, price:1899, sku:'KAP-SIE-140' }], total_price:1899, subtotal_price:1899, total_tax:0, shipping_address:{ name:'Roberto Sánchez', address1:'Av. Del Trabajo 234', city:'Apizaco', province:'Tlaxcala', zip:'90300', country:'México' } },
+  { id:'6', order_number:1050, email:'maestro@obra.mx', created_at:'2026-05-08T11:15:00Z', financial_status:'paid', fulfillment_status:'fulfilled', customer:{ first_name:'Luis', last_name:'Martínez', email:'maestro@obra.mx' }, line_items:[{ title:'Esmeriladora de Banco 6" 350W', variant_title:'Estándar 350W', quantity:1, price:1349, sku:'KAP-ESM-350' },{ title:'Kit Destornilladores 32 Piezas', variant_title:'Kit Completo', quantity:1, price:299, sku:'KAP-KIT-032' }], total_price:1648, subtotal_price:1648, total_tax:0, shipping_address:{ name:'Luis Martínez', address1:'Priv. Las Rosas 56', city:'Puebla', province:'Puebla', zip:'72410', country:'México' } },
+  { id:'7', order_number:1051, email:'hdez@gmail.com', created_at:'2026-05-07T08:45:00Z', financial_status:'refunded', fulfillment_status:'fulfilled', customer:{ first_name:'Sofía', last_name:'Hernández', email:'hdez@gmail.com' }, line_items:[{ title:'Nivel Láser 3 Líneas', variant_title:'Rojo / 15m', quantity:1, price:1199, sku:'KAP-NIV-3LR' }], total_price:1199, subtotal_price:1199, total_tax:0, shipping_address:{ name:'Sofía Hernández', address1:'Cto. Campeche 12', city:'Puebla', province:'Puebla', zip:'72000', country:'México' } },
+  { id:'8', order_number:1052, email:'distribuidora@norte.com', created_at:'2026-05-07T13:20:00Z', financial_status:'paid', fulfillment_status:'unfulfilled', customer:{ first_name:'Miguel', last_name:'Flores', email:'distribuidora@norte.com', phone:'+52 222 444 5566' }, line_items:[{ title:'Taladro Percutor 800W Profesional', variant_title:'Negro / 800W', quantity:2, price:1299, sku:'KAP-TAL-003-BLACK' },{ title:'Amoladora Angular 115mm 700W', variant_title:'Estándar 700W', quantity:2, price:849, sku:'KAP-AMO-700' }], total_price:4296, subtotal_price:4296, total_tax:0, shipping_address:{ name:'Miguel Flores', address1:'Blvd. Norte 890', city:'Puebla', province:'Puebla', zip:'72000', country:'México' } },
+]
+
+export const mockShopifyStats = {
+  total_products: 38,
+  active_products: 34,
+  draft_products: 3,
+  archived_products: 1,
+  total_orders_month: 87,
+  revenue_month: 134567.50,
+  avg_order_value: 1547.43,
+  pending_fulfillment: 12,
+}
+
+// ============================================
+// CRM PIPELINE - MOCK DATA
+// ============================================
+
+export interface CRMDeal {
+  id: string
+  title: string
+  company: string
+  contact: { name: string; email: string; phone: string }
+  value: number
+  stage: 'lead' | 'qualified' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost'
+  probability: number
+  expected_close_date: string
+  created_at: string
+  source: 'website' | 'referral' | 'cold_call' | 'trade_show' | 'linkedin'
+  assigned_to: string
+  notes?: string
+  last_activity: string
+}
+
+export const mockCRMDeals: CRMDeal[] = [
+  { id:'1', title:'Suministro Herramientas — Constructora XYZ', company:'Constructora XYZ S.A.', contact:{ name:'Ing. Roberto Sánchez', email:'roberto@constructoraxyz.com', phone:'+52 222 111 2233' }, value:125000, stage:'negotiation', probability:75, expected_close_date:'2026-05-30', created_at:'2026-04-15T09:00:00Z', source:'referral', assigned_to:'Carlos Cortés', notes:'Interesado en contrato anual, necesita aprobación CFO', last_activity:'2026-05-09T14:30:00Z' },
+  { id:'2', title:'Equipamiento Completo — Taller Mecánico', company:'Taller El Águila', contact:{ name:'José Luis Morales', email:'jl@talleraguila.com', phone:'+52 222 333 4455' }, value:45000, stage:'proposal', probability:50, expected_close_date:'2026-06-15', created_at:'2026-05-01T10:30:00Z', source:'website', assigned_to:'Carlos Cortés', notes:'Enviar cotización con descuento volumen', last_activity:'2026-05-10T09:15:00Z' },
+  { id:'3', title:'Herramientas Prof. — Empresa Eléctrica', company:'Instalaciones Eléctricas del Bajío', contact:{ name:'Ana Patricia Rivas', email:'arivas@iebajio.com', phone:'+52 222 555 6677' }, value:78000, stage:'qualified', probability:40, expected_close_date:'2026-07-01', created_at:'2026-05-05T11:00:00Z', source:'linkedin', assigned_to:'Carlos Cortés', notes:'Requiere certificaciones y garantías extendidas', last_activity:'2026-05-08T16:45:00Z' },
+  { id:'4', title:'Nuevo Prospecto — Ferretería Regional', company:'Ferretería La Central', contact:{ name:'Miguel Ángel Torres', email:'mtorres@ferreteriacentral.com', phone:'+52 222 777 8899' }, value:32000, stage:'lead', probability:20, expected_close_date:'2026-08-01', created_at:'2026-05-09T15:20:00Z', source:'trade_show', assigned_to:'Carlos Cortés', last_activity:'2026-05-09T15:20:00Z' },
+  { id:'5', title:'Contrato Anual — Distribuidora Norte', company:'Distribuidora Norte SA de CV', contact:{ name:'Lic. Patricia Vega', email:'pvega@disnorte.com', phone:'+52 222 888 9900' }, value:215000, stage:'closed_won', probability:100, expected_close_date:'2026-05-01', created_at:'2026-03-10T09:00:00Z', source:'referral', assigned_to:'Carlos Cortés', notes:'Contrato 3 años con renovación automática', last_activity:'2026-05-01T10:00:00Z' },
+  { id:'6', title:'Herramientas Industria — Textil del Centro', company:'Textil del Centro S.A.', contact:{ name:'Ing. Fernando Cruz', email:'fcruz@textilcentro.com', phone:'+52 222 666 7788' }, value:28000, stage:'closed_lost', probability:0, expected_close_date:'2026-04-30', created_at:'2026-03-15T14:00:00Z', source:'cold_call', assigned_to:'Carlos Cortés', notes:'Eligió competidor por precio, revisitar Q3', last_activity:'2026-04-30T17:00:00Z' },
+  { id:'7', title:'Kit Herramientas — Academia Técnica CECATI', company:'CECATI Plantel 145', contact:{ name:'Lic. Susana López', email:'slopez@cecati145.edu.mx', phone:'+52 222 100 2003' }, value:67500, stage:'proposal', probability:60, expected_close_date:'2026-06-30', created_at:'2026-04-28T10:00:00Z', source:'website', assigned_to:'Carlos Cortés', notes:'Licitación pública, requiere factura gobierno', last_activity:'2026-05-07T11:30:00Z' },
+  { id:'8', title:'Reequipamiento — Taller Automotriz Premium', company:'Autos Premium Puebla', contact:{ name:'Ing. David Ortíz', email:'dortiz@autopremium.mx', phone:'+52 222 500 6007' }, value:89000, stage:'negotiation', probability:80, expected_close_date:'2026-05-25', created_at:'2026-04-20T09:30:00Z', source:'referral', assigned_to:'Carlos Cortés', notes:'Solicitan demo + financiamiento 6 meses', last_activity:'2026-05-10T08:00:00Z' },
+]
+
+export const mockCRMStats = {
+  total_deals: 24,
+  total_pipeline_value: 567800,
+  avg_deal_size: 23658,
+  won_this_month: 3,
+  won_value_month: 87500,
+  conversion_rate: 42.5,
+  avg_sales_cycle: 45,
+}
+
+// ============================================
+// ERP INVENTARIO - MOCK DATA
+// ============================================
+
+export interface ERPInventoryItem {
+  id: string
+  sku: string
+  name: string
+  category: string
+  warehouse: string
+  quantity: number
+  reserved: number
+  available: number
+  unit_cost: number
+  total_value: number
+  reorder_point: number
+  reorder_quantity: number
+  supplier: string
+  last_restock: string
+  status: 'in_stock' | 'low_stock' | 'out_of_stock' | 'overstocked'
+}
+
+export const mockERPInventory: ERPInventoryItem[] = [
+  { id:'1', sku:'KAP-TAL-003', name:'Taladro Percutor 800W', category:'Herramientas Eléctricas', warehouse:'Almacén Principal Puebla', quantity:145, reserved:23, available:122, unit_cost:750, total_value:108750, reorder_point:50, reorder_quantity:100, supplier:'Proveedor Industrial Norte', last_restock:'2026-04-15', status:'in_stock' },
+  { id:'2', sku:'KAP-COM-007', name:'Compresor 25L 2HP', category:'Compresores', warehouse:'Almacén Principal Puebla', quantity:8, reserved:3, available:5, unit_cost:1450, total_value:11600, reorder_point:10, reorder_quantity:25, supplier:'Distribuidora Herramientas Pro', last_restock:'2026-03-28', status:'low_stock' },
+  { id:'3', sku:'KAP-KIT-032', name:'Kit Destornilladores 32pz', category:'Kits', warehouse:'Almacén Principal Puebla', quantity:456, reserved:45, available:411, unit_cost:120, total_value:54720, reorder_point:100, reorder_quantity:200, supplier:'Importadora Tools MX', last_restock:'2026-04-20', status:'overstocked' },
+  { id:'4', sku:'KAP-SIE-140', name:'Sierra Circular 1400W', category:'Sierras', warehouse:'Almacén Principal Puebla', quantity:0, reserved:0, available:0, unit_cost:1050, total_value:0, reorder_point:15, reorder_quantity:50, supplier:'Proveedor Industrial Norte', last_restock:'2026-02-10', status:'out_of_stock' },
+  { id:'5', sku:'KAP-AMO-700', name:'Amoladora Angular 700W', category:'Amoladoras', warehouse:'Almacén Principal Puebla', quantity:78, reserved:12, available:66, unit_cost:480, total_value:37440, reorder_point:30, reorder_quantity:60, supplier:'Distribuidora Herramientas Pro', last_restock:'2026-04-10', status:'in_stock' },
+  { id:'6', sku:'KAP-NIV-3LG', name:'Nivel Láser 3L Verde 30m', category:'Medición', warehouse:'Almacén Secundario CDMX', quantity:22, reserved:4, available:18, unit_cost:920, total_value:20240, reorder_point:20, reorder_quantity:40, supplier:'Importadora Tools MX', last_restock:'2026-04-25', status:'low_stock' },
+  { id:'7', sku:'KAP-ESM-350', name:'Esmeriladora Banco 6" 350W', category:'Herramientas de Banco', warehouse:'Almacén Principal Puebla', quantity:34, reserved:5, available:29, unit_cost:780, total_value:26520, reorder_point:15, reorder_quantity:35, supplier:'Proveedor Industrial Norte', last_restock:'2026-04-30', status:'in_stock' },
+  { id:'8', sku:'KAP-LLA-010M', name:'Set Llaves Allen 10pz Métrico', category:'Llaves y Fijadores', warehouse:'Almacén Secundario CDMX', quantity:0, reserved:0, available:0, unit_cost:95, total_value:0, reorder_point:50, reorder_quantity:150, supplier:'Importadora Tools MX', last_restock:'2026-01-15', status:'out_of_stock' },
+]
+
+export const mockERPInventoryStats = {
+  total_items: 247,
+  total_value: 1245678.50,
+  in_stock: 189,
+  low_stock: 34,
+  out_of_stock: 12,
+  overstocked: 12,
+  warehouses: 3,
+}
