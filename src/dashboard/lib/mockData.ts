@@ -1519,3 +1519,285 @@ export const mockPriceChanges: PriceChange[] = [
   { sku: 'KAP-LIJ-450', product_name: 'Lijadora Orbital 450W',    channel: 'Amazon',        old_price: 459,  new_price: 489,  change_pct: 6.5,   reason: 'Stock bajo',        applied_at: '2026-05-09T18:30:00Z' },
   { sku: 'KAP-NIV-3L',  product_name: 'Nivel Láser 3 Líneas',     channel: 'Shopify',       old_price: 1299, new_price: 1349, change_pct: 3.8,   reason: 'Margen premium',    applied_at: '2026-05-09T17:00:00Z' },
 ]
+
+// ── META WHATSAPP ──────────────────────────────────────────────────────────────
+
+export interface WhatsAppTemplate {
+  id: string
+  name: string
+  category: 'marketing' | 'utility' | 'authentication'
+  status: 'approved' | 'pending' | 'rejected'
+  components: { type: 'header' | 'body' | 'footer' | 'buttons'; content: string; variables?: string[] }[]
+  created_at: string
+  last_sent?: string
+  total_sent: number
+}
+
+export interface WhatsAppBroadcast {
+  id: string
+  name: string
+  template_name: string
+  status: 'draft' | 'scheduled' | 'sending' | 'completed' | 'failed'
+  recipients: number
+  sent: number
+  delivered: number
+  read: number
+  replied: number
+  failed: number
+  scheduled_at?: string
+  completed_at?: string
+}
+
+export const mockWhatsAppTemplates: WhatsAppTemplate[] = [
+  {
+    id: 'wt1', name: 'promocion_herramientas', category: 'marketing', status: 'approved',
+    components: [
+      { type: 'header',   content: '🛠️ ¡Promoción Especial Kap Tools!' },
+      { type: 'body',     content: 'Hola {{1}}, tenemos un {{2}}% de descuento en {{3}}. Válido hasta {{4}}.', variables: ['nombre', 'descuento', 'producto', 'fecha'] },
+      { type: 'footer',   content: 'Kap Tools - Herramientas Profesionales' },
+      { type: 'buttons',  content: 'Ver Catálogo | Contactar Ventas' },
+    ],
+    created_at: '2026-04-15', last_sent: '2026-05-08T14:30:00Z', total_sent: 1247,
+  },
+  {
+    id: 'wt2', name: 'confirmacion_pedido', category: 'utility', status: 'approved',
+    components: [
+      { type: 'header',  content: '✅ Pedido Confirmado' },
+      { type: 'body',    content: 'Hola {{1}}, tu pedido #{{2}} fue confirmado. Total: ${{3}} MXN. Entrega: {{4}}.', variables: ['nombre', 'orden', 'total', 'fecha_entrega'] },
+      { type: 'footer',  content: 'Gracias por tu compra' },
+      { type: 'buttons', content: 'Rastrear Pedido' },
+    ],
+    created_at: '2026-03-20', last_sent: '2026-05-10T16:45:00Z', total_sent: 2891,
+  },
+  {
+    id: 'wt3', name: 'recordatorio_carrito', category: 'marketing', status: 'approved',
+    components: [
+      { type: 'header',  content: '🛒 Tienes productos en tu carrito' },
+      { type: 'body',    content: 'Hola {{1}}, dejaste {{2}} producto(s) por ${{3}}. ¡Completa tu compra!', variables: ['nombre', 'cantidad', 'total'] },
+      { type: 'buttons', content: 'Completar Compra' },
+    ],
+    created_at: '2026-04-01', last_sent: '2026-05-09T11:20:00Z', total_sent: 567,
+  },
+  {
+    id: 'wt4', name: 'seguimiento_entrega', category: 'utility', status: 'approved',
+    components: [
+      { type: 'header',  content: '📦 Tu pedido está en camino' },
+      { type: 'body',    content: 'Hola {{1}}, tu pedido #{{2}} sale hoy. Número de guía: {{3}}.', variables: ['nombre', 'orden', 'guia'] },
+      { type: 'buttons', content: 'Rastrear en Tiempo Real' },
+    ],
+    created_at: '2026-04-10', last_sent: '2026-05-10T09:00:00Z', total_sent: 1834,
+  },
+  {
+    id: 'wt5', name: 'cotizacion_b2b', category: 'marketing', status: 'pending',
+    components: [
+      { type: 'header', content: '📋 Cotización Lista' },
+      { type: 'body',   content: 'Hola {{1}}, tu cotización {{2}} por ${{3}} MXN está lista. Válida 15 días.', variables: ['nombre', 'folio', 'monto'] },
+    ],
+    created_at: '2026-05-08', total_sent: 0,
+  },
+]
+
+export const mockWhatsAppBroadcasts: WhatsAppBroadcast[] = [
+  {
+    id: 'wb1', name: 'Promo Mayo 2026 — Taladros', template_name: 'promocion_herramientas',
+    status: 'completed', recipients: 1500, sent: 1500, delivered: 1487, read: 1234, replied: 187, failed: 13,
+    scheduled_at: '2026-05-01T08:00:00Z', completed_at: '2026-05-01T09:30:00Z',
+  },
+  {
+    id: 'wb2', name: 'Recordatorio Carritos Abandonados', template_name: 'recordatorio_carrito',
+    status: 'scheduled', recipients: 234, sent: 0, delivered: 0, read: 0, replied: 0, failed: 0,
+    scheduled_at: '2026-05-11T10:00:00Z',
+  },
+  {
+    id: 'wb3', name: 'Confirmaciones Pedidos Semana', template_name: 'confirmacion_pedido',
+    status: 'completed', recipients: 89, sent: 89, delivered: 88, read: 82, replied: 14, failed: 1,
+    scheduled_at: '2026-05-05T08:00:00Z', completed_at: '2026-05-05T08:15:00Z',
+  },
+  {
+    id: 'wb4', name: 'Seguimiento Entregas DHL', template_name: 'seguimiento_entrega',
+    status: 'sending', recipients: 312, sent: 245, delivered: 240, read: 198, replied: 23, failed: 5,
+  },
+]
+
+export const mockWhatsAppStats = {
+  total_templates: 5,
+  approved: 4,
+  pending: 1,
+  total_broadcasts: 4,
+  messages_sent_month: 8945,
+  avg_delivery_rate: 98.5,
+  avg_read_rate: 82.3,
+  avg_reply_rate: 12.4,
+}
+
+// ── META INSTAGRAM ─────────────────────────────────────────────────────────────
+
+export interface InstagramPost {
+  id: string
+  type: 'photo' | 'carousel' | 'reel' | 'story'
+  caption: string
+  status: 'published' | 'scheduled' | 'draft'
+  created_at: string
+  published_at?: string
+  scheduled_at?: string
+  insights: { impressions: number; reach: number; likes: number; comments: number; shares: number; saves: number; engagement_rate: number }
+}
+
+export interface InstagramAd {
+  id: string
+  name: string
+  status: 'active' | 'paused' | 'completed'
+  objective: 'awareness' | 'traffic' | 'engagement' | 'conversions'
+  budget: number
+  spent: number
+  impressions: number
+  clicks: number
+  ctr: number
+  cpc: number
+  conversions: number
+  start_date: string
+  end_date: string
+}
+
+export const mockInstagramPosts: InstagramPost[] = [
+  {
+    id: 'ig1', type: 'photo', caption: '🛠️ Nueva llegada: Taladro Percutor 800W ⚡\n✅ 2 velocidades ✅ Mandril 13mm\n#KapTools #Herramientas',
+    status: 'published', created_at: '2026-05-08T10:00:00Z', published_at: '2026-05-08T10:00:00Z',
+    insights: { impressions: 4523, reach: 3891, likes: 287, comments: 34, shares: 12, saves: 45, engagement_rate: 8.3 },
+  },
+  {
+    id: 'ig2', type: 'reel', caption: '⚡ Compresor en acción! Mira qué rápido infla 🚗💨\n25L | 2HP | Profesional\n#Compresor #KapTools',
+    status: 'published', created_at: '2026-05-06T14:30:00Z', published_at: '2026-05-06T14:30:00Z',
+    insights: { impressions: 12456, reach: 9823, likes: 892, comments: 67, shares: 134, saves: 234, engagement_rate: 13.4 },
+  },
+  {
+    id: 'ig3', type: 'carousel', caption: '📦 Kit Destornilladores 32pz\nSwipe para ver todo ➡️\n#ToolKit #KapTools',
+    status: 'scheduled', created_at: '2026-05-10T11:00:00Z', scheduled_at: '2026-05-11T12:00:00Z',
+    insights: { impressions: 0, reach: 0, likes: 0, comments: 0, shares: 0, saves: 0, engagement_rate: 0 },
+  },
+  {
+    id: 'ig4', type: 'photo', caption: '🏆 Clientes satisfechos en toda la República\n¡Más de 10,000 pedidos exitosos! 🙌\n#KapTools',
+    status: 'published', created_at: '2026-05-04T09:00:00Z', published_at: '2026-05-04T09:00:00Z',
+    insights: { impressions: 6789, reach: 5234, likes: 412, comments: 56, shares: 28, saves: 89, engagement_rate: 11.1 },
+  },
+  {
+    id: 'ig5', type: 'story', caption: '⏰ ÚLTIMAS HORAS — Sierra Circular 20% OFF',
+    status: 'draft', created_at: '2026-05-10T16:00:00Z',
+    insights: { impressions: 0, reach: 0, likes: 0, comments: 0, shares: 0, saves: 0, engagement_rate: 0 },
+  },
+]
+
+export const mockInstagramAds: InstagramAd[] = [
+  {
+    id: 'ia1', name: 'Campaña Taladros — Conversión', status: 'active', objective: 'conversions',
+    budget: 5000, spent: 3245.67, impressions: 45678, clicks: 1234, ctr: 2.7, cpc: 2.63, conversions: 89,
+    start_date: '2026-05-01', end_date: '2026-05-31',
+  },
+  {
+    id: 'ia2', name: 'Awareness — Marca Kap Tools', status: 'active', objective: 'awareness',
+    budget: 3000, spent: 2156.34, impressions: 123456, clicks: 2345, ctr: 1.9, cpc: 0.92, conversions: 0,
+    start_date: '2026-05-01', end_date: '2026-05-15',
+  },
+  {
+    id: 'ia3', name: 'Tráfico Blog — Compresores', status: 'paused', objective: 'traffic',
+    budget: 1500, spent: 892.10, impressions: 23456, clicks: 567, ctr: 2.4, cpc: 1.57, conversions: 0,
+    start_date: '2026-05-05', end_date: '2026-05-20',
+  },
+]
+
+export const mockInstagramStats = {
+  followers: 12456,
+  posts: 187,
+  avg_engagement_rate: 9.2,
+  impressions_month: 234567,
+  reach_month: 189234,
+  profile_visits: 4567,
+  website_clicks: 1234,
+  top_post_type: 'Reels',
+}
+
+// ── META FACEBOOK ──────────────────────────────────────────────────────────────
+
+export interface FacebookPost {
+  id: string
+  message: string
+  type: 'status' | 'photo' | 'video' | 'link'
+  status: 'published' | 'scheduled' | 'draft'
+  created_at: string
+  published_at?: string
+  scheduled_at?: string
+  insights: { impressions: number; reach: number; reactions: number; comments: number; shares: number; clicks: number; engagement_rate: number }
+}
+
+export interface FacebookAd {
+  id: string
+  name: string
+  campaign_name: string
+  status: 'active' | 'paused' | 'completed'
+  objective: 'awareness' | 'traffic' | 'leads' | 'sales'
+  budget_daily: number
+  spent: number
+  impressions: number
+  clicks: number
+  ctr: number
+  cpc: number
+  conversions: number
+  cost_per_conversion: number
+  start_date: string
+  end_date?: string
+}
+
+export const mockFacebookPosts: FacebookPost[] = [
+  {
+    id: 'fb1', message: '🔥 PROMOCIÓN RELÁMPAGO 🔥\nTaladro Percutor 800W + 2 Baterías\n$1,299 MXN (Antes $1,599) ✅ Envío gratis ✅ Garantía 2 años',
+    type: 'photo', status: 'published', created_at: '2026-05-09T09:00:00Z', published_at: '2026-05-09T09:00:00Z',
+    insights: { impressions: 8945, reach: 6734, reactions: 234, comments: 45, shares: 28, clicks: 167, engagement_rate: 7.1 },
+  },
+  {
+    id: 'fb2', message: '🎥 VIDEO: Cómo elegir el compresor perfecto para tu taller\n👉 Tips profesionales | Comparativa | Recomendaciones',
+    type: 'video', status: 'published', created_at: '2026-05-07T15:00:00Z', published_at: '2026-05-07T15:00:00Z',
+    insights: { impressions: 15678, reach: 12345, reactions: 456, comments: 89, shares: 67, clicks: 234, engagement_rate: 10.2 },
+  },
+  {
+    id: 'fb3', message: '📢 "10 Herramientas Esenciales para Todo Profesional de la Construcción"\nLee el artículo completo en nuestro sitio web 👇',
+    type: 'link', status: 'scheduled', created_at: '2026-05-10T10:00:00Z', scheduled_at: '2026-05-11T08:00:00Z',
+    insights: { impressions: 0, reach: 0, reactions: 0, comments: 0, shares: 0, clicks: 0, engagement_rate: 0 },
+  },
+  {
+    id: 'fb4', message: '🏅 ¡Kap Tools cumple 5 años en e-commerce!\nGracias a todos nuestros clientes por su confianza 🙏',
+    type: 'photo', status: 'published', created_at: '2026-05-05T12:00:00Z', published_at: '2026-05-05T12:00:00Z',
+    insights: { impressions: 22456, reach: 18234, reactions: 892, comments: 134, shares: 156, clicks: 345, engagement_rate: 12.3 },
+  },
+]
+
+export const mockFacebookAds: FacebookAd[] = [
+  {
+    id: 'fa1', name: 'Conversión — Taladros Premium', campaign_name: 'Mayo 2026 — Power Tools',
+    status: 'active', objective: 'sales', budget_daily: 300, spent: 2456.78,
+    impressions: 67890, clicks: 1567, ctr: 2.3, cpc: 1.57, conversions: 45, cost_per_conversion: 54.59,
+    start_date: '2026-05-01', end_date: '2026-05-31',
+  },
+  {
+    id: 'fa2', name: 'Leads — Cotización B2B', campaign_name: 'Lead Generation — Empresas',
+    status: 'active', objective: 'leads', budget_daily: 150, spent: 1234.56,
+    impressions: 34567, clicks: 678, ctr: 2.0, cpc: 1.82, conversions: 23, cost_per_conversion: 53.68,
+    start_date: '2026-05-05', end_date: '2026-05-20',
+  },
+  {
+    id: 'fa3', name: 'Tráfico — Blog Herramientas', campaign_name: 'Content Marketing',
+    status: 'paused', objective: 'traffic', budget_daily: 100, spent: 567.34,
+    impressions: 18934, clicks: 456, ctr: 2.4, cpc: 1.24, conversions: 0, cost_per_conversion: 0,
+    start_date: '2026-05-03',
+  },
+]
+
+export const mockFacebookStats = {
+  page_likes: 8934,
+  page_followers: 9156,
+  posts_month: 28,
+  avg_engagement_rate: 8.5,
+  impressions_month: 345678,
+  reach_month: 267890,
+  page_views: 5678,
+  messages_received: 234,
+}
