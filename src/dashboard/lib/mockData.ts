@@ -725,3 +725,163 @@ export const mockMLStats = {
   unanswered_questions: 3,
   avg_response_time_hrs: 3.2,
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AMAZON
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface AmazonProduct {
+  id: string
+  asin: string
+  sku: string
+  title: string
+  price: number
+  fulfillment_channel: 'FBA' | 'FBM'
+  quantity: number
+  fba_quantity: number
+  reserved_quantity: number
+  inbound_quantity: number
+  condition: 'new' | 'used_like_new' | 'used_good'
+  status: 'active' | 'inactive' | 'incomplete'
+  sales_rank: number
+  last_sale: string
+  fees: { referral: number; fba: number; storage: number }
+  profit_margin: number
+}
+
+export interface FBAShipmentItem {
+  sku: string
+  title: string
+  quantity_shipped: number
+  quantity_received: number
+}
+
+export interface FBAShipment {
+  id: string
+  shipment_id: string
+  name: string
+  destination_fc: string
+  status: 'working' | 'shipped' | 'in_transit' | 'receiving' | 'closed'
+  created_date: string
+  ship_date: string | null
+  items: FBAShipmentItem[]
+  total_units: number
+  tracking_number: string | null
+}
+
+export interface AmazonInventoryItem {
+  sku: string
+  asin: string
+  title: string
+  fnsku: string
+  fulfillment_center: string
+  quantity: number
+  reserved: number
+  inbound: number
+  unfulfillable: number
+  storage_type: 'standard' | 'oversize'
+  age_days: number
+  last_updated: string
+}
+
+export interface AmazonSalesMonth {
+  month: string
+  revenue: number
+  units: number
+  orders: number
+}
+
+export const mockAmazonProducts: AmazonProduct[] = [
+  { id:'1', asin:'B08XYZ1001', sku:'KAP-TAL-003-FBA', title:'Taladro Percutor Inalámbrico 20V 2 Baterías', price:89.99,  fulfillment_channel:'FBA', quantity:145, fba_quantity:145, reserved_quantity:12, inbound_quantity:50,  condition:'new', status:'active', sales_rank:1247,  last_sale:'2026-05-10T12:30:00Z', fees:{ referral:13.50, fba:5.23, storage:0.85 }, profit_margin:42.5 },
+  { id:'2', asin:'B09ABC2002', sku:'KAP-COM-007-FBA', title:'Compresor Aire Portátil 6 Galones 150 PSI',   price:149.99, fulfillment_channel:'FBA', quantity:34,  fba_quantity:34,  reserved_quantity:3,  inbound_quantity:25,  condition:'new', status:'active', sales_rank:3421,  last_sale:'2026-05-09T18:45:00Z', fees:{ referral:22.50, fba:8.47, storage:2.15 }, profit_margin:38.2 },
+  { id:'3', asin:'B07DEF3003', sku:'KAP-KIT-105-FBM', title:'Kit Herramientas Profesional 128 Piezas',     price:65.99,  fulfillment_channel:'FBM', quantity:87,  fba_quantity:0,   reserved_quantity:0,  inbound_quantity:0,   condition:'new', status:'active', sales_rank:892,   last_sale:'2026-05-10T08:15:00Z', fees:{ referral:9.90,  fba:0,    storage:0    }, profit_margin:55.8 },
+  { id:'4', asin:'B06GHI4004', sku:'KAP-SIE-210-FBA', title:'Sierra Circular 7-1/4" 15 Amp con Guía Láser', price:119.99, fulfillment_channel:'FBA', quantity:8,   fba_quantity:8,   reserved_quantity:1,  inbound_quantity:40,  condition:'new', status:'active', sales_rank:5678,  last_sale:'2026-05-08T14:20:00Z', fees:{ referral:18.00, fba:6.95, storage:1.45 }, profit_margin:35.7 },
+  { id:'5', asin:'B08JKL5005', sku:'KAP-LIJ-450-FBA', title:'Lijadora Orbital Eléctrica 2.4A 14000 OPM',   price:45.99,  fulfillment_channel:'FBA', quantity:0,   fba_quantity:0,   reserved_quantity:0,  inbound_quantity:75,  condition:'new', status:'active', sales_rank:2156,  last_sale:'2026-05-07T10:30:00Z', fees:{ referral:6.90,  fba:4.12, storage:0.65 }, profit_margin:48.3 },
+  { id:'6', asin:'B05MNO6006', sku:'KAP-TAL-001-FBA', title:'Taladro Inalámbrico 12V con Maletín',         price:69.99,  fulfillment_channel:'FBA', quantity:23,  fba_quantity:23,  reserved_quantity:2,  inbound_quantity:0,   condition:'new', status:'active', sales_rank:4102,  last_sale:'2026-05-10T06:50:00Z', fees:{ referral:10.50, fba:4.95, storage:0.72 }, profit_margin:44.1 },
+  { id:'7', asin:'B04PQR7007', sku:'KAP-NIV-004-FBM', title:'Nivel Láser 360° Automático Autonivelante',   price:129.99, fulfillment_channel:'FBM', quantity:31,  fba_quantity:0,   reserved_quantity:0,  inbound_quantity:0,   condition:'new', status:'active', sales_rank:1893,  last_sale:'2026-05-09T15:10:00Z', fees:{ referral:19.50, fba:0,    storage:0    }, profit_margin:51.2 },
+  { id:'8', asin:'B03STU8008', sku:'KAP-BRO-029-FBM', title:'Set Brocas Multicombinación 29 Piezas HSS',   price:34.99,  fulfillment_channel:'FBM', quantity:156, fba_quantity:0,   reserved_quantity:0,  inbound_quantity:0,   condition:'new', status:'active', sales_rank:634,   last_sale:'2026-05-10T14:05:00Z', fees:{ referral:5.25,  fba:0,    storage:0    }, profit_margin:62.4 },
+]
+
+export const mockFBAShipments: FBAShipment[] = [
+  {
+    id:'1', shipment_id:'FBA17XYZ1234', name:'Restock Mayo — Herramientas Eléctricas',
+    destination_fc:'PHX7 · Phoenix, AZ', status:'in_transit',
+    created_date:'2026-05-05T10:00:00Z', ship_date:'2026-05-07T14:30:00Z',
+    items:[
+      { sku:'KAP-TAL-003-FBA', title:'Taladro Percutor 20V', quantity_shipped:50, quantity_received:0 },
+      { sku:'KAP-COM-007-FBA', title:'Compresor 6 Galones',   quantity_shipped:25, quantity_received:0 },
+    ],
+    total_units:75, tracking_number:'1Z9999W99999999999',
+  },
+  {
+    id:'2', shipment_id:'FBA17ABC5678', name:'Restock Abril — Lijadoras',
+    destination_fc:'ONT8 · San Bernardino, CA', status:'receiving',
+    created_date:'2026-04-28T09:00:00Z', ship_date:'2026-04-30T11:15:00Z',
+    items:[
+      { sku:'KAP-LIJ-450-FBA', title:'Lijadora Orbital 2.4A', quantity_shipped:75, quantity_received:68 },
+    ],
+    total_units:75, tracking_number:'7489348923742874',
+  },
+  {
+    id:'3', shipment_id:'FBA17DEF9012', name:'Restock Mayo — Sierras',
+    destination_fc:'DFW6 · Fort Worth, TX', status:'working',
+    created_date:'2026-05-09T15:30:00Z', ship_date:null,
+    items:[
+      { sku:'KAP-SIE-210-FBA', title:'Sierra Circular 7-1/4"', quantity_shipped:40, quantity_received:0 },
+    ],
+    total_units:40, tracking_number:null,
+  },
+  {
+    id:'4', shipment_id:'FBA17GHI3456', name:'Restock Mayo 2 — Taladros 12V',
+    destination_fc:'PHX7 · Phoenix, AZ', status:'shipped',
+    created_date:'2026-05-08T08:00:00Z', ship_date:'2026-05-09T16:45:00Z',
+    items:[
+      { sku:'KAP-TAL-001-FBA', title:'Taladro Inalámbrico 12V', quantity_shipped:30, quantity_received:0 },
+    ],
+    total_units:30, tracking_number:'9400111899227457272890',
+  },
+  {
+    id:'5', shipment_id:'FBA17JKL7890', name:'Restock Marzo — Cerrado',
+    destination_fc:'PHX7 · Phoenix, AZ', status:'closed',
+    created_date:'2026-03-15T10:00:00Z', ship_date:'2026-03-17T09:30:00Z',
+    items:[
+      { sku:'KAP-TAL-003-FBA', title:'Taladro Percutor 20V', quantity_shipped:60, quantity_received:60 },
+      { sku:'KAP-COM-007-FBA', title:'Compresor 6 Galones',   quantity_shipped:20, quantity_received:20 },
+    ],
+    total_units:80, tracking_number:'1Z9888W88888888888',
+  },
+]
+
+export const mockAmazonInventory: AmazonInventoryItem[] = [
+  { sku:'KAP-TAL-003-FBA', asin:'B08XYZ1001', title:'Taladro Percutor Inalámbrico 20V', fnsku:'X001ABCDEF', fulfillment_center:'PHX7', quantity:145, reserved:12, inbound:50,  unfulfillable:2,  storage_type:'standard', age_days:45,  last_updated:'2026-05-10T14:00:00Z' },
+  { sku:'KAP-COM-007-FBA', asin:'B09ABC2002', title:'Compresor Aire 6 Galones 150 PSI', fnsku:'X002GHIJKL', fulfillment_center:'PHX7', quantity:34,  reserved:3,  inbound:25,  unfulfillable:1,  storage_type:'oversize', age_days:67,  last_updated:'2026-05-10T13:45:00Z' },
+  { sku:'KAP-SIE-210-FBA', asin:'B06GHI4004', title:'Sierra Circular 7-1/4" 15 Amp',   fnsku:'X003MNOPQR', fulfillment_center:'DFW6', quantity:8,   reserved:1,  inbound:40,  unfulfillable:0,  storage_type:'standard', age_days:23,  last_updated:'2026-05-10T13:30:00Z' },
+  { sku:'KAP-LIJ-450-FBA', asin:'B08JKL5005', title:'Lijadora Orbital 2.4A 14000 OPM', fnsku:'X004STUVWX', fulfillment_center:'ONT8', quantity:0,   reserved:0,  inbound:68,  unfulfillable:7,  storage_type:'standard', age_days:34,  last_updated:'2026-05-10T13:00:00Z' },
+  { sku:'KAP-TAL-001-FBA', asin:'B05MNO6006', title:'Taladro Inalámbrico 12V Maletín',  fnsku:'X005YZABCD', fulfillment_center:'PHX7', quantity:23,  reserved:2,  inbound:30,  unfulfillable:0,  storage_type:'standard', age_days:89,  last_updated:'2026-05-10T12:00:00Z' },
+  { sku:'KAP-SIE-210-OLD', asin:'B06GHI4004', title:'Sierra Circular 7-1/4" (Lote Mar)', fnsku:'X006EFGHIJ', fulfillment_center:'DFW6', quantity:4,   reserved:0,  inbound:0,   unfulfillable:2,  storage_type:'standard', age_days:245, last_updated:'2026-05-10T11:00:00Z' },
+]
+
+export const mockAmazonSales: AmazonSalesMonth[] = [
+  { month:'Nov 2025', revenue:41200, units:312, orders:278 },
+  { month:'Dic 2025', revenue:58900, units:445, orders:401 },
+  { month:'Ene 2026', revenue:38750, units:294, orders:262 },
+  { month:'Feb 2026', revenue:44100, units:334, orders:301 },
+  { month:'Mar 2026', revenue:52300, units:396, orders:355 },
+  { month:'Abr 2026', revenue:61480, units:466, orders:419 },
+  { month:'May 2026', revenue:67543, units:511, orders:461 },
+]
+
+export const mockAmazonStats = {
+  total_products: 52,
+  fba_products: 38,
+  fbm_products: 14,
+  active_listings: 47,
+  total_inventory_value: 145678,
+  fba_inventory_units: 214,
+  monthly_revenue: 67543,
+  avg_profit_margin: 47.1,
+  pending_shipments: 4,
+  low_stock_alerts: 3,
+  units_sold_month: 511,
+  best_seller_rank: 634,
+}
