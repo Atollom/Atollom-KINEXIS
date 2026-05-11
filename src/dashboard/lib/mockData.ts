@@ -553,3 +553,175 @@ export const mockInboxStats = {
   resolution_rate: 89,
   satisfaction_score: 4.7,
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MERCADO LIBRE
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface MLProduct {
+  id: string
+  sku: string
+  ml_id: string
+  title: string
+  category: string
+  price: number
+  available_quantity: number
+  sold_quantity: number
+  status: 'active' | 'paused' | 'closed'
+  listing_type: 'gold_special' | 'gold_pro' | 'free'
+  condition: 'new' | 'used'
+  permalink: string
+  last_sync: string
+}
+
+export interface MLOrderItem {
+  id: string
+  title: string
+  sku: string
+  quantity: number
+  unit_price: number
+}
+
+export interface MLOrder {
+  id: string
+  order_id: string
+  date_created: string
+  status: 'confirmed' | 'payment_required' | 'paid' | 'shipped' | 'delivered' | 'cancelled'
+  buyer_nickname: string
+  buyer_phone: string
+  items: MLOrderItem[]
+  total_amount: number
+  shipping_type: 'mercado_envios' | 'self_service'
+  shipping_status: 'pending' | 'handling' | 'ready_to_ship' | 'shipped' | 'delivered'
+  tracking_number: string | null
+  payment_type: string
+  payment_status: 'pending' | 'approved' | 'rejected'
+}
+
+export interface MLQuestion {
+  id: string
+  question: string
+  answer?: string
+  status: 'unanswered' | 'answered'
+  date_created: string
+  item_id: string
+  item_title: string
+  item_sku: string
+  from_nickname: string
+}
+
+export const mockMLProducts: MLProduct[] = [
+  { id:'1',  sku:'TAL-003', ml_id:'MLM-2001345', title:'Taladro Percutor 850W Profesional', category:'Taladros',          price:1540,  available_quantity:8,  sold_quantity:234, status:'active', listing_type:'gold_special', condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001345', last_sync:'2026-05-10T14:30:00Z' },
+  { id:'2',  sku:'TAL-001', ml_id:'MLM-2001346', title:'Taladro Inalámbrico 20V 2 Baterías', category:'Taladros',         price:2890,  available_quantity:14, sold_quantity:156, status:'active', listing_type:'gold_special', condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001346', last_sync:'2026-05-10T14:25:00Z' },
+  { id:'3',  sku:'KAP-007', ml_id:'MLM-2001347', title:'Compresor de Aire 25L 2HP',         category:'Compresores',       price:3299,  available_quantity:45, sold_quantity:89,  status:'active', listing_type:'gold_pro',   condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001347', last_sync:'2026-05-10T14:20:00Z' },
+  { id:'4',  sku:'KAP-011', ml_id:'MLM-2001348', title:'Llave de Impacto Neumática 1/2"',   category:'Neumática',         price:1180,  available_quantity:22, sold_quantity:145, status:'active', listing_type:'gold_special', condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001348', last_sync:'2026-05-10T14:15:00Z' },
+  { id:'5',  sku:'BRO-002', ml_id:'MLM-2001349', title:'Set Brocas Multicombinación 29 pzs',category:'Accesorios',        price:420,   available_quantity:62, sold_quantity:347, status:'active', listing_type:'free',        condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001349', last_sync:'2026-05-10T14:10:00Z' },
+  { id:'6',  sku:'BRO-015', ml_id:'MLM-2001350', title:'Broca Diamantada p/Concreto 100mm', category:'Accesorios',        price:340,   available_quantity:9,  sold_quantity:42,  status:'active', listing_type:'free',        condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001350', last_sync:'2026-05-10T14:05:00Z' },
+  { id:'7',  sku:'NIV-004', ml_id:'MLM-2001351', title:'Nivel Láser 360° Automático Verde',  category:'Medición',         price:1890,  available_quantity:17, sold_quantity:56,  status:'active', listing_type:'gold_pro',   condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001351', last_sync:'2026-05-10T14:00:00Z' },
+  { id:'8',  sku:'TAL-008', ml_id:'MLM-2001352', title:'Taladro de Columna Bancada 350W',   category:'Taladros',          price:5400,  available_quantity:3,  sold_quantity:28,  status:'active', listing_type:'gold_pro',   condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001352', last_sync:'2026-05-10T13:50:00Z' },
+  { id:'9',  sku:'CAL-001', ml_id:'MLM-2001353', title:'Calibrador Vernier Digital 0-150mm', category:'Medición',         price:299,   available_quantity:88, sold_quantity:234, status:'active', listing_type:'free',        condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001353', last_sync:'2026-05-10T13:45:00Z' },
+  { id:'10', sku:'ARN-002', ml_id:'MLM-2001354', title:'Arnés de Seguridad Industrial 3 Pts',category:'EPP',              price:680,   available_quantity:31, sold_quantity:67,  status:'active', listing_type:'free',        condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001354', last_sync:'2026-05-10T13:40:00Z' },
+  { id:'11', sku:'SIE-002', ml_id:'MLM-2001355', title:'Sierra Circular 1400W + Guía',       category:'Corte',            price:1899,  available_quantity:0,  sold_quantity:78,  status:'paused', listing_type:'gold_special', condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001355', last_sync:'2026-05-09T10:00:00Z' },
+  { id:'12', sku:'TAL-010', ml_id:'MLM-2001356', title:'Taladro SDS Plus 800W Martillo',     category:'Taladros',         price:2450,  available_quantity:11, sold_quantity:91,  status:'active', listing_type:'gold_special', condition:'new', permalink:'https://articulo.mercadolibre.com.mx/MLM-2001356', last_sync:'2026-05-10T13:35:00Z' },
+]
+
+export const mockMLOrders: MLOrder[] = [
+  {
+    id:'1', order_id:'2026-0841', date_created:'2026-05-10T09:30:00Z',
+    status:'paid', buyer_nickname:'CONSTRUCTOR_PRO', buyer_phone:'+52 222 555 1234',
+    items:[{ id:'i1', title:'Taladro Percutor 850W', sku:'TAL-003', quantity:2, unit_price:1540 }],
+    total_amount:3080, shipping_type:'mercado_envios', shipping_status:'ready_to_ship',
+    tracking_number:null, payment_type:'credit_card', payment_status:'approved',
+  },
+  {
+    id:'2', order_id:'2026-0840', date_created:'2026-05-10T11:15:00Z',
+    status:'paid', buyer_nickname:'FERRETERIA_MODERNA', buyer_phone:'+52 222 555 5678',
+    items:[{ id:'i2', title:'Compresor de Aire 25L', sku:'KAP-007', quantity:1, unit_price:3299 }],
+    total_amount:3299, shipping_type:'mercado_envios', shipping_status:'ready_to_ship',
+    tracking_number:null, payment_type:'mercadopago', payment_status:'approved',
+  },
+  {
+    id:'3', order_id:'2026-0839', date_created:'2026-05-09T14:20:00Z',
+    status:'shipped', buyer_nickname:'TALLER_EL_MAESTRO', buyer_phone:'+52 222 555 9012',
+    items:[{ id:'i3', title:'Llave de Impacto Neumática', sku:'KAP-011', quantity:2, unit_price:1180 }],
+    total_amount:2360, shipping_type:'mercado_envios', shipping_status:'shipped',
+    tracking_number:'SK-9182736', payment_type:'credit_card', payment_status:'approved',
+  },
+  {
+    id:'4', order_id:'2026-0838', date_created:'2026-05-09T10:05:00Z',
+    status:'delivered', buyer_nickname:'CONSTRUCTORA_ABC', buyer_phone:'+52 222 555 3456',
+    items:[
+      { id:'i4a', title:'Taladro Inalámbrico 20V', sku:'TAL-001', quantity:1, unit_price:2890 },
+      { id:'i4b', title:'Set Brocas 29 pzs', sku:'BRO-002', quantity:2, unit_price:420 },
+    ],
+    total_amount:3730, shipping_type:'mercado_envios', shipping_status:'delivered',
+    tracking_number:'SK-9182701', payment_type:'mercadopago', payment_status:'approved',
+  },
+  {
+    id:'5', order_id:'2026-0837', date_created:'2026-05-08T16:40:00Z',
+    status:'delivered', buyer_nickname:'OBRA_NORTE_MX', buyer_phone:'+52 222 555 7890',
+    items:[{ id:'i5', title:'Arnés de Seguridad', sku:'ARN-002', quantity:5, unit_price:680 }],
+    total_amount:3400, shipping_type:'self_service', shipping_status:'delivered',
+    tracking_number:'SK-9182644', payment_type:'credit_card', payment_status:'approved',
+  },
+  {
+    id:'6', order_id:'2026-0836', date_created:'2026-05-08T09:15:00Z',
+    status:'shipped', buyer_nickname:'BODEGA_CENTRAL', buyer_phone:'+52 222 555 2345',
+    items:[{ id:'i6', title:'Nivel Láser 360°', sku:'NIV-004', quantity:1, unit_price:1890 }],
+    total_amount:1890, shipping_type:'mercado_envios', shipping_status:'shipped',
+    tracking_number:'SK-9182598', payment_type:'mercadopago', payment_status:'approved',
+  },
+  {
+    id:'7', order_id:'2026-0835', date_created:'2026-05-07T13:50:00Z',
+    status:'confirmed', buyer_nickname:'DISTRIBUIDOR_PUEBLA', buyer_phone:'+52 222 555 6789',
+    items:[{ id:'i7', title:'Taladro de Columna 350W', sku:'TAL-008', quantity:1, unit_price:5400 }],
+    total_amount:5400, shipping_type:'mercado_envios', shipping_status:'handling',
+    tracking_number:null, payment_type:'transfer', payment_status:'approved',
+  },
+  {
+    id:'8', order_id:'2026-0834', date_created:'2026-05-07T08:30:00Z',
+    status:'cancelled', buyer_nickname:'COMPRADOR_ANON', buyer_phone:'+52 222 555 0001',
+    items:[{ id:'i8', title:'Sierra Circular 1400W', sku:'SIE-002', quantity:1, unit_price:1899 }],
+    total_amount:1899, shipping_type:'mercado_envios', shipping_status:'pending',
+    tracking_number:null, payment_type:'credit_card', payment_status:'rejected',
+  },
+  {
+    id:'9', order_id:'2026-0833', date_created:'2026-05-06T15:20:00Z',
+    status:'delivered', buyer_nickname:'TALLER_MECANICO_MX', buyer_phone:'+52 222 555 4567',
+    items:[{ id:'i9', title:'Taladro Percutor 850W', sku:'TAL-003', quantity:3, unit_price:1540 }],
+    total_amount:4620, shipping_type:'mercado_envios', shipping_status:'delivered',
+    tracking_number:'SK-9182511', payment_type:'mercadopago', payment_status:'approved',
+  },
+  {
+    id:'10', order_id:'2026-0832', date_created:'2026-05-06T10:05:00Z',
+    status:'paid', buyer_nickname:'EMPRESA_SA_DE_CV', buyer_phone:'+52 222 555 8901',
+    items:[
+      { id:'i10a', title:'Calibrador Vernier Digital', sku:'CAL-001', quantity:3, unit_price:299 },
+      { id:'i10b', title:'Broca Diamantada 100mm', sku:'BRO-015', quantity:2, unit_price:340 },
+    ],
+    total_amount:1577, shipping_type:'self_service', shipping_status:'ready_to_ship',
+    tracking_number:null, payment_type:'credit_card', payment_status:'approved',
+  },
+]
+
+export const mockMLQuestions: MLQuestion[] = [
+  { id:'1', question:'¿El compresor incluye manguera y pistola de inflado?', status:'unanswered', date_created:'2026-05-10T14:10:00Z', item_id:'MLM-2001347', item_title:'Compresor de Aire 25L 2HP', item_sku:'KAP-007', from_nickname:'TALLER_MECANICO' },
+  { id:'2', question:'¿Hacen factura? Somos empresa, necesitamos CFDI.', status:'unanswered', date_created:'2026-05-10T13:45:00Z', item_id:'MLM-2001345', item_title:'Taladro Percutor 850W', item_sku:'TAL-003', from_nickname:'EMPRESA_SA' },
+  { id:'3', question:'¿Tienen el taladro en color azul o solo viene en negro?', status:'unanswered', date_created:'2026-05-10T12:30:00Z', item_id:'MLM-2001345', item_title:'Taladro Percutor 850W', item_sku:'TAL-003', from_nickname:'COMPRADOR123' },
+  { id:'4', question:'¿El nivel láser funciona en exteriores con luz solar directa?', answer:'Hola! El nivel láser tiene modo pulso para exteriores. Con su detector incluido funciona perfecto bajo luz solar. ¡Saludos!', status:'answered', date_created:'2026-05-10T09:20:00Z', item_id:'MLM-2001351', item_title:'Nivel Láser 360° Automático', item_sku:'NIV-004', from_nickname:'CONSTRUCTOR_GDLX' },
+  { id:'5', question:'¿Cuánto tiempo de garantía tiene el taladro inalámbrico?', answer:'Hola! El taladro inalámbrico tiene 1 año de garantía de fábrica. Nosotros somos distribuidores autorizados. Cualquier falla la atendemos de inmediato. ¡Saludos!', status:'answered', date_created:'2026-05-09T16:40:00Z', item_id:'MLM-2001346', item_title:'Taladro Inalámbrico 20V', item_sku:'TAL-001', from_nickname:'FERRETERIA_NORTE' },
+  { id:'6', question:'¿El arnés cumple con la norma NOM-009-STPS?', answer:'Sí, nuestro arnés cumple con NOM-009-STPS-2011 y está certificado. Incluye etiqueta de certificación. Podemos enviarte ficha técnica por correo. ¡Saludos!', status:'answered', date_created:'2026-05-09T11:15:00Z', item_id:'MLM-2001354', item_title:'Arnés de Seguridad Industrial', item_sku:'ARN-002', from_nickname:'SEGURIDAD_INDUSTRIAL_MX' },
+  { id:'7', question:'¿Hacen envíos a Cancún? ¿Cuánto tarda?', answer:'Hola! Sí enviamos a Cancún por Mercado Envíos. El tiempo es 3-5 días hábiles con guía incluida en el precio. ¡Saludos!', status:'answered', date_created:'2026-05-08T14:30:00Z', item_id:'MLM-2001347', item_title:'Compresor de Aire 25L', item_sku:'KAP-007', from_nickname:'TECNICO_CANCUN' },
+  { id:'8', question:'¿El set de brocas incluye brocas para vidrio y cerámica?', answer:'Hola! El set incluye brocas para metal, madera y concreto. Para vidrio y cerámica tenemos otro set especializado (SKU VID-001). ¡Saludos!', status:'answered', date_created:'2026-05-08T10:05:00Z', item_id:'MLM-2001349', item_title:'Set Brocas Multicombinación 29 pzs', item_sku:'BRO-002', from_nickname:'PLOMERO_REGIO' },
+]
+
+export const mockMLStats = {
+  total_products: 47,
+  active_products: 42,
+  paused_products: 5,
+  total_sales_month: 94250,
+  orders_this_month: 38,
+  ready_to_ship: 3,
+  unanswered_questions: 3,
+  avg_response_time_hrs: 3.2,
+}

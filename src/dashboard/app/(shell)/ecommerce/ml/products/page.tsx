@@ -2,129 +2,69 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/ToastProvider";
+import { mockMLProducts, mockMLStats } from "@/lib/mockData";
+import type { MLProduct } from "@/lib/mockData";
 
-export const metadata = undefined; // client component — metadata set via head.tsx if needed
+const LOW_STOCK_THRESHOLD = 10;
 
-const PRODUCTS = [
-  {
-    sku: "TAL-003",
-    name: "Taladro Percutor 850W",
-    category: "Taladros",
-    price: 1_540,
-    stock: 8,
-    sold: 47,
-    status: "bajo_stock" as const,
-    mlId: "MLM-001",
-  },
-  {
-    sku: "KAP-007",
-    name: "Set Brocas Multi-Propósito 29 pzs",
-    category: "Accesorios",
-    price: 420,
-    stock: 62,
-    sold: 134,
-    status: "activa" as const,
-    mlId: "MLM-002",
-  },
-  {
-    sku: "TAL-001",
-    name: "Taladro Inalámbrico 20V",
-    category: "Taladros",
-    price: 2_890,
-    stock: 14,
-    sold: 28,
-    status: "activa" as const,
-    mlId: "MLM-003",
-  },
-  {
-    sku: "BRO-002",
-    name: "Brocas para Concreto 13mm",
-    category: "Accesorios",
-    price: 95,
-    stock: 0,
-    sold: 89,
-    status: "pausada" as const,
-    mlId: "MLM-004",
-  },
-  {
-    sku: "ARN-002",
-    name: "Arnés de Seguridad Industrial",
-    category: "EPP",
-    price: 680,
-    stock: 31,
-    sold: 19,
-    status: "activa" as const,
-    mlId: "MLM-005",
-  },
-  {
-    sku: "TAL-008",
-    name: "Taladro de Columna Bancada",
-    category: "Taladros",
-    price: 5_400,
-    stock: 3,
-    sold: 7,
-    status: "bajo_stock" as const,
-    mlId: "MLM-006",
-  },
-  {
-    sku: "KAP-011",
-    name: "Llave de Impacto Neumática",
-    category: "Herramienta Neumática",
-    price: 1_180,
-    stock: 22,
-    sold: 55,
-    status: "activa" as const,
-    mlId: "MLM-007",
-  },
-  {
-    sku: "BRO-015",
-    name: "Broca Diamantada 100mm",
-    category: "Accesorios",
-    price: 340,
-    stock: 9,
-    sold: 12,
-    status: "activa" as const,
-    mlId: "MLM-008",
-  },
-];
+type FilterKey = "all" | "active" | "paused" | "low_stock";
+
+function getDisplayStatus(p: MLProduct): "active" | "low_stock" | "paused" {
+  if (p.status === "paused" || p.status === "closed") return "paused";
+  if (p.available_quantity <= LOW_STOCK_THRESHOLD) return "low_stock";
+  return "active";
+}
 
 const STATUS_CFG = {
-  activa:     { label: "Activa",      color: "text-[#CCFF00]", bg: "bg-[#CCFF00]/10",  icon: "check_circle" },
-  bajo_stock: { label: "Bajo Stock",  color: "text-amber-400", bg: "bg-amber-400/10",  icon: "warning" },
-  pausada:    { label: "Pausada",     color: "text-red-400",   bg: "bg-red-400/10",    icon: "pause_circle" },
+  active:    { label: "Activa",      color: "text-[#CCFF00]", bg: "bg-[#CCFF00]/10",  icon: "check_circle" },
+  low_stock: { label: "Bajo Stock",  color: "text-amber-400", bg: "bg-amber-400/10",  icon: "warning" },
+  paused:    { label: "Pausada",     color: "text-red-400",   bg: "bg-red-400/10",    icon: "pause_circle" },
+} as const;
+
+const LISTING_CFG = {
+  gold_special: { label: "Premium",  color: "text-yellow-400", bg: "bg-yellow-400/10" },
+  gold_pro:     { label: "Pro",       color: "text-blue-400",   bg: "bg-blue-400/10"   },
+  free:         { label: "Gratis",    color: "text-white/40",   bg: "bg-white/5"        },
+} as const;
+
+const CAT_ICON: Record<string, string> = {
+  Taladros: "hardware", Compresores: "air", Neumática: "settings", Accesorios: "build",
+  Medición: "straighten", EPP: "safety_check", Corte: "content_cut",
 };
 
 export default function MLProductsPage() {
   const { showToast } = useToast();
-  const [filter, setFilter] = useState<"all" | "activa" | "bajo_stock" | "pausada">("all");
+  const [filter, setFilter] = useState<FilterKey>("all");
   const [editingPrice, setEditingPrice] = useState<string | null>(null);
   const [prices, setPrices] = useState<Record<string, number>>(
-    Object.fromEntries(PRODUCTS.map(p => [p.sku, p.price]))
+    Object.fromEntries(mockMLProducts.map(p => [p.id, p.price]))
   );
-  const [draft, setDraft] = useState<string>("");
+  const [draft, setDraft] = useState("");
 
-  const filtered = filter === "all" ? PRODUCTS : PRODUCTS.filter(p => p.status === filter);
+  const withStatus = mockMLProducts.map(p => ({ ...p, displayStatus: getDisplayStatus(p) }));
 
-  function startEdit(sku: string) {
-    setEditingPrice(sku);
-    setDraft(String(prices[sku]));
-  }
+  const filtered = filter === "all"
+    ? withStatus
+    : filter === "active"   ? withStatus.filter(p => p.displayStatus === "active")
+    : filter === "paused"   ? withStatus.filter(p => p.displayStatus === "paused")
+    :                         withStatus.filter(p => p.displayStatus === "low_stock");
 
-  function commitEdit(sku: string) {
+  const counts = {
+    all:       withStatus.length,
+    active:    withStatus.filter(p => p.displayStatus === "active").length,
+    paused:    withStatus.filter(p => p.displayStatus === "paused").length,
+    low_stock: withStatus.filter(p => p.displayStatus === "low_stock").length,
+  };
+
+  function startEdit(id: string) { setEditingPrice(id); setDraft(String(prices[id])); }
+  function commitEdit(id: string, name: string) {
     const n = Number(draft);
     if (!isNaN(n) && n > 0) {
-      setPrices(p => ({ ...p, [sku]: n }));
-      showToast({ type: "success", title: "Precio Actualizado", message: `${sku}: $${n.toLocaleString()} MXN` });
+      setPrices(prev => ({ ...prev, [id]: n }));
+      showToast({ type: "success", title: "Precio actualizado", message: `${name}: $${n.toLocaleString()} MXN → ML API` });
     }
     setEditingPrice(null);
   }
-
-  const counts = {
-    all: PRODUCTS.length,
-    activa: PRODUCTS.filter(p => p.status === "activa").length,
-    bajo_stock: PRODUCTS.filter(p => p.status === "bajo_stock").length,
-    pausada: PRODUCTS.filter(p => p.status === "pausada").length,
-  };
 
   return (
     <div className="space-y-10 animate-in">
@@ -138,10 +78,9 @@ export default function MLProductsPage() {
             Catálogo ML
           </h1>
           <p className="text-sm text-on-surface-variant">
-            {PRODUCTS.length} publicaciones · Kap Tools
+            {mockMLStats.total_products} publicaciones · Kap Tools
           </p>
         </div>
-
         <button
           onClick={() => showToast({ type: "info", title: "Sincronizando", message: "Actualizando catálogo desde ML API..." })}
           className="px-8 py-4 glass-card border-white/5 rounded-2xl text-[10px] font-black label-tracking text-on-surface-variant hover:text-on-surface hover:border-primary/20 transition-all flex items-center gap-2 self-start md:self-auto"
@@ -151,97 +90,125 @@ export default function MLProductsPage() {
         </button>
       </header>
 
+      {/* KPI strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "Total Productos", value: mockMLStats.total_products, icon: "inventory_2",     color: "text-on-surface" },
+          { label: "Activos",          value: mockMLStats.active_products, icon: "check_circle",   color: "text-[#CCFF00]"  },
+          { label: "Bajo Stock",        value: counts.low_stock,            icon: "warning",         color: "text-amber-400"  },
+          { label: "Ventas del Mes",    value: `$${(mockMLStats.total_sales_month/1000).toFixed(0)}k`, icon: "trending_up", color: "text-blue-400" },
+        ].map(kpi => (
+          <div key={kpi.label} className="glass-card rounded-[1.5rem] border border-white/5 p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <span className={`material-symbols-outlined !text-[20px] ${kpi.color}`}>{kpi.icon}</span>
+              <span className="text-[9px] font-black label-tracking text-on-surface/40 uppercase">{kpi.label}</span>
+            </div>
+            <p className="text-3xl font-black tight-tracking text-on-surface">{kpi.value}</p>
+          </div>
+        ))}
+      </div>
+
       {/* Filters */}
       <div className="flex gap-2 flex-wrap">
-        {(["all", "activa", "bajo_stock", "pausada"] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
+        {(["all", "active", "low_stock", "paused"] as FilterKey[]).map(f => (
+          <button key={f} onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-xl text-[10px] font-black label-tracking transition-all ${
-              filter === f
-                ? "bg-primary text-black"
-                : "glass-card border border-white/5 text-on-surface-variant hover:border-primary/20"
+              filter === f ? "bg-primary text-black" : "glass-card border border-white/5 text-on-surface-variant hover:border-primary/20"
             }`}
           >
-            {f === "all" ? "TODOS" : STATUS_CFG[f].label.toUpperCase()} ({counts[f]})
+            {f === "all" ? "TODOS" : f === "active" ? "ACTIVOS" : f === "low_stock" ? "BAJO STOCK" : "PAUSADOS"}{" "}
+            ({counts[f]})
           </button>
         ))}
       </div>
 
       {/* Table */}
       <div className="glass-card rounded-[2rem] border border-white/5 overflow-hidden">
-        {/* Table header */}
-        <div className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-8 py-4 border-b border-white/5">
-          {["SKU", "Producto", "Categoría", "Precio MXN", "Stock", "Ventas/mes", "Estado"].map(h => (
-            <span key={h} className="text-[9px] font-black label-tracking text-on-surface/30 uppercase">{h}</span>
+        <div className="grid grid-cols-[1.5fr_2.5fr_1.2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-8 py-4 border-b border-white/5">
+          {["SKU / ML ID", "Producto", "Categoría", "Tipo", "Precio MXN", "Stock", "Vendidos", ""].map((h, i) => (
+            <span key={i} className="text-[9px] font-black label-tracking text-on-surface/30 uppercase">{h}</span>
           ))}
         </div>
 
         <div className="divide-y divide-white/5">
           {filtered.map(product => {
-            const cfg = STATUS_CFG[product.status];
-            const isEditing = editingPrice === product.sku;
+            const sCfg  = STATUS_CFG[product.displayStatus];
+            const lCfg  = LISTING_CFG[product.listing_type];
+            const isEd  = editingPrice === product.id;
+            const icon  = CAT_ICON[product.category] ?? "build";
             return (
-              <div
-                key={product.sku}
-                className="grid grid-cols-[2fr_2fr_1fr_1fr_1fr_1fr_1fr] gap-4 items-center px-8 py-5 hover:bg-white/[0.02] transition-colors group"
+              <div key={product.id}
+                className="grid grid-cols-[1.5fr_2.5fr_1.2fr_1fr_1fr_1fr_1fr_auto] gap-4 items-center px-8 py-5 hover:bg-white/[0.02] transition-colors group"
               >
-                {/* SKU */}
-                <span className="text-xs font-black text-primary tight-tracking">{product.sku}</span>
+                {/* SKU / ML ID */}
+                <div>
+                  <p className="text-[10px] font-black text-primary">{product.sku}</p>
+                  <p className="text-[9px] text-on-surface/30 font-mono">{product.ml_id}</p>
+                </div>
 
-                {/* Product name */}
+                {/* Title */}
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined !text-[14px] text-on-surface/40">
-                      {product.category === "Taladros" ? "hardware" : product.category === "EPP" ? "safety_check" : "build"}
-                    </span>
+                    <span className="material-symbols-outlined !text-[14px] text-on-surface/40">{icon}</span>
                   </div>
-                  <span className="text-xs font-bold text-on-surface truncate">{product.name}</span>
+                  <span className="text-xs font-bold text-on-surface truncate">{product.title}</span>
                 </div>
 
                 {/* Category */}
-                <span className="text-[10px] font-medium text-on-surface-variant">{product.category}</span>
+                <span className="text-[10px] text-on-surface-variant">{product.category}</span>
+
+                {/* Listing type */}
+                <span className={`inline-flex px-2 py-1 rounded-full text-[9px] font-black label-tracking w-fit ${lCfg.color} ${lCfg.bg}`}>
+                  {lCfg.label.toUpperCase()}
+                </span>
 
                 {/* Price — editable */}
                 <div>
-                  {isEditing ? (
-                    <input
-                      autoFocus
-                      type="number"
-                      value={draft}
+                  {isEd ? (
+                    <input autoFocus type="number" value={draft}
                       onChange={e => setDraft(e.target.value)}
-                      onBlur={() => commitEdit(product.sku)}
-                      onKeyDown={e => { if (e.key === "Enter") commitEdit(product.sku); if (e.key === "Escape") setEditingPrice(null); }}
+                      onBlur={() => commitEdit(product.id, product.title)}
+                      onKeyDown={e => { if (e.key === "Enter") commitEdit(product.id, product.title); if (e.key === "Escape") setEditingPrice(null); }}
                       className="w-24 bg-white/10 border border-primary/60 rounded-lg px-2 py-1 text-xs font-black text-on-surface outline-none"
                     />
                   ) : (
-                    <button
-                      onClick={() => startEdit(product.sku)}
+                    <button onClick={() => startEdit(product.id)}
                       className="text-xs font-black text-on-surface hover:text-primary transition-colors flex items-center gap-1 group/price"
                       title="Click para editar"
                     >
-                      ${prices[product.sku].toLocaleString()}
+                      ${prices[product.id].toLocaleString()}
                       <span className="material-symbols-outlined !text-[12px] opacity-0 group-hover/price:opacity-60 transition-opacity">edit</span>
                     </button>
                   )}
                 </div>
 
                 {/* Stock */}
-                <span className={`text-xs font-black ${product.stock === 0 ? "text-red-400" : product.stock < 10 ? "text-amber-400" : "text-on-surface"}`}>
-                  {product.stock} uds
+                <span className={`text-xs font-black ${
+                  product.available_quantity === 0 ? "text-red-400" :
+                  product.available_quantity <= LOW_STOCK_THRESHOLD ? "text-amber-400" : "text-on-surface"
+                }`}>
+                  {product.available_quantity} uds
                 </span>
 
-                {/* Monthly sales */}
+                {/* Sold */}
                 <div className="flex items-center gap-1">
-                  <span className="text-xs font-black text-on-surface">{product.sold}</span>
+                  <span className="text-xs font-black text-on-surface">{product.sold_quantity}</span>
                   <span className="material-symbols-outlined !text-[12px] text-primary">trending_up</span>
                 </div>
 
-                {/* Status badge */}
-                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black label-tracking ${cfg.color} ${cfg.bg} w-fit`}>
-                  <span className="material-symbols-outlined !text-[10px]">{cfg.icon}</span>
-                  {cfg.label.toUpperCase()}
-                </span>
+                {/* Actions on hover */}
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black label-tracking ${sCfg.color} ${sCfg.bg}`}>
+                    <span className="material-symbols-outlined !text-[10px]">{sCfg.icon}</span>
+                    {sCfg.label.toUpperCase()}
+                  </span>
+                  <a href={product.permalink} target="_blank" rel="noopener noreferrer"
+                    className="w-7 h-7 rounded-lg border border-white/10 hover:border-primary/40 flex items-center justify-center transition-colors"
+                    title="Ver en ML"
+                  >
+                    <span className="material-symbols-outlined !text-[14px] text-on-surface/40">open_in_new</span>
+                  </a>
+                </div>
               </div>
             );
           })}

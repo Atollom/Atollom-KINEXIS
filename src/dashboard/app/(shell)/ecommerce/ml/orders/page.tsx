@@ -2,120 +2,59 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/ToastProvider";
+import { mockMLOrders } from "@/lib/mockData";
+import type { MLOrder } from "@/lib/mockData";
 
-const ORDERS = [
-  {
-    id: "ML-2026-0841",
-    product: "Taladro Percutor 850W",
-    sku: "TAL-003",
-    buyer: "Constructora ABC",
-    total: 1_540,
-    qty: 1,
-    status: "en_camino" as const,
-    date: "02 May 2026",
-    trackingCode: "SK-9182736",
-  },
-  {
-    id: "ML-2026-0840",
-    product: "Set Brocas Multi-Propósito 29 pzs",
-    sku: "KAP-007",
-    buyer: "Ferretería Puebla Centro",
-    total: 840,
-    qty: 2,
-    status: "entregado" as const,
-    date: "01 May 2026",
-    trackingCode: "SK-9182701",
-  },
-  {
-    id: "ML-2026-0839",
-    product: "Taladro Inalámbrico 20V",
-    sku: "TAL-001",
-    buyer: "Eduardo Martínez",
-    total: 2_890,
-    qty: 1,
-    status: "pagado" as const,
-    date: "01 May 2026",
-    trackingCode: null,
-  },
-  {
-    id: "ML-2026-0838",
-    product: "Llave de Impacto Neumática",
-    sku: "KAP-011",
-    buyer: "Taller El Maestro",
-    total: 2_360,
-    qty: 2,
-    status: "entregado" as const,
-    date: "30 Abr 2026",
-    trackingCode: "SK-9182644",
-  },
-  {
-    id: "ML-2026-0837",
-    product: "Arnés de Seguridad Industrial",
-    sku: "ARN-002",
-    buyer: "Construye MX SA de CV",
-    total: 3_400,
-    qty: 5,
-    status: "en_camino" as const,
-    date: "30 Abr 2026",
-    trackingCode: "SK-9182598",
-  },
-  {
-    id: "ML-2026-0836",
-    product: "Broca Diamantada 100mm",
-    sku: "BRO-015",
-    buyer: "Ricardo Salinas",
-    total: 340,
-    qty: 1,
-    status: "cancelado" as const,
-    date: "29 Abr 2026",
-    trackingCode: null,
-  },
-  {
-    id: "ML-2026-0835",
-    product: "Taladro Percutor 850W",
-    sku: "TAL-003",
-    buyer: "Obra Civil Tlaxcala",
-    total: 4_620,
-    qty: 3,
-    status: "entregado" as const,
-    date: "28 Abr 2026",
-    trackingCode: "SK-9182511",
-  },
-];
+type FilterKey = "all" | "paid" | "shipped" | "delivered" | "cancelled";
 
-const STATUS_CFG = {
-  pagado:    { label: "Pagado",     color: "text-blue-400",    bg: "bg-blue-400/10",   icon: "payments" },
-  en_camino: { label: "En Camino", color: "text-amber-400",   bg: "bg-amber-400/10",  icon: "local_shipping" },
-  entregado: { label: "Entregado", color: "text-[#CCFF00]",   bg: "bg-[#CCFF00]/10",  icon: "check_circle" },
-  cancelado: { label: "Cancelado", color: "text-red-400",     bg: "bg-red-400/10",    icon: "cancel" },
+const STATUS_CFG: Record<MLOrder["status"], { label: string; color: string; bg: string; icon: string; filterKey: FilterKey }> = {
+  confirmed:        { label: "Confirmada",  color: "text-blue-400",    bg: "bg-blue-400/10",    icon: "check",           filterKey: "paid"      },
+  payment_required: { label: "Pago Pend.",  color: "text-amber-400",   bg: "bg-amber-400/10",   icon: "pending",         filterKey: "paid"      },
+  paid:             { label: "Pagado",      color: "text-blue-400",    bg: "bg-blue-400/10",    icon: "payments",        filterKey: "paid"      },
+  shipped:          { label: "En Camino",   color: "text-amber-400",   bg: "bg-amber-400/10",   icon: "local_shipping",  filterKey: "shipped"   },
+  delivered:        { label: "Entregado",   color: "text-[#CCFF00]",   bg: "bg-[#CCFF00]/10",   icon: "check_circle",   filterKey: "delivered" },
+  cancelled:        { label: "Cancelado",   color: "text-red-400",     bg: "bg-red-400/10",     icon: "cancel",          filterKey: "cancelled" },
 };
 
-type FilterKey = "all" | "pagado" | "en_camino" | "entregado" | "cancelado";
+const SHIP_STATUS_CFG: Record<MLOrder["shipping_status"], { label: string; color: string }> = {
+  pending:       { label: "Sin Guía",         color: "text-red-400"    },
+  handling:      { label: "Preparando",       color: "text-amber-400"  },
+  ready_to_ship: { label: "Listo p/Enviar",  color: "text-[#CCFF00]"  },
+  shipped:       { label: "En Tránsito",      color: "text-blue-400"   },
+  delivered:     { label: "Entregado",        color: "text-on-surface/40" },
+};
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+}
 
 export default function MLOrdersPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<FilterKey>("all");
 
-  const filtered = filter === "all" ? ORDERS : ORDERS.filter(o => o.status === filter);
+  const filtered = filter === "all"
+    ? mockMLOrders
+    : mockMLOrders.filter(o => STATUS_CFG[o.status].filterKey === filter);
 
-  const counts: Record<FilterKey, number> = {
-    all: ORDERS.length,
-    pagado: ORDERS.filter(o => o.status === "pagado").length,
-    en_camino: ORDERS.filter(o => o.status === "en_camino").length,
-    entregado: ORDERS.filter(o => o.status === "entregado").length,
-    cancelado: ORDERS.filter(o => o.status === "cancelado").length,
+  const counts = {
+    all:       mockMLOrders.length,
+    paid:      mockMLOrders.filter(o => ["paid", "confirmed", "payment_required"].includes(o.status)).length,
+    shipped:   mockMLOrders.filter(o => o.status === "shipped").length,
+    delivered: mockMLOrders.filter(o => o.status === "delivered").length,
+    cancelled: mockMLOrders.filter(o => o.status === "cancelled").length,
   };
 
-  const totalRevenue = filtered
-    .filter(o => o.status !== "cancelado")
-    .reduce((sum, o) => sum + o.total, 0);
+  const revenue = mockMLOrders
+    .filter(o => o.status !== "cancelled")
+    .reduce((s, o) => s + o.total_amount, 0);
 
-  function handleGenerateGuide(order: typeof ORDERS[0]) {
-    showToast({
-      type: "success",
-      title: "Guía Generada",
-      message: `Skydropx: ${order.id} — ${order.buyer}`,
-    });
+  function handleGuide(order: MLOrder) {
+    showToast({ type: "success", title: "Guía Generada", message: `Skydropx → ${order.order_id} · ${order.buyer_nickname}` });
+  }
+
+  function handleDetail(order: MLOrder) {
+    const items = order.items.map(i => `${i.title} x${i.quantity}`).join(", ");
+    showToast({ type: "info", title: `Orden ${order.order_id}`, message: `${order.buyer_nickname} · ${items} · $${order.total_amount.toLocaleString()}` });
   }
 
   return (
@@ -130,12 +69,11 @@ export default function MLOrdersPage() {
             Órdenes ML
           </h1>
           <p className="text-sm text-on-surface-variant">
-            {filtered.length} órdenes · <span className="text-primary font-bold">${totalRevenue.toLocaleString()} MXN</span>
+            {filtered.length} órdenes · <span className="text-primary font-bold">${revenue.toLocaleString()} MXN</span> total
           </p>
         </div>
-
         <button
-          onClick={() => showToast({ type: "info", title: "Sincronizando Órdenes", message: "Obteniendo órdenes recientes desde ML API..." })}
+          onClick={() => showToast({ type: "info", title: "Sincronizando Órdenes", message: "Obteniendo órdenes desde ML API..." })}
           className="px-8 py-4 glass-card border-white/5 rounded-2xl text-[10px] font-black label-tracking text-on-surface-variant hover:text-on-surface hover:border-primary/20 transition-all flex items-center gap-2 self-start md:self-auto"
         >
           <span className="material-symbols-outlined !text-[16px]">sync</span>
@@ -143,68 +81,69 @@ export default function MLOrdersPage() {
         </button>
       </header>
 
-      {/* Summary cards */}
+      {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {(["pagado", "en_camino", "entregado", "cancelado"] as const).map(s => {
-          const cfg = STATUS_CFG[s];
-          return (
-            <div key={s} className="glass-card p-6 rounded-[1.5rem] border border-white/5">
-              <div className="flex items-center gap-3 mb-2">
-                <span className={`material-symbols-outlined !text-[18px] ${cfg.color}`}>{cfg.icon}</span>
-                <span className="text-[9px] font-black label-tracking text-on-surface/40 uppercase">{cfg.label}</span>
-              </div>
-              <p className="text-3xl font-black tight-tracking text-on-surface">{counts[s]}</p>
+        {[
+          { label: "Pagadas",    count: counts.paid,      icon: "payments",       color: "text-blue-400"   },
+          { label: "En Camino",  count: counts.shipped,   icon: "local_shipping", color: "text-amber-400"  },
+          { label: "Entregadas", count: counts.delivered, icon: "check_circle",   color: "text-[#CCFF00]"  },
+          { label: "Canceladas", count: counts.cancelled, icon: "cancel",         color: "text-red-400"    },
+        ].map(kpi => (
+          <div key={kpi.label} className="glass-card p-6 rounded-[1.5rem] border border-white/5">
+            <div className="flex items-center gap-3 mb-2">
+              <span className={`material-symbols-outlined !text-[18px] ${kpi.color}`}>{kpi.icon}</span>
+              <span className="text-[9px] font-black label-tracking text-on-surface/40 uppercase">{kpi.label}</span>
             </div>
-          );
-        })}
+            <p className="text-3xl font-black tight-tracking text-on-surface">{kpi.count}</p>
+          </div>
+        ))}
       </div>
 
       {/* Filters */}
       <div className="flex gap-2 flex-wrap">
-        {(["all", "pagado", "en_camino", "entregado", "cancelado"] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
+        {(["all", "paid", "shipped", "delivered", "cancelled"] as FilterKey[]).map(f => (
+          <button key={f} onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-xl text-[10px] font-black label-tracking transition-all ${
-              filter === f
-                ? "bg-primary text-black"
-                : "glass-card border border-white/5 text-on-surface-variant hover:border-primary/20"
+              filter === f ? "bg-primary text-black" : "glass-card border border-white/5 text-on-surface-variant hover:border-primary/20"
             }`}
           >
-            {f === "all" ? "TODAS" : STATUS_CFG[f].label.toUpperCase()} ({counts[f]})
+            {f === "all" ? "TODAS" : f === "paid" ? "PAGADAS" : f === "shipped" ? "EN CAMINO" : f === "delivered" ? "ENTREGADAS" : "CANCELADAS"}{" "}
+            ({counts[f]})
           </button>
         ))}
       </div>
 
       {/* Table */}
       <div className="glass-card rounded-[2rem] border border-white/5 overflow-hidden">
-        {/* Header row */}
-        <div className="grid grid-cols-[1.5fr_2fr_1.5fr_1fr_1fr_1fr_auto] gap-4 px-8 py-4 border-b border-white/5">
-          {["Orden", "Producto", "Comprador", "Total", "Estado", "Fecha", ""].map((h, i) => (
+        <div className="grid grid-cols-[1.5fr_2.5fr_1.5fr_1fr_1.2fr_1fr_auto] gap-4 px-8 py-4 border-b border-white/5">
+          {["Orden", "Productos", "Comprador", "Total", "Envío", "Fecha", ""].map((h, i) => (
             <span key={i} className="text-[9px] font-black label-tracking text-on-surface/30 uppercase">{h}</span>
           ))}
         </div>
 
         <div className="divide-y divide-white/5">
           {filtered.map(order => {
-            const cfg = STATUS_CFG[order.status];
+            const sCfg = STATUS_CFG[order.status];
+            const shCfg = SHIP_STATUS_CFG[order.shipping_status];
+            const firstItem = order.items[0];
+            const extra = order.items.length > 1 ? ` +${order.items.length - 1}` : "";
             return (
-              <div
-                key={order.id}
-                className="grid grid-cols-[1.5fr_2fr_1.5fr_1fr_1fr_1fr_auto] gap-4 items-center px-8 py-5 hover:bg-white/[0.02] transition-colors group"
+              <div key={order.id}
+                className="grid grid-cols-[1.5fr_2.5fr_1.5fr_1fr_1.2fr_1fr_auto] gap-4 items-center px-8 py-5 hover:bg-white/[0.02] transition-colors group"
               >
-                {/* Order ID */}
+                {/* Order ID + status badge */}
                 <div>
-                  <p className="text-[10px] font-black text-primary">{order.id}</p>
-                  {order.trackingCode && (
-                    <p className="text-[9px] text-on-surface/30 font-medium">{order.trackingCode}</p>
-                  )}
+                  <p className="text-[10px] font-black text-primary">ML-{order.order_id}</p>
+                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-black ${sCfg.color} ${sCfg.bg} mt-1`}>
+                    <span className="material-symbols-outlined !text-[9px]">{sCfg.icon}</span>
+                    {sCfg.label.toUpperCase()}
+                  </span>
                 </div>
 
-                {/* Product */}
+                {/* Products */}
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-on-surface truncate">{order.product}</p>
-                  <p className="text-[9px] text-on-surface/30 font-medium">{order.sku} · x{order.qty}</p>
+                  <p className="text-xs font-bold text-on-surface truncate">{firstItem.title}{extra}</p>
+                  <p className="text-[9px] text-on-surface/30">{firstItem.sku} · x{firstItem.quantity}{extra && " · varios SKU"}</p>
                 </div>
 
                 {/* Buyer */}
@@ -212,34 +151,34 @@ export default function MLOrdersPage() {
                   <div className="w-6 h-6 rounded-full bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0">
                     <span className="material-symbols-outlined !text-[12px] text-on-surface/40">person</span>
                   </div>
-                  <span className="text-xs text-on-surface-variant truncate">{order.buyer}</span>
+                  <span className="text-xs text-on-surface-variant truncate">{order.buyer_nickname}</span>
                 </div>
 
                 {/* Total */}
-                <span className="text-xs font-black text-on-surface">${order.total.toLocaleString()}</span>
+                <span className="text-xs font-black text-on-surface">${order.total_amount.toLocaleString()}</span>
 
-                {/* Status badge */}
-                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black label-tracking ${cfg.color} ${cfg.bg} w-fit`}>
-                  <span className="material-symbols-outlined !text-[10px]">{cfg.icon}</span>
-                  {cfg.label.toUpperCase()}
-                </span>
+                {/* Shipping */}
+                <div>
+                  <p className={`text-[9px] font-black label-tracking ${shCfg.color}`}>{shCfg.label.toUpperCase()}</p>
+                  {order.tracking_number && (
+                    <p className="text-[8px] text-on-surface/30 font-mono mt-0.5">{order.tracking_number}</p>
+                  )}
+                </div>
 
                 {/* Date */}
-                <span className="text-[10px] text-on-surface/40 font-medium">{order.date}</span>
+                <span className="text-[10px] text-on-surface/40">{fmtDate(order.date_created)}</span>
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {order.status === "pagado" && (
-                    <button
-                      onClick={() => handleGenerateGuide(order)}
+                  {(order.status === "paid" || order.status === "confirmed") && order.shipping_status === "ready_to_ship" && (
+                    <button onClick={() => handleGuide(order)}
                       className="px-3 py-1.5 rounded-lg bg-primary text-black text-[9px] font-black label-tracking hover:scale-105 transition-all flex items-center gap-1"
                     >
                       <span className="material-symbols-outlined !text-[11px]">local_shipping</span>
                       GUÍA
                     </button>
                   )}
-                  <button
-                    onClick={() => showToast({ type: "info", title: "Orden " + order.id, message: `Comprador: ${order.buyer} · $${order.total.toLocaleString()} MXN` })}
+                  <button onClick={() => handleDetail(order)}
                     className="w-7 h-7 rounded-lg border border-white/10 hover:border-primary/40 flex items-center justify-center transition-colors"
                     title="Ver detalle"
                   >
