@@ -1364,3 +1364,158 @@ export const mockLeadScoringStats = {
   total_potential: 1055000,
   hot_leads: 2,
 }
+
+// ── SHOPIFY FULFILLMENT ────────────────────────────────────────────────────────
+
+export interface ShopifyFulfillment {
+  id: string
+  order_number: number
+  status: 'pending' | 'processing' | 'fulfilled' | 'cancelled'
+  items: { title: string; sku: string; quantity: number; fulfilled: number }[]
+  shipping: { carrier: string; service: string; tracking_number?: string }
+  created_at: string
+  fulfilled_at?: string
+  destination: { name: string; city: string; province: string }
+}
+
+export const mockShopifyFulfillments: ShopifyFulfillment[] = [
+  {
+    id: 'f1', order_number: 1045, status: 'pending',
+    items: [
+      { title: 'Taladro Percutor 800W',     sku: 'KAP-TAL-003', quantity: 1, fulfilled: 0 },
+      { title: 'Kit Destornilladores 32pz', sku: 'KAP-KIT-032', quantity: 2, fulfilled: 0 },
+    ],
+    shipping: { carrier: 'FedEx', service: 'Express' },
+    created_at: '2026-05-10T10:30:00Z',
+    destination: { name: 'Juan Pérez', city: 'Puebla', province: 'PUE' },
+  },
+  {
+    id: 'f2', order_number: 1046, status: 'fulfilled',
+    items: [{ title: 'Compresor de Aire 25L', sku: 'KAP-COM-007', quantity: 1, fulfilled: 1 }],
+    shipping: { carrier: 'DHL', service: 'Standard', tracking_number: 'DHL123456789MX' },
+    created_at: '2026-05-10T11:45:00Z',
+    fulfilled_at: '2026-05-10T15:30:00Z',
+    destination: { name: 'María González', city: 'Cholula', province: 'PUE' },
+  },
+  {
+    id: 'f3', order_number: 1047, status: 'processing',
+    items: [
+      { title: 'Sierra Circular 1400W',  sku: 'KAP-SIE-140', quantity: 1, fulfilled: 0 },
+      { title: 'Disco de Corte x10',     sku: 'KAP-DIS-010', quantity: 1, fulfilled: 0 },
+    ],
+    shipping: { carrier: 'Estafeta', service: 'Express' },
+    created_at: '2026-05-09T14:00:00Z',
+    destination: { name: 'Carlos Ramírez', city: 'CDMX', province: 'CDMX' },
+  },
+  {
+    id: 'f4', order_number: 1048, status: 'pending',
+    items: [{ title: 'Lijadora Orbital 450W', sku: 'KAP-LIJ-450', quantity: 1, fulfilled: 0 }],
+    shipping: { carrier: 'FedEx', service: 'Ground' },
+    created_at: '2026-05-10T16:20:00Z',
+    destination: { name: 'Ana Torres', city: 'Guadalajara', province: 'JAL' },
+  },
+  {
+    id: 'f5', order_number: 1049, status: 'fulfilled',
+    items: [
+      { title: 'Nivel Láser 3 Líneas',  sku: 'KAP-NIV-3L',  quantity: 1, fulfilled: 1 },
+      { title: 'Cinta Métrica 5m',       sku: 'KAP-CIN-005', quantity: 2, fulfilled: 2 },
+    ],
+    shipping: { carrier: 'DHL', service: 'Express', tracking_number: 'DHL987654321MX' },
+    created_at: '2026-05-08T09:10:00Z',
+    fulfilled_at: '2026-05-09T11:00:00Z',
+    destination: { name: 'Roberto Soto', city: 'Monterrey', province: 'NL' },
+  },
+  {
+    id: 'f6', order_number: 1050, status: 'cancelled',
+    items: [{ title: 'Rotomartillo 1100W', sku: 'KAP-ROT-110', quantity: 1, fulfilled: 0 }],
+    shipping: { carrier: 'FedEx', service: 'Express' },
+    created_at: '2026-05-09T17:00:00Z',
+    destination: { name: 'Lucía Mendoza', city: 'Toluca', province: 'MEX' },
+  },
+]
+
+export const mockFulfillmentStats = {
+  total: 6,
+  pending: 2,
+  processing: 1,
+  fulfilled: 2,
+  cancelled: 1,
+  fulfillment_rate: 66.7,
+  avg_fulfillment_hours: 5.4,
+  pending_items: 5,
+}
+
+// ── GESTIÓN PRECIOS ────────────────────────────────────────────────────────────
+
+export interface PriceRule {
+  id: string
+  name: string
+  type: 'markup' | 'margin' | 'competitor' | 'dynamic'
+  status: 'active' | 'paused'
+  products_affected: number
+  rule_config: {
+    base?: string
+    markup_pct?: number
+    margin_pct?: number
+    min_price?: number
+    max_price?: number
+  }
+  created_at: string
+  last_applied: string
+}
+
+export const mockPriceRules: PriceRule[] = [
+  {
+    id: 'pr1', name: 'Markup Estándar Herramientas', type: 'markup', status: 'active',
+    products_affected: 127,
+    rule_config: { base: 'costo', markup_pct: 45, min_price: 100 },
+    created_at: '2026-01-15', last_applied: '2026-05-10T08:00:00Z',
+  },
+  {
+    id: 'pr2', name: 'Margen Premium E-commerce', type: 'margin', status: 'active',
+    products_affected: 89,
+    rule_config: { base: 'costo', margin_pct: 38, max_price: 5000 },
+    created_at: '2026-02-01', last_applied: '2026-05-09T22:00:00Z',
+  },
+  {
+    id: 'pr3', name: 'Competencia Mercado Libre', type: 'competitor', status: 'active',
+    products_affected: 54,
+    rule_config: { min_price: 199, max_price: 8999 },
+    created_at: '2026-03-10', last_applied: '2026-05-10T06:30:00Z',
+  },
+  {
+    id: 'pr4', name: 'Precio Dinámico Amazon', type: 'dynamic', status: 'paused',
+    products_affected: 38,
+    rule_config: { base: 'buybox', min_price: 299, max_price: 12000 },
+    created_at: '2026-04-01', last_applied: '2026-05-07T14:00:00Z',
+  },
+]
+
+export const mockPriceRulesStats = {
+  total_rules: 4,
+  active_rules: 3,
+  products_covered: 308,
+  changes_today: 23,
+  avg_margin: 38.2,
+  revenue_impact: 14500,
+}
+
+export interface PriceChange {
+  sku: string
+  product_name: string
+  channel: string
+  old_price: number
+  new_price: number
+  change_pct: number
+  reason: string
+  applied_at: string
+}
+
+export const mockPriceChanges: PriceChange[] = [
+  { sku: 'KAP-TAL-003', product_name: 'Taladro Percutor 800W',     channel: 'Mercado Libre', old_price: 1249, new_price: 1299, change_pct: 4.0,   reason: 'Ajuste competencia', applied_at: '2026-05-10T08:15:00Z' },
+  { sku: 'KAP-COM-007', product_name: 'Compresor de Aire 25L',     channel: 'Amazon',        old_price: 2490, new_price: 2399, change_pct: -3.7,  reason: 'Buy Box recovery',  applied_at: '2026-05-10T07:45:00Z' },
+  { sku: 'KAP-SIE-140', product_name: 'Sierra Circular 1400W',    channel: 'Shopify',       old_price: 1890, new_price: 1990, change_pct: 5.3,   reason: 'Markup estándar',   applied_at: '2026-05-10T06:30:00Z' },
+  { sku: 'KAP-KIT-032', product_name: 'Kit Destornilladores 32pz', channel: 'Mercado Libre', old_price: 299,  new_price: 279,  change_pct: -6.7,  reason: 'Promo flash 24h',   applied_at: '2026-05-09T20:00:00Z' },
+  { sku: 'KAP-LIJ-450', product_name: 'Lijadora Orbital 450W',    channel: 'Amazon',        old_price: 459,  new_price: 489,  change_pct: 6.5,   reason: 'Stock bajo',        applied_at: '2026-05-09T18:30:00Z' },
+  { sku: 'KAP-NIV-3L',  product_name: 'Nivel Láser 3 Líneas',     channel: 'Shopify',       old_price: 1299, new_price: 1349, change_pct: 3.8,   reason: 'Margen premium',    applied_at: '2026-05-09T17:00:00Z' },
+]
