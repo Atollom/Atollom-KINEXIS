@@ -11,10 +11,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registered, setRegistered] = useState(false);
   const router = useRouter();
   const supabase = createBrowserSupabaseClient();
 
-  useEffect(() => setError(null), [activeTab]);
+  useEffect(() => { setError(null); setRegistered(false); }, [activeTab]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +32,29 @@ export default function LoginPage() {
       setLoading(false);
     } else {
       router.refresh();
-      router.push("/dashboard"); // Redirect to the definitive dashboard route
+      router.push("/dashboard");
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const { error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (authError) {
+      setError(authError.message.toUpperCase());
+      setLoading(false);
+    } else {
+      setRegistered(true);
+      setLoading(false);
     }
   };
 
@@ -83,7 +106,18 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-8 relative z-10">
+          {registered && activeTab === 'register' && (
+            <div className="relative z-10 text-center space-y-4 py-4">
+              <div className="w-14 h-14 rounded-full bg-[#CCFF00]/10 border border-[#CCFF00]/30 flex items-center justify-center mx-auto">
+                <Zap className="w-6 h-6 text-[#CCFF00]" />
+              </div>
+              <p className="text-[11px] font-black text-[#CCFF00] uppercase tracking-[0.4em]">Confirmation Sent</p>
+              <p className="text-[10px] text-white/30 uppercase tracking-widest">
+                Check your email to activate your account
+              </p>
+            </div>
+          )}
+          {!registered && <form onSubmit={activeTab === 'login' ? handleLogin : handleRegister} className="space-y-8 relative z-10">
             <div className="space-y-3">
               <label className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20 ml-6">Neural Identity</label>
               <input 
@@ -115,7 +149,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button 
+            <button
               type="submit"
               disabled={loading}
               className="w-full py-6 bg-[#CCFF00] text-black rounded-full font-black uppercase tracking-[0.3em] text-[11px] shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 disabled:opacity-20 flex items-center justify-center gap-3"
@@ -124,12 +158,12 @@ export default function LoginPage() {
                 <div className="w-5 h-5 border-3 border-black/20 border-t-black rounded-full animate-spin" />
               ) : (
                 <>
-                  Connect Terminal
+                  {activeTab === 'login' ? 'Connect Terminal' : 'Initialize Account'}
                   <Zap className="w-4 h-4" />
                 </>
               )}
             </button>
-          </form>
+          </form>}
         </div>
 
         {/* Global Footer */}

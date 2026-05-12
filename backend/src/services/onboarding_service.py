@@ -2,6 +2,7 @@
 Onboarding Service — crear tenant completo en una transacción atómica.
 """
 
+import asyncio
 import logging
 import re
 import secrets
@@ -11,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from ..utils.database import db
 from ..utils.encryption import encryption
+from ..sandbox import sandbox
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +80,10 @@ class OnboardingService:
                 )
 
             logger.info(f"Onboarding complete: tenant={tenant_id} slug={slug}")
+
+            # Fire sandbox seed after DB commit — non-blocking, failure is safe to ignore
+            asyncio.create_task(self._seed_sandbox(str(tenant_id)))
+
             return {
                 "success": True,
                 "tenant_id": str(tenant_id),
@@ -305,6 +311,19 @@ class OnboardingService:
             logger.info(f"User upserted: {email} ({role})")
 
         return count
+
+    # ── Sandbox seeding ───────────────────────────────────────────────────────
+
+    async def _seed_sandbox(self, tenant_id: str) -> None:
+        """Seeds sandbox sync log for all integrations after tenant creation."""
+        for integration in ("mercadolibre", "amazon", "shopify", "meta"):
+            try:
+                await sandbox.sync_integration(integration, tenant_id)
+            except Exception as exc:
+                logger.warning(
+                    "[ONBOARDING] Sandbox seed failed for %s/%s: %s",
+                    integration, tenant_id, exc,
+                )
 
     # ── Slug helpers ──────────────────────────────────────────────────────────
 

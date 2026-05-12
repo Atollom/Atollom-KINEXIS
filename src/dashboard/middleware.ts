@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/', '/login', '/unauthorized', '/api/health', '/error']
+const PUBLIC_PATHS = ['/', '/login', '/unauthorized', '/api/health', '/error', '/auth']
 
 // E2E test bypass — only active outside production (never set PLAYWRIGHT_BYPASS_AUTH in Railway/Vercel)
 const E2E_BYPASS =
