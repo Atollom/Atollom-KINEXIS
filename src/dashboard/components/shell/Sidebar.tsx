@@ -210,8 +210,15 @@ const menuItems: MenuItem[] = [
   {
     label: 'Configuración',
     icon: Settings,
-    href: '/settings',
-    roles: ['owner', 'admin']
+    roles: ['owner', 'admin'],
+    children: [
+      { label: 'General',        href: '/settings' },
+      { label: 'Usuarios',       href: '/settings/users',          badge: '#42' },
+      { label: 'Billing',        href: '/settings/billing' },
+      { label: 'Sandbox',        href: '/settings/sandbox' },
+      { label: 'Testing',        href: '/settings/testing' },
+      { label: 'Data Inspector', href: '/settings/data-inspector' },
+    ]
   }
 ]
 

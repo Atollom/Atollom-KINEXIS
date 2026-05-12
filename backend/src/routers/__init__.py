@@ -9,6 +9,7 @@ from . import dashboard_router
 from . import agents_router
 from . import stripe_router
 from . import sandbox_router
+from . import health_router
 
 __all__ = [
     "onboarding_router",
@@ -18,4 +19,5 @@ __all__ = [
     "agents_router",
     "stripe_router",
     "sandbox_router",
+    "health_router",
 ]

@@ -30,6 +30,7 @@ from src.routers import (
     agents_router,
     stripe_router,
     sandbox_router,
+    health_router,
 )
 
 _startup_logger = logging.getLogger("kinexis.startup")
@@ -94,3 +95,4 @@ app.include_router(samantha_router.router)
 app.include_router(dashboard_router.router)
 app.include_router(agents_router.router)
 app.include_router(sandbox_router.router)
+app.include_router(health_router.router)
