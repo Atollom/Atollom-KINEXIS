@@ -22,7 +22,8 @@ import {
   Calculator,
   Truck,
   Menu,
-  X
+  X,
+  Globe
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -148,7 +149,11 @@ const menuItems: MenuItem[] = [
         icon: TrendingUp,
         children: [
           { label: 'Campañas Email', href: '/crm/campaigns', badge: '#22' },
-          { label: 'Segmentos', href: '/crm/segments', badge: '#20' }
+          { label: 'Segmentos', href: '/crm/segments', badge: '#20' },
+          { label: 'Automatización', href: '/crm/automation', badge: '#34' },
+          { label: 'Reportes', href: '/crm/reports' },
+          { label: 'Portal Clientes', href: '/crm/portal' },
+          { label: 'Fidelización', href: '/crm/loyalty' }
         ]
       }
     ]
@@ -177,7 +182,7 @@ const menuItems: MenuItem[] = [
           { label: 'Dashboard', href: '/erp/accounting' },
           { label: 'Catálogo', href: '/erp/accounting/chart' },
           { label: 'Diario', href: '/erp/accounting/journal' },
-          { label: 'Reportes', href: '/erp/accounting/reports' }
+          { label: 'Reportes Fiscales', href: '/erp/accounting/reports' }
         ]
       },
       {
@@ -185,6 +190,7 @@ const menuItems: MenuItem[] = [
         icon: TrendingUp,
         children: [
           { label: 'Snapshot', href: '/erp/finance', badge: '#18' },
+          { label: 'Presupuesto', href: '/erp/finance/budget' },
           { label: 'CxC', href: '/erp/finance/receivables' },
           { label: 'CxP', href: '/erp/finance/payables' },
           { label: 'Bancos', href: '/erp/finance/banking' },
@@ -220,6 +226,20 @@ const menuItems: MenuItem[] = [
           { label: 'Paqueterías', href: '/erp/logistics/carriers' }
         ]
       }
+    ]
+  },
+  {
+    label: 'Meta',
+    icon: Globe,
+    roles: ['owner', 'admin', 'agente'],
+    children: [
+      { label: 'Dashboard', icon: LayoutDashboard, href: '/meta' },
+      { label: 'WhatsApp', href: '/meta/whatsapp' },
+      { label: 'Instagram', href: '/meta/instagram' },
+      { label: 'Facebook', href: '/meta/facebook' },
+      { label: 'IG Shopping', href: '/meta/shopping' },
+      { label: 'Ads Manager', href: '/meta/ads', badge: '#28' },
+      { label: 'Inbox Unificado', href: '/meta/inbox' },
     ]
   },
   {

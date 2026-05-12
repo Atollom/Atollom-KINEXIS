@@ -2091,3 +2091,220 @@ export const mockCustomerSegments: CustomerSegment[] = [
 ]
 
 export const mockCustomerSegmentStats = { total_segments: 6, total_customers: 1426, avg_ltv: 8382, high_risk_count: 690 }
+
+// ── Deal Automation ───────────────────────────────────────────────────────────
+
+export interface DealAutomation {
+  id: string; name: string
+  trigger: { type: 'stage_change' | 'time_based' | 'value_threshold' | 'activity'; condition: string }
+  actions: Array<{ type: 'email' | 'task' | 'notification' | 'webhook' | 'field_update'; label: string }>
+  status: 'active' | 'paused'; deals_affected: number; success_rate: number; created_at: string
+}
+
+export const mockDealAutomations: DealAutomation[] = [
+  { id: 'auto1', name: 'Auto-asignar a ventas cuando calificado', trigger: { type: 'stage_change', condition: 'stage = qualified' }, actions: [{ type: 'task', label: 'Crear tarea "Llamar lead"' }, { type: 'email', label: 'Email seguimiento calificado' }], status: 'active', deals_affected: 234, success_rate: 87.5, created_at: '2026-03-15T10:00:00Z' },
+  { id: 'auto2', name: 'Alerta deals estancados >7 días', trigger: { type: 'time_based', condition: 'no_activity_days > 7' }, actions: [{ type: 'notification', label: 'Notificar al owner' }, { type: 'task', label: 'Crear tarea follow-up urgente' }], status: 'active', deals_affected: 67, success_rate: 92.3, created_at: '2026-04-01T14:00:00Z' },
+  { id: 'auto3', name: 'Webhook CRM cuando deal >$50k', trigger: { type: 'value_threshold', condition: 'deal_value >= 50000' }, actions: [{ type: 'webhook', label: 'POST a CRM externo' }, { type: 'notification', label: 'Notificar director comercial' }], status: 'active', deals_affected: 18, success_rate: 100, created_at: '2026-04-10T09:00:00Z' },
+  { id: 'auto4', name: 'Email perder deal después de 30 días', trigger: { type: 'time_based', condition: 'stage = negotiation AND days > 30' }, actions: [{ type: 'email', label: 'Email reactivación' }, { type: 'field_update', label: 'Marcar en riesgo' }], status: 'paused', deals_affected: 11, success_rate: 44.2, created_at: '2026-04-20T16:00:00Z' },
+  { id: 'auto5', name: 'Tarea de onboarding al cerrar deal', trigger: { type: 'stage_change', condition: 'stage = won' }, actions: [{ type: 'task', label: 'Crear checklist onboarding' }, { type: 'email', label: 'Bienvenida al cliente' }], status: 'active', deals_affected: 56, success_rate: 95.1, created_at: '2026-05-01T11:00:00Z' },
+]
+
+export const mockAutomationStats = { total: 5, active: 4, paused: 1, total_deals_affected: 386, avg_success_rate: 83.8 }
+
+// ── Sales Reports ─────────────────────────────────────────────────────────────
+
+export interface SalesReport {
+  id: string; name: string; type: 'pipeline' | 'forecast' | 'performance' | 'activity'
+  period: string; generated_at: string
+  data: { total_deals: number; total_value: number; won_deals: number; won_value: number; lost_deals: number; avg_deal_size: number; avg_sales_cycle: number; conversion_rate: number }
+}
+
+export const mockSalesReports: SalesReport[] = [
+  { id: 'rep1', name: 'Pipeline Report — Mayo 2026', type: 'pipeline', period: '2026-05', generated_at: '2026-05-10T08:00:00Z', data: { total_deals: 89, total_value: 1245678, won_deals: 23, won_value: 567890, lost_deals: 8, avg_deal_size: 13998, avg_sales_cycle: 45, conversion_rate: 25.8 } },
+  { id: 'rep2', name: 'Forecast Q2 2026', type: 'forecast', period: '2026-Q2', generated_at: '2026-05-01T06:00:00Z', data: { total_deals: 134, total_value: 2890000, won_deals: 41, won_value: 1234567, lost_deals: 12, avg_deal_size: 21567, avg_sales_cycle: 52, conversion_rate: 30.6 } },
+  { id: 'rep3', name: 'Performance Equipo — Abril 2026', type: 'performance', period: '2026-04', generated_at: '2026-05-01T09:00:00Z', data: { total_deals: 72, total_value: 890000, won_deals: 19, won_value: 423000, lost_deals: 9, avg_deal_size: 12361, avg_sales_cycle: 38, conversion_rate: 26.4 } },
+  { id: 'rep4', name: 'Actividad CRM — Semana 19', type: 'activity', period: '2026-W19', generated_at: '2026-05-11T07:00:00Z', data: { total_deals: 12, total_value: 156000, won_deals: 3, won_value: 67000, lost_deals: 1, avg_deal_size: 13000, avg_sales_cycle: 29, conversion_rate: 25.0 } },
+]
+
+export const mockSalesReportStats = { reports: 4, total_pipeline_value: 1245678, avg_conversion: 26.95, avg_deal_size: 15232 }
+
+// ── Customer Portal ───────────────────────────────────────────────────────────
+
+export interface CustomerPortalUser {
+  id: string; company: string; contact_name: string; email: string
+  portal_access: boolean; last_login?: string; documents_shared: number
+  open_tickets: number; total_orders: number; total_spent: number; plan: 'basic' | 'premium' | 'enterprise'
+}
+
+export const mockPortalUsers: CustomerPortalUser[] = [
+  { id: 'p1', company: 'Constructora XYZ S.A.', contact_name: 'Ing. Roberto Sánchez', email: 'roberto@constructoraxyz.com', portal_access: true, last_login: '2026-05-09T14:30:00Z', documents_shared: 12, open_tickets: 2, total_orders: 34, total_spent: 567890, plan: 'enterprise' },
+  { id: 'p2', company: 'Ferretera del Norte', contact_name: 'Ana García', email: 'ana@ferretera.mx', portal_access: true, last_login: '2026-05-11T10:00:00Z', documents_shared: 6, open_tickets: 0, total_orders: 18, total_spent: 234500, plan: 'premium' },
+  { id: 'p3', company: 'Talleres Hernández', contact_name: 'Luis Hernández', email: 'luis@talleres.mx', portal_access: true, last_login: '2026-05-08T16:00:00Z', documents_shared: 4, open_tickets: 1, total_orders: 9, total_spent: 89400, plan: 'basic' },
+  { id: 'p4', company: 'IMSS Delegación Norte', contact_name: 'Dr. Patricia Luna', email: 'pluna@imss.gob.mx', portal_access: false, last_login: undefined, documents_shared: 0, open_tickets: 0, total_orders: 0, total_spent: 0, plan: 'enterprise' },
+  { id: 'p5', company: 'Hospital Santa Fe', contact_name: 'Lic. Marco Torres', email: 'mtorres@hospitalsf.mx', portal_access: true, last_login: '2026-05-07T09:15:00Z', documents_shared: 8, open_tickets: 3, total_orders: 22, total_spent: 445600, plan: 'premium' },
+]
+
+export const mockPortalStats = { total: 5, with_access: 4, no_access: 1, open_tickets: 6, total_docs: 30 }
+
+// ── Loyalty Programs ──────────────────────────────────────────────────────────
+
+export interface LoyaltyTier { name: string; min_spent: number; benefits: string[]; members: number; color: string }
+export interface LoyaltyReward { name: string; points_cost: number; claimed: number }
+export interface LoyaltyProgram {
+  id: string; name: string; type: 'points' | 'tiers' | 'cashback'; status: 'active' | 'paused'
+  members: number; points_issued: number; points_redeemed: number
+  tiers?: LoyaltyTier[]; rewards: LoyaltyReward[]
+}
+
+export const mockLoyaltyPrograms: LoyaltyProgram[] = [
+  {
+    id: 'loy1', name: 'KapTools Pro Club', type: 'tiers', status: 'active', members: 1234, points_issued: 456789, points_redeemed: 123456,
+    tiers: [
+      { name: 'Bronze', min_spent: 0, benefits: ['5% descuento', 'Acceso early sales'], members: 890, color: '#cd7f32' },
+      { name: 'Silver', min_spent: 10000, benefits: ['10% descuento', 'Envío gratis', 'Soporte prioritario'], members: 267, color: '#94a3b8' },
+      { name: 'Gold', min_spent: 50000, benefits: ['15% descuento', 'Envío express', 'Account manager dedicado'], members: 77, color: '#CCFF00' },
+    ],
+    rewards: [
+      { name: '10% descuento siguiente compra', points_cost: 500, claimed: 234 },
+      { name: 'Envío gratis 1 mes', points_cost: 1000, claimed: 89 },
+      { name: 'Kit herramientas gratis', points_cost: 5000, claimed: 12 },
+    ],
+  },
+  {
+    id: 'loy2', name: 'Cashback Industrial', type: 'cashback', status: 'active', members: 456, points_issued: 234567, points_redeemed: 89012,
+    rewards: [
+      { name: 'Cashback 3% en compras', points_cost: 0, claimed: 456 },
+      { name: 'Cashback extra 5% fin de mes', points_cost: 1000, claimed: 67 },
+    ],
+  },
+]
+
+export const mockLoyaltyStats = { total_programs: 2, total_members: 1690, total_points_outstanding: 479108, redemption_rate: 32.4 }
+
+// ── Purchase Orders ───────────────────────────────────────────────────────────
+
+export interface POItem { sku: string; description: string; quantity: number; unit_price: number; total: number }
+export interface PurchaseOrder {
+  id: string; po_number: string; vendor_name: string; status: 'draft' | 'sent' | 'approved' | 'received' | 'cancelled'
+  items_count: number; subtotal: number; tax: number; total: number
+  expected_delivery: string; created_at: string; approved_at?: string
+}
+
+export const mockPurchaseOrders: PurchaseOrder[] = [
+  { id: 'po1', po_number: 'PO-2026-0045', vendor_name: 'Proveedor Industrial Norte', status: 'sent', items_count: 2, subtotal: 111250, tax: 17800, total: 131550, expected_delivery: '2026-05-25', created_at: '2026-05-08T10:00:00Z' },
+  { id: 'po2', po_number: 'PO-2026-0044', vendor_name: 'Distribuidora Centro S.A.', status: 'approved', items_count: 5, subtotal: 78500, tax: 12560, total: 92660, expected_delivery: '2026-05-20', created_at: '2026-05-05T09:00:00Z', approved_at: '2026-05-06T11:00:00Z' },
+  { id: 'po3', po_number: 'PO-2026-0043', vendor_name: 'Importaciones Tech MX', status: 'received', items_count: 3, subtotal: 234000, tax: 37440, total: 274440, expected_delivery: '2026-05-10', created_at: '2026-04-28T08:00:00Z', approved_at: '2026-04-29T10:00:00Z' },
+  { id: 'po4', po_number: 'PO-2026-0042', vendor_name: 'Logística Express Sur', status: 'draft', items_count: 1, subtotal: 45000, tax: 7200, total: 53400, expected_delivery: '2026-05-30', created_at: '2026-05-11T14:00:00Z' },
+  { id: 'po5', po_number: 'PO-2026-0041', vendor_name: 'Proveedor Industrial Norte', status: 'cancelled', items_count: 4, subtotal: 189000, tax: 30240, total: 223440, expected_delivery: '2026-05-15', created_at: '2026-04-20T10:00:00Z' },
+]
+
+export const mockPOStats = { total: 5, draft: 1, sent: 1, approved: 1, received: 1, cancelled: 1, total_value_active: 317610 }
+
+// ── Vendors Management ────────────────────────────────────────────────────────
+
+export interface Vendor {
+  id: string; name: string; contact_name: string; email: string; phone: string
+  category: string; payment_terms: string; rating: number; total_purchases: number
+  total_spent: number; active_pos: number; last_order_date: string; on_time_delivery_rate: number
+  status: 'active' | 'inactive'
+}
+
+export const mockVendors: Vendor[] = [
+  { id: 'v1', name: 'Proveedor Industrial Norte', contact_name: 'Carlos Méndez', email: 'ventas@provnorte.com', phone: '+52 222 555 1234', category: 'Herramientas Eléctricas', payment_terms: '30 días', rating: 4.5, total_purchases: 234, total_spent: 2456789, active_pos: 3, last_order_date: '2026-05-08', on_time_delivery_rate: 92.5, status: 'active' },
+  { id: 'v2', name: 'Distribuidora Centro S.A.', contact_name: 'María López', email: 'compras@distcentro.mx', phone: '+52 55 8901 2345', category: 'Consumibles', payment_terms: '15 días', rating: 4.8, total_purchases: 567, total_spent: 1234567, active_pos: 1, last_order_date: '2026-05-05', on_time_delivery_rate: 98.1, status: 'active' },
+  { id: 'v3', name: 'Importaciones Tech MX', contact_name: 'José Ramírez', email: 'jose@impotech.mx', phone: '+52 81 2345 6789', category: 'Electrónica Industrial', payment_terms: '45 días', rating: 3.9, total_purchases: 89, total_spent: 890000, active_pos: 0, last_order_date: '2026-04-28', on_time_delivery_rate: 78.4, status: 'active' },
+  { id: 'v4', name: 'Logística Express Sur', contact_name: 'Ana Ruiz', email: 'ana@logexsur.mx', phone: '+52 998 456 7890', category: 'Logística y Embalaje', payment_terms: '30 días', rating: 4.2, total_purchases: 156, total_spent: 456789, active_pos: 1, last_order_date: '2026-05-11', on_time_delivery_rate: 89.7, status: 'active' },
+  { id: 'v5', name: 'MFG Herramientas S.A.', contact_name: 'Pedro Castro', email: 'pcastro@mfgher.mx', phone: '+52 33 3456 7890', category: 'Herramientas Manuales', payment_terms: '60 días', rating: 2.8, total_purchases: 12, total_spent: 67000, active_pos: 0, last_order_date: '2026-02-15', on_time_delivery_rate: 55.0, status: 'inactive' },
+]
+
+export const mockVendorStats = { total: 5, active: 4, inactive: 1, avg_rating: 4.04, avg_on_time: 82.7, total_spent_ytd: 5105145 }
+
+// ── Budget Planning ───────────────────────────────────────────────────────────
+
+export interface BudgetCategory { name: string; budgeted: number; spent: number; remaining: number; pct: number; status: 'ok' | 'warning' | 'over' }
+export interface Budget {
+  id: string; period: string; department: string; categories: BudgetCategory[]
+  total_budgeted: number; total_spent: number; total_remaining: number; status: 'on_track' | 'warning' | 'over_budget'
+}
+
+export const mockBudgets: Budget[] = [
+  {
+    id: 'b1', period: '2026-Q2', department: 'Operaciones',
+    categories: [
+      { name: 'Inventario / Compras', budgeted: 500000, spent: 345678, remaining: 154322, pct: 69.1, status: 'ok' },
+      { name: 'Marketing Digital', budgeted: 100000, spent: 87654, remaining: 12346, pct: 87.7, status: 'warning' },
+      { name: 'Tecnología / SaaS', budgeted: 50000, spent: 23456, remaining: 26544, pct: 46.9, status: 'ok' },
+      { name: 'Logística', budgeted: 80000, spent: 79800, remaining: 200, pct: 99.8, status: 'over' },
+      { name: 'Recursos Humanos', budgeted: 120000, spent: 60000, remaining: 60000, pct: 50.0, status: 'ok' },
+    ],
+    total_budgeted: 850000, total_spent: 596588, total_remaining: 253412, status: 'warning',
+  },
+  {
+    id: 'b2', period: '2026-Q2', department: 'Comercial',
+    categories: [
+      { name: 'Comisiones', budgeted: 200000, spent: 112000, remaining: 88000, pct: 56.0, status: 'ok' },
+      { name: 'Eventos y Ferias', budgeted: 60000, spent: 65000, remaining: -5000, pct: 108.3, status: 'over' },
+      { name: 'Viáticos', budgeted: 40000, spent: 28900, remaining: 11100, pct: 72.3, status: 'ok' },
+    ],
+    total_budgeted: 300000, total_spent: 205900, total_remaining: 94100, status: 'warning',
+  },
+]
+
+export const mockBudgetStats = { periods: 1, departments: 2, total_budgeted: 1150000, total_spent: 802488, burn_rate: 69.8 }
+
+// ── Tax Reports ───────────────────────────────────────────────────────────────
+
+export interface TaxReport {
+  id: string; period: string; report_type: 'iva' | 'isr' | 'retenciones' | 'diot'
+  sales_taxable: number; sales_tax_collected: number
+  purchases_taxable: number; purchases_tax_paid: number; net_tax: number
+  status: 'draft' | 'filed' | 'paid'; due_date: string; filed_date?: string
+}
+
+export const mockTaxReports: TaxReport[] = [
+  { id: 'tx1', period: '2026-04', report_type: 'iva', sales_taxable: 342567, sales_tax_collected: 54810, purchases_taxable: 198453, purchases_tax_paid: 31752, net_tax: 23058, status: 'filed', due_date: '2026-05-17', filed_date: '2026-05-15' },
+  { id: 'tx2', period: '2026-03', report_type: 'iva', sales_taxable: 289000, sales_tax_collected: 46240, purchases_taxable: 167800, purchases_tax_paid: 26848, net_tax: 19392, status: 'paid', due_date: '2026-04-17', filed_date: '2026-04-14' },
+  { id: 'tx3', period: '2026-04', report_type: 'isr', sales_taxable: 342567, sales_tax_collected: 102770, purchases_taxable: 0, purchases_tax_paid: 0, net_tax: 102770, status: 'filed', due_date: '2026-05-17', filed_date: '2026-05-15' },
+  { id: 'tx4', period: '2026-04', report_type: 'retenciones', sales_taxable: 45000, sales_tax_collected: 6750, purchases_taxable: 0, purchases_tax_paid: 0, net_tax: 6750, status: 'draft', due_date: '2026-05-17' },
+  { id: 'tx5', period: '2026-Q1', report_type: 'diot', sales_taxable: 0, sales_tax_collected: 0, purchases_taxable: 520000, purchases_tax_paid: 83200, net_tax: 0, status: 'filed', due_date: '2026-04-30', filed_date: '2026-04-28' },
+]
+
+export const mockTaxStats = { total_reports: 5, filed: 3, paid: 1, draft: 1, total_iva_due: 23058, total_isr_due: 102770 }
+
+// ── Instagram Shopping ────────────────────────────────────────────────────────
+
+export interface IGShoppingProduct {
+  id: string; product_name: string; price: number; tagged_posts: number
+  product_views: number; clicks: number; purchases: number; revenue: number
+  status: 'active' | 'paused'; ctr: number
+}
+
+export const mockIGShoppingProducts: IGShoppingProduct[] = [
+  { id: 'ig1', product_name: 'Tensiómetro Digital OMRON HEM-7156', price: 1299, tagged_posts: 8, product_views: 4567, clicks: 345, purchases: 23, revenue: 29877, status: 'active', ctr: 7.6 },
+  { id: 'ig2', product_name: 'Oxímetro Portátil CMS50D', price: 549, tagged_posts: 12, product_views: 9821, clicks: 892, purchases: 67, revenue: 36783, status: 'active', ctr: 9.1 },
+  { id: 'ig3', product_name: 'Termómetro Infrarrojo Digital', price: 399, tagged_posts: 15, product_views: 14230, clicks: 1102, purchases: 89, revenue: 35511, status: 'active', ctr: 7.7 },
+  { id: 'ig4', product_name: 'Glucómetro FreeStyle Lite', price: 799, tagged_posts: 4, product_views: 2341, clicks: 145, purchases: 11, revenue: 8789, status: 'paused', ctr: 6.2 },
+  { id: 'ig5', product_name: 'Estetoscopio 3M Littmann', price: 2300, tagged_posts: 6, product_views: 3456, clicks: 234, purchases: 8, revenue: 18400, status: 'active', ctr: 6.8 },
+]
+
+export const mockIGShoppingStats = { total_products: 5, active: 4, paused: 1, total_views: 34415, total_revenue: 129360, avg_ctr: 7.5 }
+
+// ── Meta Ads Manager ──────────────────────────────────────────────────────────
+
+export interface MetaAdSet {
+  id: string; campaign_name: string; ad_set_name: string
+  platform: 'facebook' | 'instagram' | 'both'; objective: 'awareness' | 'traffic' | 'engagement' | 'leads' | 'sales'
+  budget_daily: number; status: 'active' | 'paused' | 'completed'
+  impressions: number; reach: number; clicks: number; ctr: number; cpc: number
+  conversions: number; cost_per_conversion: number; roas: number; spent: number; revenue: number
+}
+
+export const mockMetaAdSets: MetaAdSet[] = [
+  { id: 'ma1', campaign_name: 'Salud — Mayo 2026', ad_set_name: 'Oxímetros — IG Stories', platform: 'instagram', objective: 'sales', budget_daily: 200, status: 'active', impressions: 67890, reach: 45678, clicks: 1234, ctr: 1.82, cpc: 3.24, conversions: 89, cost_per_conversion: 44.94, roas: 4.23, spent: 4000, revenue: 16920 },
+  { id: 'ma2', campaign_name: 'Salud — Mayo 2026', ad_set_name: 'Tensiómetros — FB Feed', platform: 'facebook', objective: 'sales', budget_daily: 150, status: 'active', impressions: 43210, reach: 29000, clicks: 876, ctr: 2.03, cpc: 2.57, conversions: 56, cost_per_conversion: 40.09, roas: 3.89, spent: 2250, revenue: 8752 },
+  { id: 'ma3', campaign_name: 'Marca KapTools', ad_set_name: 'Brand Awareness — Both', platform: 'both', objective: 'awareness', budget_daily: 100, status: 'active', impressions: 124500, reach: 89000, clicks: 456, ctr: 0.37, cpc: 2.19, conversions: 0, cost_per_conversion: 0, roas: 0, spent: 1000, revenue: 0 },
+  { id: 'ma4', campaign_name: 'Lead Gen Médicos', ad_set_name: 'Profesionales — FB', platform: 'facebook', objective: 'leads', budget_daily: 250, status: 'active', impressions: 38900, reach: 24500, clicks: 734, ctr: 1.89, cpc: 5.12, conversions: 123, cost_per_conversion: 30.57, roas: 0, spent: 3760, revenue: 0 },
+  { id: 'ma5', campaign_name: 'Retargeting Mayo', ad_set_name: 'Visitantes Web — IG', platform: 'instagram', objective: 'sales', budget_daily: 80, status: 'paused', impressions: 12340, reach: 8900, clicks: 345, ctr: 2.80, cpc: 1.85, conversions: 34, cost_per_conversion: 18.76, roas: 5.12, spent: 640, revenue: 3277 },
+]
+
+export const mockMetaAdStats = { total_spend: 11650, total_revenue: 28949, avg_roas: 4.12, total_impressions: 286840, total_conversions: 302, total_leads: 123 }
