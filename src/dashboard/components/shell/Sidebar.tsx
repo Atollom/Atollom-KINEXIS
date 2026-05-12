@@ -53,8 +53,10 @@ const menuItems: MenuItem[] = [
         icon: Store,
         children: [
           { label: 'Productos', href: '/ecommerce/ml/products' },
+          { label: 'Catálogo', href: '/ecommerce/ml/catalog', badge: '#1' },
+          { label: 'Promociones', href: '/ecommerce/ml/promotions', badge: '#2' },
           { label: 'Órdenes', href: '/ecommerce/ml/orders' },
-          { label: 'Fulfillment', href: '/ecommerce/ml/fulfillment', badge: '#1' },
+          { label: 'Fulfillment', href: '/ecommerce/ml/fulfillment' },
           { label: 'Preguntas', href: '/ecommerce/ml/questions', badge: '#27' },
           { label: 'Analytics', href: '/ecommerce/ml/analytics' }
         ]
@@ -64,7 +66,9 @@ const menuItems: MenuItem[] = [
         icon: Package,
         children: [
           { label: 'Productos', href: '/ecommerce/amazon/products' },
-          { label: 'FBA Manager', href: '/ecommerce/amazon/fba', badge: '#2' },
+          { label: 'FBA Manager', href: '/ecommerce/amazon/fba' },
+          { label: 'Advertising', href: '/ecommerce/amazon/advertising', badge: '#8' },
+          { label: 'Reports', href: '/ecommerce/amazon/reports', badge: '#9' },
           { label: 'Inventario', href: '/ecommerce/amazon/inventory' },
           { label: 'Analytics', href: '/ecommerce/amazon/analytics' }
         ]
@@ -74,6 +78,8 @@ const menuItems: MenuItem[] = [
         icon: ShoppingBag,
         children: [
           { label: 'Productos', href: '/ecommerce/shopify/products' },
+          { label: 'Collections', href: '/ecommerce/shopify/collections' },
+          { label: 'Discounts', href: '/ecommerce/shopify/discounts' },
           { label: 'Órdenes', href: '/ecommerce/shopify/orders' },
           { label: 'Fulfillment', href: '/ecommerce/shopify/fulfillment', badge: '#3' },
           { label: 'Analytics', href: '/ecommerce/shopify/analytics' }
@@ -84,7 +90,8 @@ const menuItems: MenuItem[] = [
         icon: Settings,
         children: [
           { label: 'Precios', href: '/ecommerce/management/pricing', badge: '#6' },
-          { label: 'Inventario', href: '/ecommerce/management/inventory' },
+          { label: 'Price Optimizer', href: '/ecommerce/management/price-optimization', badge: '#16' },
+          { label: 'Inventario', href: '/ecommerce/management/inventory', badge: '#7' },
           { label: 'Devoluciones', href: '/ecommerce/management/returns', badge: '#14' },
           { label: 'Envíos', href: '/ecommerce/management/shipping' }
         ]
@@ -134,6 +141,14 @@ const menuItems: MenuItem[] = [
           { label: 'Tickets', href: '/crm/support/tickets', badge: '#37' },
           { label: 'NPS', href: '/crm/support/nps', badge: '#19' },
           { label: 'Base Conocimiento', href: '/crm/support/kb' }
+        ]
+      },
+      {
+        label: 'Marketing',
+        icon: TrendingUp,
+        children: [
+          { label: 'Campañas Email', href: '/crm/campaigns', badge: '#22' },
+          { label: 'Segmentos', href: '/crm/segments', badge: '#20' }
         ]
       }
     ]

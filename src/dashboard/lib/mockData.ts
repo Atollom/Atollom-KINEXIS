@@ -1912,3 +1912,182 @@ export const mockUserStats = {
   inactive: 1,
   by_role: { owner: 1, admin: 1, manager: 1, user: 2, viewer: 1 },
 }
+
+// ── ML Catalog ────────────────────────────────────────────────────────────────
+
+export interface MLCatalogItem {
+  id: string; catalog_id: string; title: string; category: string
+  brand: string; price: number; sold_quantity: number; visits: number
+  conversion: number; status: 'active' | 'paused' | 'inactive'; health_score: number
+}
+
+export const mockMLCatalog: MLCatalogItem[] = [
+  { id: 'c1', catalog_id: 'MLA123456789', title: 'Tensiómetro Digital Brazo OMRON HEM-7156', category: 'Salud', brand: 'OMRON', price: 1299, sold_quantity: 234, visits: 4502, conversion: 5.2, status: 'active', health_score: 92 },
+  { id: 'c2', catalog_id: 'MLA987654321', title: 'Oxímetro de Pulso Portátil CMS50D', category: 'Salud', brand: 'Contec', price: 549, sold_quantity: 891, visits: 12300, conversion: 7.2, status: 'active', health_score: 88 },
+  { id: 'c3', catalog_id: 'MLA456789123', title: 'Glucómetro FreeStyle Lite Abbott', category: 'Diabetología', brand: 'Abbott', price: 799, sold_quantity: 156, visits: 2890, conversion: 5.4, status: 'active', health_score: 76 },
+  { id: 'c4', catalog_id: 'MLA321654987', title: 'Nebulizador Compacto NEB-200 Beurer', category: 'Respiratorio', brand: 'Beurer', price: 1850, sold_quantity: 67, visits: 1450, conversion: 4.6, status: 'paused', health_score: 61 },
+  { id: 'c5', catalog_id: 'MLA654321789', title: 'Termómetro Infrarrojo Frente Digital', category: 'Diagnóstico', brand: 'Reer', price: 399, sold_quantity: 1203, visits: 18900, conversion: 6.4, status: 'active', health_score: 95 },
+  { id: 'c6', catalog_id: 'MLA789123456', title: 'Estetoscopio Doble Campana 3M Littmann', category: 'Diagnóstico', brand: '3M', price: 2300, sold_quantity: 42, visits: 980, conversion: 4.3, status: 'active', health_score: 84 },
+]
+
+export const mockMLCatalogStats = { total: 6, active: 4, paused: 1, inactive: 1, avg_health: 82.7, total_visits: 41022 }
+
+// ── ML Promotions ─────────────────────────────────────────────────────────────
+
+export interface MLPromotion {
+  id: string; title: string; type: 'classic' | 'deal_day' | 'discount' | 'combo'
+  discount_pct: number; start_date: string; end_date: string
+  status: 'active' | 'scheduled' | 'ended'; products_count: number; sales_lift: number
+}
+
+export const mockMLPromotions: MLPromotion[] = [
+  { id: 'p1', title: 'Semana de la Salud — Oxímetros', type: 'deal_day', discount_pct: 20, start_date: '2026-05-10', end_date: '2026-05-17', status: 'active', products_count: 4, sales_lift: 142 },
+  { id: 'p2', title: 'Descuento Tensiómetros 15%', type: 'discount', discount_pct: 15, start_date: '2026-05-15', end_date: '2026-05-31', status: 'scheduled', products_count: 2, sales_lift: 0 },
+  { id: 'p3', title: 'Combo Diagnóstico Básico', type: 'combo', discount_pct: 10, start_date: '2026-04-01', end_date: '2026-04-30', status: 'ended', products_count: 3, sales_lift: 78 },
+  { id: 'p4', title: 'Flash Sale Termómetros', type: 'classic', discount_pct: 25, start_date: '2026-05-12', end_date: '2026-05-14', status: 'active', products_count: 1, sales_lift: 310 },
+]
+
+export const mockMLPromotionStats = { active: 2, scheduled: 1, ended: 1, avg_lift: 176, total_products: 10 }
+
+// ── Amazon Advertising ────────────────────────────────────────────────────────
+
+export interface AmazonCampaign {
+  id: string; name: string; type: 'SP' | 'SB' | 'SD'
+  status: 'enabled' | 'paused' | 'archived'; budget: number; spend: number
+  impressions: number; clicks: number; acos: number; roas: number; sales: number
+}
+
+export const mockAmazonCampaigns: AmazonCampaign[] = [
+  { id: 'ac1', name: 'SP - Tensiómetros Exact Match', type: 'SP', status: 'enabled', budget: 500, spend: 312.40, impressions: 28400, clicks: 892, acos: 18.2, roas: 5.49, sales: 1716 },
+  { id: 'ac2', name: 'SB - Marca KapTools Medical', type: 'SB', status: 'enabled', budget: 300, spend: 201.80, impressions: 54200, clicks: 1203, acos: 22.4, roas: 4.46, sales: 900 },
+  { id: 'ac3', name: 'SP - Oxímetros Broad', type: 'SP', status: 'enabled', budget: 400, spend: 389.10, impressions: 61000, clicks: 2140, acos: 31.5, roas: 3.17, sales: 1235 },
+  { id: 'ac4', name: 'SD - Retargeting Visitantes', type: 'SD', status: 'paused', budget: 200, spend: 0, impressions: 0, clicks: 0, acos: 0, roas: 0, sales: 0 },
+  { id: 'ac5', name: 'SP - Glucómetros Auto', type: 'SP', status: 'enabled', budget: 350, spend: 278.60, impressions: 19800, clicks: 641, acos: 25.1, roas: 3.98, sales: 1110 },
+]
+
+export const mockAmazonAdStats = { total_spend: 1181.90, total_sales: 4961, avg_acos: 24.3, avg_roas: 4.12, total_impressions: 163400, total_clicks: 4876 }
+
+// ── Amazon Reports ────────────────────────────────────────────────────────────
+
+export interface AmazonReport {
+  id: string; name: string; type: string; period: string
+  status: 'ready' | 'processing' | 'failed'; generated_at: string; size_kb: number
+}
+
+export const mockAmazonReports: AmazonReport[] = [
+  { id: 'ar1', name: 'Reporte de Ventas — Abril 2026', type: 'Sales', period: '2026-04', status: 'ready', generated_at: '2026-05-01T08:00:00Z', size_kb: 142 },
+  { id: 'ar2', name: 'Inventario FBA — Semana 19', type: 'Inventory', period: '2026-W19', status: 'ready', generated_at: '2026-05-11T06:00:00Z', size_kb: 89 },
+  { id: 'ar3', name: 'Rendimiento Publicidad — Mayo 2026', type: 'Advertising', period: '2026-05', status: 'processing', generated_at: '', size_kb: 0 },
+  { id: 'ar4', name: 'Devoluciones — Q1 2026', type: 'Returns', period: '2026-Q1', status: 'ready', generated_at: '2026-04-05T10:30:00Z', size_kb: 56 },
+  { id: 'ar5', name: 'Reseñas y Ratings — Abril', type: 'Reviews', period: '2026-04', status: 'ready', generated_at: '2026-05-02T09:00:00Z', size_kb: 34 },
+]
+
+export const mockAmazonReportStats = { ready: 4, processing: 1, failed: 0, total_size_kb: 321 }
+
+// ── Shopify Collections ───────────────────────────────────────────────────────
+
+export interface ShopifyCollection {
+  id: string; title: string; type: 'manual' | 'smart'; products_count: number
+  published: boolean; sort_order: string; revenue_30d: number; orders_30d: number
+}
+
+export const mockShopifyCollections: ShopifyCollection[] = [
+  { id: 'sc1', title: 'Diagnóstico y Monitoreo', type: 'smart', products_count: 18, published: true, sort_order: 'best-selling', revenue_30d: 48200, orders_30d: 134 },
+  { id: 'sc2', title: 'Equipos para el Hogar', type: 'smart', products_count: 12, published: true, sort_order: 'price-asc', revenue_30d: 31500, orders_30d: 89 },
+  { id: 'sc3', title: 'Promociones Mayo', type: 'manual', products_count: 6, published: true, sort_order: 'manual', revenue_30d: 12300, orders_30d: 41 },
+  { id: 'sc4', title: 'Productos Premium', type: 'manual', products_count: 8, published: false, sort_order: 'manual', revenue_30d: 0, orders_30d: 0 },
+  { id: 'sc5', title: 'Diabetología', type: 'smart', products_count: 9, published: true, sort_order: 'created-desc', revenue_30d: 22100, orders_30d: 63 },
+]
+
+export const mockShopifyCollectionStats = { total: 5, published: 4, smart: 3, manual: 2, total_revenue_30d: 114100 }
+
+// ── Shopify Discounts ─────────────────────────────────────────────────────────
+
+export interface ShopifyDiscount {
+  id: string; code: string; type: 'percentage' | 'fixed' | 'free_shipping' | 'bxgy'
+  value: number; usage_count: number; usage_limit: number | null
+  status: 'active' | 'expired' | 'scheduled'; starts_at: string; ends_at: string | null; total_saved: number
+}
+
+export const mockShopifyDiscounts: ShopifyDiscount[] = [
+  { id: 'sd1', code: 'SALUD20', type: 'percentage', value: 20, usage_count: 89, usage_limit: 500, status: 'active', starts_at: '2026-05-01', ends_at: '2026-05-31', total_saved: 8420 },
+  { id: 'sd2', code: 'ENVIO0', type: 'free_shipping', value: 0, usage_count: 234, usage_limit: null, status: 'active', starts_at: '2026-05-01', ends_at: null, total_saved: 11700 },
+  { id: 'sd3', code: 'KAPTOOLS15', type: 'percentage', value: 15, usage_count: 12, usage_limit: 100, status: 'active', starts_at: '2026-04-15', ends_at: null, total_saved: 3210 },
+  { id: 'sd4', code: 'ABRIL10', type: 'fixed', value: 100, usage_count: 67, usage_limit: 200, status: 'expired', starts_at: '2026-04-01', ends_at: '2026-04-30', total_saved: 6700 },
+  { id: 'sd5', code: 'VERANO2026', type: 'percentage', value: 25, usage_count: 0, usage_limit: 300, status: 'scheduled', starts_at: '2026-06-01', ends_at: '2026-06-30', total_saved: 0 },
+]
+
+export const mockShopifyDiscountStats = { active: 3, expired: 1, scheduled: 1, total_usage: 402, total_saved: 30030 }
+
+// ── Multi-Channel Inventory ───────────────────────────────────────────────────
+
+export interface MCInventoryItem {
+  id: string; sku: string; title: string; total_stock: number
+  ml_stock: number; amazon_stock: number; shopify_stock: number; warehouse_stock: number
+  status: 'ok' | 'low' | 'critical' | 'out'; reorder_point: number; cost: number
+}
+
+export const mockMCInventory: MCInventoryItem[] = [
+  { id: 'mi1', sku: 'ORG-TEN-001', title: 'Tensiómetro Digital OMRON HEM-7156', total_stock: 148, ml_stock: 40, amazon_stock: 35, shopify_stock: 25, warehouse_stock: 48, status: 'ok', reorder_point: 30, cost: 680 },
+  { id: 'mi2', sku: 'ORG-OXI-002', title: 'Oxímetro Portátil CMS50D', total_stock: 312, ml_stock: 80, amazon_stock: 90, shopify_stock: 60, warehouse_stock: 82, status: 'ok', reorder_point: 50, cost: 210 },
+  { id: 'mi3', sku: 'ORG-GLU-003', title: 'Glucómetro FreeStyle Lite', total_stock: 28, ml_stock: 8, amazon_stock: 10, shopify_stock: 5, warehouse_stock: 5, status: 'low', reorder_point: 40, cost: 380 },
+  { id: 'mi4', sku: 'ORG-NEB-004', title: 'Nebulizador Compacto NEB-200', total_stock: 6, ml_stock: 2, amazon_stock: 2, shopify_stock: 1, warehouse_stock: 1, status: 'critical', reorder_point: 20, cost: 920 },
+  { id: 'mi5', sku: 'ORG-TER-005', title: 'Termómetro Infrarrojo Digital', total_stock: 0, ml_stock: 0, amazon_stock: 0, shopify_stock: 0, warehouse_stock: 0, status: 'out', reorder_point: 60, cost: 145 },
+  { id: 'mi6', sku: 'ORG-EST-006', title: 'Estetoscopio 3M Littmann', total_stock: 54, ml_stock: 12, amazon_stock: 15, shopify_stock: 10, warehouse_stock: 17, status: 'ok', reorder_point: 15, cost: 1100 },
+]
+
+export const mockMCInventoryStats = { total_skus: 6, ok: 3, low: 1, critical: 1, out: 1, total_value: 312400 }
+
+// ── Price Optimization ────────────────────────────────────────────────────────
+
+export interface PriceOptSuggestion {
+  id: string; sku: string; title: string; current_price: number; suggested_price: number
+  competitor_avg: number; channel: 'ml' | 'amazon' | 'shopify' | 'all'
+  reason: string; impact: 'high' | 'medium' | 'low'; potential_gain: number
+}
+
+export const mockPriceOptSuggestions: PriceOptSuggestion[] = [
+  { id: 'po1', sku: 'ORG-OXI-002', title: 'Oxímetro Portátil CMS50D', current_price: 549, suggested_price: 499, competitor_avg: 489, channel: 'ml', reason: 'Competidores 10% más bajos — bajar precio aumenta Buy Box', impact: 'high', potential_gain: 4200 },
+  { id: 'po2', sku: 'ORG-TER-005', title: 'Termómetro Infrarrojo Digital', current_price: 399, suggested_price: 449, competitor_avg: 460, channel: 'amazon', reason: 'Margen bajo vs. competencia — oportunidad de subir precio', impact: 'medium', potential_gain: 1800 },
+  { id: 'po3', sku: 'ORG-TEN-001', title: 'Tensiómetro Digital OMRON HEM-7156', current_price: 1299, suggested_price: 1199, competitor_avg: 1180, channel: 'all', reason: 'Precio 10% sobre promedio; reducir mejora conversión', impact: 'high', potential_gain: 6500 },
+  { id: 'po4', sku: 'ORG-GLU-003', title: 'Glucómetro FreeStyle Lite', current_price: 799, suggested_price: 749, competitor_avg: 740, channel: 'shopify', reason: 'Ajuste menor para igualar competencia en tienda propia', impact: 'low', potential_gain: 800 },
+]
+
+export const mockPriceOptStats = { suggestions: 4, high_impact: 2, medium_impact: 1, low_impact: 1, total_potential_gain: 13300 }
+
+// ── Email Campaigns ───────────────────────────────────────────────────────────
+
+export interface EmailCampaign {
+  id: string; subject: string; segment: string
+  status: 'sent' | 'draft' | 'scheduled' | 'sending'
+  sent_count: number; open_rate: number; click_rate: number; revenue: number; sent_at: string | null
+}
+
+export const mockEmailCampaigns: EmailCampaign[] = [
+  { id: 'ec1', subject: 'Semana de la Salud — Descuentos exclusivos', segment: 'Todos los clientes', status: 'sent', sent_count: 2340, open_rate: 28.4, click_rate: 6.2, revenue: 18400, sent_at: '2026-05-10T10:00:00Z' },
+  { id: 'ec2', subject: 'Tu oxímetro tiene reposición 🎉', segment: 'Compradores Oxímetros', status: 'sent', sent_count: 891, open_rate: 42.1, click_rate: 12.8, revenue: 9800, sent_at: '2026-05-08T09:00:00Z' },
+  { id: 'ec3', subject: 'Nuevos equipos de diagnóstico disponibles', segment: 'Clientes Premium', status: 'scheduled', sent_count: 0, open_rate: 0, click_rate: 0, revenue: 0, sent_at: '2026-05-15T11:00:00Z' },
+  { id: 'ec4', subject: 'Bienvenida a KapTools Medical', segment: 'Nuevos registros', status: 'draft', sent_count: 0, open_rate: 0, click_rate: 0, revenue: 0, sent_at: null },
+  { id: 'ec5', subject: '¿Cómo va tu tensiómetro? Revisión de 6 meses', segment: 'Compradores OMRON', status: 'sent', sent_count: 234, open_rate: 51.3, click_rate: 8.9, revenue: 4200, sent_at: '2026-05-05T14:00:00Z' },
+]
+
+export const mockEmailCampaignStats = { total: 5, sent: 3, draft: 1, scheduled: 1, avg_open_rate: 40.6, avg_click_rate: 9.3, total_revenue: 32400 }
+
+// ── Customer Segments ─────────────────────────────────────────────────────────
+
+export interface CustomerSegment {
+  id: string; name: string; description: string; customers_count: number
+  avg_ltv: number; avg_orders: number; churn_risk: 'low' | 'medium' | 'high'
+  last_updated: string; color: string
+}
+
+export const mockCustomerSegments: CustomerSegment[] = [
+  { id: 'cs1', name: 'Clientes VIP', description: 'Compras > $5,000 en los últimos 6 meses', customers_count: 124, avg_ltv: 12400, avg_orders: 8.2, churn_risk: 'low', last_updated: '2026-05-12', color: '#CCFF00' },
+  { id: 'cs2', name: 'Compradores Frecuentes', description: '3+ órdenes en los últimos 90 días', customers_count: 389, avg_ltv: 4800, avg_orders: 4.1, churn_risk: 'low', last_updated: '2026-05-12', color: '#a78bfa' },
+  { id: 'cs3', name: 'En Riesgo', description: 'Sin compra en 60-90 días', customers_count: 212, avg_ltv: 2100, avg_orders: 1.8, churn_risk: 'high', last_updated: '2026-05-12', color: '#f87171' },
+  { id: 'cs4', name: 'Nuevos Clientes', description: 'Primera compra en los últimos 30 días', customers_count: 156, avg_ltv: 890, avg_orders: 1.0, churn_risk: 'medium', last_updated: '2026-05-12', color: '#60a5fa' },
+  { id: 'cs5', name: 'Compradores B2B', description: 'Pedidos mayoreo o factura empresarial', customers_count: 67, avg_ltv: 28900, avg_orders: 12.4, churn_risk: 'low', last_updated: '2026-05-12', color: '#fb923c' },
+  { id: 'cs6', name: 'Inactivos', description: 'Sin actividad hace más de 90 días', customers_count: 478, avg_ltv: 1200, avg_orders: 1.2, churn_risk: 'high', last_updated: '2026-05-12', color: '#6b7280' },
+]
+
+export const mockCustomerSegmentStats = { total_segments: 6, total_customers: 1426, avg_ltv: 8382, high_risk_count: 690 }
