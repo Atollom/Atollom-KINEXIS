@@ -188,7 +188,7 @@ async def _load_memories(
 @router.get("/credits/{tenant_id}")
 @limiter.limit("100/minute")
 async def get_credits(
-    fastapi_request: Request,
+    request: Request,
     tenant_id: str,
     current_user: dict = Depends(get_current_user),
 ):
