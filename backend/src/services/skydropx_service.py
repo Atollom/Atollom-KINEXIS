@@ -18,10 +18,10 @@ _ENV = os.getenv("SKYDROPX_ENVIRONMENT", "test")
 
 if _ENV == "live":
     _BASE_URL = "https://api.skydropx.com/v1"
-    _API_KEY = os.getenv("SKYDROPX_API_KEY_LIVE", "")
+    _API_KEY = os.getenv("SKYDROPX_API_KEY_LIVE") or os.getenv("SKYDROPX_CLIENT_SECRET", "")
 else:
     _BASE_URL = "https://api-demo.skydropx.com/v1"
-    _API_KEY = os.getenv("SKYDROPX_API_KEY_TEST", "")
+    _API_KEY = os.getenv("SKYDROPX_API_KEY_TEST") or os.getenv("SKYDROPX_CLIENT_SECRET", "")
 
 if not _API_KEY:
     logger.warning("Skydropx API key not configured (env=%s)", _ENV)
