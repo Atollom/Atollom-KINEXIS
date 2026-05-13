@@ -2308,3 +2308,189 @@ export const mockMetaAdSets: MetaAdSet[] = [
 ]
 
 export const mockMetaAdStats = { total_spend: 11650, total_revenue: 28949, avg_roas: 4.12, total_impressions: 286840, total_conversions: 302, total_leads: 123 }
+
+// ── Consolidated Metrics ──────────────────────────────────────────────────────
+
+export interface ChannelRevenue { channel: string; amount: number; growth: number; color: string }
+export interface ConsolidatedMetrics {
+  period: string
+  revenue: { total: number; growth: number; by_channel: ChannelRevenue[] }
+  orders: { total: number; growth: number; avg_value: number; by_status: Record<string, number> }
+  customers: { total: number; new: number; returning: number; churn_rate: number }
+  inventory: { total_value: number; low_stock_items: number; out_of_stock: number; turnover_rate: number }
+  marketing: { total_spend: number; roas: number; cac: number; ltv: number }
+}
+
+export const mockConsolidatedMetrics: ConsolidatedMetrics = {
+  period: '2026-05',
+  revenue: {
+    total: 542789.50, growth: 18.5,
+    by_channel: [
+      { channel: 'Shopify', amount: 234567.50, growth: 25.3, color: '#CCFF00' },
+      { channel: 'Mercado Libre', amount: 156789.00, growth: 12.1, color: '#facc15' },
+      { channel: 'Amazon', amount: 123456.00, growth: 15.7, color: '#fb923c' },
+      { channel: 'B2B Directo', amount: 27977.00, growth: 8.9, color: '#60a5fa' },
+    ],
+  },
+  orders: { total: 487, growth: 14.2, avg_value: 1114.65, by_status: { pending: 23, processing: 45, shipped: 167, delivered: 234, cancelled: 18 } },
+  customers: { total: 2345, new: 234, returning: 253, churn_rate: 12.3 },
+  inventory: { total_value: 1456789.50, low_stock_items: 34, out_of_stock: 12, turnover_rate: 4.2 },
+  marketing: { total_spend: 45678.90, roas: 11.88, cac: 195.16, ltv: 2318.92 },
+}
+
+export const mockRevenueHistory = [
+  { month: 'Ene', shopify: 145000, ml: 98000, amazon: 78000, b2b: 18000 },
+  { month: 'Feb', shopify: 167000, ml: 112000, amazon: 89000, b2b: 21000 },
+  { month: 'Mar', shopify: 189000, ml: 134000, amazon: 98000, b2b: 23000 },
+  { month: 'Abr', shopify: 210000, ml: 143000, amazon: 109000, b2b: 25000 },
+  { month: 'May', shopify: 234567, ml: 156789, amazon: 123456, b2b: 27977 },
+]
+
+// ── Custom Reports ────────────────────────────────────────────────────────────
+
+export interface CustomReport {
+  id: string; name: string; type: 'sales' | 'inventory' | 'customers' | 'marketing' | 'financial'
+  filters: Array<{ field: string; operator: string; value: string }>
+  columns: string[]
+  schedule?: { frequency: 'daily' | 'weekly' | 'monthly'; recipients: string[] }
+  created_by: string; created_at: string; last_run?: string; records_last_run?: number
+}
+
+export const mockCustomReports: CustomReport[] = [
+  { id: 'cr1', name: 'Ventas por Categoría — Semanal', type: 'sales', filters: [{ field: 'date', operator: 'last_7_days', value: '' }, { field: 'status', operator: 'equals', value: 'completed' }], columns: ['category', 'total_sales', 'units_sold', 'avg_price', 'growth'], schedule: { frequency: 'weekly', recipients: ['ventas@kaptools.com', 'admin@kaptools.com'] }, created_by: 'Carlos Cortés', created_at: '2026-03-15T10:00:00Z', last_run: '2026-05-10T08:00:00Z', records_last_run: 1234 },
+  { id: 'cr2', name: 'Top 20 Productos — Mensual', type: 'inventory', filters: [{ field: 'date', operator: 'last_30_days', value: '' }], columns: ['sku', 'product_name', 'units_sold', 'revenue', 'margin'], schedule: { frequency: 'monthly', recipients: ['almacen@kaptools.com'] }, created_by: 'Laura Méndez', created_at: '2026-04-01T12:00:00Z', last_run: '2026-05-01T08:00:00Z', records_last_run: 20 },
+  { id: 'cr3', name: 'CAC & LTV por Canal', type: 'marketing', filters: [{ field: 'date', operator: 'last_90_days', value: '' }], columns: ['channel', 'new_customers', 'cac', 'ltv', 'ltv_cac_ratio'], schedule: { frequency: 'monthly', recipients: ['marketing@kaptools.com'] }, created_by: 'Carlos Cortés', created_at: '2026-04-15T09:00:00Z', last_run: '2026-05-08T07:00:00Z', records_last_run: 4 },
+  { id: 'cr4', name: 'Reporte Fiscal Mensual', type: 'financial', filters: [{ field: 'date', operator: 'current_month', value: '' }], columns: ['invoice_id', 'client', 'subtotal', 'iva', 'total', 'cfdi_uuid'], created_by: 'Miguel Torres', created_at: '2026-05-01T08:00:00Z', records_last_run: 89 },
+  { id: 'cr5', name: 'Clientes en Riesgo', type: 'customers', filters: [{ field: 'last_purchase', operator: 'more_than_days', value: '60' }, { field: 'ltv', operator: 'greater_than', value: '5000' }], columns: ['customer_name', 'email', 'last_purchase', 'ltv', 'recommended_action'], schedule: { frequency: 'weekly', recipients: ['crm@kaptools.com'] }, created_by: 'Carlos Cortés', created_at: '2026-05-05T10:00:00Z', last_run: '2026-05-10T06:00:00Z', records_last_run: 47 },
+]
+
+export const mockCustomReportStats = { total: 5, scheduled: 3, manual: 2, avg_records: 279 }
+
+// ── Export Center ─────────────────────────────────────────────────────────────
+
+export interface ExportJob {
+  id: string; name: string; type: 'orders' | 'products' | 'customers' | 'inventory' | 'financial'
+  format: 'csv' | 'xlsx' | 'pdf' | 'json'
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  records_count?: number; file_size_kb?: number; created_at: string; completed_at?: string; expires_at?: string
+}
+
+export const mockExportJobs: ExportJob[] = [
+  { id: 'ex1', name: 'Órdenes Mayo 2026', type: 'orders', format: 'xlsx', status: 'completed', records_count: 487, file_size_kb: 234, created_at: '2026-05-10T09:00:00Z', completed_at: '2026-05-10T09:01:23Z', expires_at: '2026-05-17T09:00:00Z' },
+  { id: 'ex2', name: 'Catálogo completo', type: 'products', format: 'csv', status: 'completed', records_count: 156, file_size_kb: 89, created_at: '2026-05-09T14:00:00Z', completed_at: '2026-05-09T14:00:45Z', expires_at: '2026-05-16T14:00:00Z' },
+  { id: 'ex3', name: 'Clientes — Q2 2026', type: 'customers', format: 'xlsx', status: 'completed', records_count: 2345, file_size_kb: 512, created_at: '2026-05-08T11:00:00Z', completed_at: '2026-05-08T11:02:11Z', expires_at: '2026-05-15T11:00:00Z' },
+  { id: 'ex4', name: 'Inventario actual', type: 'inventory', format: 'csv', status: 'processing', created_at: '2026-05-12T10:30:00Z' },
+  { id: 'ex5', name: 'Facturas Abril', type: 'financial', format: 'pdf', status: 'completed', records_count: 89, file_size_kb: 1240, created_at: '2026-05-02T08:00:00Z', completed_at: '2026-05-02T08:05:33Z', expires_at: '2026-05-09T08:00:00Z' },
+  { id: 'ex6', name: 'Reporte Ventas JSON', type: 'orders', format: 'json', status: 'failed', created_at: '2026-05-11T16:00:00Z' },
+]
+
+export const mockExportStats = { total: 6, completed: 4, processing: 1, failed: 1, total_size_mb: 2.1 }
+
+// ── BI Dashboards ─────────────────────────────────────────────────────────────
+
+export interface BIWidget { id: string; type: 'metric' | 'chart' | 'table' | 'map'; title: string; data_source: string; size: 'sm' | 'md' | 'lg' }
+export interface BIDashboard {
+  id: string; name: string; description: string; widgets: BIWidget[]
+  shared_with: string[]; created_by: string; last_updated: string; views: number
+}
+
+export const mockBIDashboards: BIDashboard[] = [
+  { id: 'bi1', name: 'Executive Overview', description: 'Vista 360° para dirección', widgets: [{ id: 'w1', type: 'metric', title: 'Revenue MTD', data_source: 'sales', size: 'sm' }, { id: 'w2', type: 'chart', title: 'Ventas por Canal', data_source: 'sales', size: 'lg' }, { id: 'w3', type: 'table', title: 'Top 10 Productos', data_source: 'products', size: 'md' }, { id: 'w4', type: 'metric', title: 'ROAS Global', data_source: 'marketing', size: 'sm' }], shared_with: ['admin@kaptools.com', 'ventas@kaptools.com'], created_by: 'Carlos Cortés', last_updated: '2026-05-09T14:30:00Z', views: 234 },
+  { id: 'bi2', name: 'Marketing Performance', description: 'ROI y conversiones por canal', widgets: [{ id: 'w5', type: 'chart', title: 'ROAS por Canal', data_source: 'marketing', size: 'lg' }, { id: 'w6', type: 'metric', title: 'CAC Promedio', data_source: 'marketing', size: 'sm' }, { id: 'w7', type: 'chart', title: 'Embudo Conversión', data_source: 'funnel', size: 'md' }], shared_with: ['marketing@kaptools.com'], created_by: 'Laura Méndez', last_updated: '2026-05-10T09:00:00Z', views: 89 },
+  { id: 'bi3', name: 'Inventory Intelligence', description: 'Stock, rotación y reorden', widgets: [{ id: 'w8', type: 'table', title: 'SKUs críticos', data_source: 'inventory', size: 'md' }, { id: 'w9', type: 'metric', title: 'Turnover Rate', data_source: 'inventory', size: 'sm' }], shared_with: ['almacen@kaptools.com'], created_by: 'Carlos Cortés', last_updated: '2026-05-08T16:00:00Z', views: 45 },
+]
+
+export const mockBIStats = { total_dashboards: 3, total_widgets: 9, total_views: 368, shared_users: 5 }
+
+// ── Facebook Catalog ──────────────────────────────────────────────────────────
+
+export interface FBCatalogProduct {
+  id: string; retailer_id: string; title: string; price: number
+  availability: 'in stock' | 'out of stock' | 'preorder'
+  status: 'approved' | 'pending' | 'rejected' | 'needs_update'
+  fb_catalog_id: string; impressions: number; clicks: number; purchases: number
+  last_synced: string
+}
+
+export const mockFBCatalog: FBCatalogProduct[] = [
+  { id: 'fbc1', retailer_id: 'ORG-TEN-001', title: 'Tensiómetro Digital OMRON HEM-7156', price: 1299, availability: 'in stock', status: 'approved', fb_catalog_id: 'FB-4567891', impressions: 12340, clicks: 456, purchases: 34, last_synced: '2026-05-12T08:00:00Z' },
+  { id: 'fbc2', retailer_id: 'ORG-OXI-002', title: 'Oxímetro Portátil CMS50D', price: 549, availability: 'in stock', status: 'approved', fb_catalog_id: 'FB-4567892', impressions: 23456, clicks: 890, purchases: 67, last_synced: '2026-05-12T08:00:00Z' },
+  { id: 'fbc3', retailer_id: 'ORG-GLU-003', title: 'Glucómetro FreeStyle Lite Abbott', price: 799, availability: 'in stock', status: 'needs_update', fb_catalog_id: 'FB-4567893', impressions: 7890, clicks: 234, purchases: 12, last_synced: '2026-05-10T08:00:00Z' },
+  { id: 'fbc4', retailer_id: 'ORG-NEB-004', title: 'Nebulizador Compacto NEB-200', price: 1850, availability: 'out of stock', status: 'pending', fb_catalog_id: '', impressions: 0, clicks: 0, purchases: 0, last_synced: '2026-05-11T08:00:00Z' },
+  { id: 'fbc5', retailer_id: 'ORG-TER-005', title: 'Termómetro Infrarrojo Digital', price: 399, availability: 'out of stock', status: 'rejected', fb_catalog_id: 'FB-4567895', impressions: 0, clicks: 0, purchases: 0, last_synced: '2026-05-09T08:00:00Z' },
+  { id: 'fbc6', retailer_id: 'ORG-EST-006', title: 'Estetoscopio 3M Littmann', price: 2300, availability: 'in stock', status: 'approved', fb_catalog_id: 'FB-4567896', impressions: 4560, clicks: 123, purchases: 8, last_synced: '2026-05-12T08:00:00Z' },
+]
+
+export const mockFBCatalogStats = { total: 6, approved: 3, pending: 1, rejected: 1, needs_update: 1, total_purchases: 121, total_revenue: 112345 }
+
+// ── WhatsApp Templates ────────────────────────────────────────────────────────
+
+export interface WATemplate {
+  id: string; name: string; category: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION'
+  language: string; status: 'APPROVED' | 'PENDING' | 'REJECTED' | 'DRAFT'
+  header?: string; body: string; footer?: string
+  buttons?: Array<{ type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER'; text: string; url?: string }>
+  send_count: number; open_rate: number; created_at: string
+}
+
+export const mockWATemplates: WATemplate[] = [
+  { id: 'wat1', name: 'bienvenida_cliente', category: 'MARKETING', language: 'es_MX', status: 'APPROVED', header: 'Bienvenido a KapTools Medical 🎉', body: 'Hola {{1}}, gracias por registrarte. Tu cuenta está lista. ¿En qué podemos ayudarte hoy?', footer: 'KapTools Medical — Para tu salud', buttons: [{ type: 'QUICK_REPLY', text: 'Ver catálogo' }, { type: 'QUICK_REPLY', text: 'Hablar con asesor' }], send_count: 1234, open_rate: 78.4, created_at: '2026-03-01T10:00:00Z' },
+  { id: 'wat2', name: 'confirmacion_pedido', category: 'UTILITY', language: 'es_MX', status: 'APPROVED', header: 'Tu pedido está confirmado ✅', body: 'Hola {{1}}, tu pedido #{{2}} por ${{3}} MXN ha sido confirmado. Tiempo estimado: {{4}} días hábiles.', footer: 'Puedes rastrear tu pedido en nuestra app', buttons: [{ type: 'URL', text: 'Rastrear pedido', url: 'https://kaptools.com/tracking/{{1}}' }], send_count: 2456, open_rate: 91.2, created_at: '2026-03-10T09:00:00Z' },
+  { id: 'wat3', name: 'recordatorio_pago', category: 'UTILITY', language: 'es_MX', status: 'APPROVED', body: 'Hola {{1}}, te recordamos que tienes una factura por ${{2}} con vencimiento el {{3}}. Por favor realiza tu pago para continuar sin interrupciones.', buttons: [{ type: 'URL', text: 'Pagar ahora', url: 'https://kaptools.com/payment/{{1}}' }, { type: 'QUICK_REPLY', text: 'Ya pagué' }], send_count: 456, open_rate: 65.3, created_at: '2026-04-01T08:00:00Z' },
+  { id: 'wat4', name: 'promo_semana_salud', category: 'MARKETING', language: 'es_MX', status: 'PENDING', header: '🩺 Semana de la Salud — 20% OFF', body: 'Hola {{1}}, esta semana todos los equipos de diagnóstico tienen 20% de descuento. ¡Solo hasta el domingo!', footer: 'Oferta exclusiva para clientes registrados', buttons: [{ type: 'URL', text: 'Ver ofertas', url: 'https://kaptools.com/promo' }, { type: 'QUICK_REPLY', text: 'No me interesa' }], send_count: 0, open_rate: 0, created_at: '2026-05-11T14:00:00Z' },
+  { id: 'wat5', name: 'encuesta_satisfaccion', category: 'UTILITY', language: 'es_MX', status: 'APPROVED', body: 'Hola {{1}}, ¿cómo calificarías tu compra reciente de {{2}}? Tu opinión nos ayuda a mejorar.', buttons: [{ type: 'QUICK_REPLY', text: '⭐⭐⭐⭐⭐ Excelente' }, { type: 'QUICK_REPLY', text: '⭐⭐⭐ Regular' }, { type: 'QUICK_REPLY', text: '⭐ Necesita mejorar' }], send_count: 890, open_rate: 83.7, created_at: '2026-04-15T11:00:00Z' },
+]
+
+export const mockWATemplateStats = { total: 5, approved: 4, pending: 1, rejected: 0, avg_open_rate: 79.7, total_sent: 5036 }
+
+// ── Cost Analysis ─────────────────────────────────────────────────────────────
+
+export interface CostCategory { category: string; amount: number; percentage: number; variance: number }
+export interface CostProduct { sku: string; product_name: string; cogs: number; units_sold: number; total_cost: number; revenue: number; margin: number }
+export interface CostAnalysis {
+  period: string; total_costs: number
+  by_category: CostCategory[]; by_product: CostProduct[]
+  fixed_costs: number; variable_costs: number; gross_margin: number; break_even_point: number
+}
+
+export const mockCostAnalysis: CostAnalysis = {
+  period: '2026-05', total_costs: 298765.50,
+  by_category: [
+    { category: 'COGS (Mercancía)', amount: 198453.25, percentage: 66.4, variance: 2.3 },
+    { category: 'Nómina / Labor', amount: 45678.90, percentage: 15.3, variance: -1.2 },
+    { category: 'Logística', amount: 28934.50, percentage: 9.7, variance: 5.6 },
+    { category: 'Marketing', amount: 15234.85, percentage: 5.1, variance: -3.4 },
+    { category: 'Tecnología / SaaS', amount: 10464.00, percentage: 3.5, variance: 0.8 },
+  ],
+  by_product: [
+    { sku: 'ORG-OXI-002', product_name: 'Oxímetro Portátil CMS50D', cogs: 210, units_sold: 312, total_cost: 65520, revenue: 171288, margin: 61.7 },
+    { sku: 'ORG-TEN-001', product_name: 'Tensiómetro Digital OMRON HEM-7156', cogs: 680, units_sold: 148, total_cost: 100640, revenue: 192252, margin: 47.6 },
+    { sku: 'ORG-TER-005', product_name: 'Termómetro Infrarrojo Digital', cogs: 145, units_sold: 89, total_cost: 12905, revenue: 35511, margin: 63.7 },
+    { sku: 'ORG-EST-006', product_name: 'Estetoscopio 3M Littmann', cogs: 1100, units_sold: 42, total_cost: 46200, revenue: 96600, margin: 52.2 },
+    { sku: 'ORG-GLU-003', product_name: 'Glucómetro FreeStyle Lite', cogs: 380, units_sold: 28, total_cost: 10640, revenue: 22372, margin: 52.4 },
+  ],
+  fixed_costs: 89456.00, variable_costs: 209309.50, gross_margin: 45.0, break_even_point: 456789.50,
+}
+
+export const mockCostStats = { total_costs: 298765.50, revenue: 542789.50, gross_margin: 45.0, fixed_pct: 29.9, variable_pct: 70.1 }
+
+// ── Cash Flow Forecast ────────────────────────────────────────────────────────
+
+export interface CashFlowMonth {
+  month: string; label: string
+  inflows: { sales: number; collections: number; other: number; total: number }
+  outflows: { inventory: number; payroll: number; rent: number; marketing: number; other: number; total: number }
+  net: number; balance: number
+}
+
+export const mockCashFlowMonths: CashFlowMonth[] = [
+  { month: '2026-05', label: 'Mayo', inflows: { sales: 342567, collections: 123456, other: 12345, total: 478368 }, outflows: { inventory: 198453, payroll: 89456, rent: 25000, marketing: 15234, other: 8765, total: 336908 }, net: 141460, balance: 598250 },
+  { month: '2026-06', label: 'Jun', inflows: { sales: 378901, collections: 145678, other: 15678, total: 540257 }, outflows: { inventory: 215678, payroll: 89456, rent: 25000, marketing: 18765, other: 9876, total: 358775 }, net: 181482, balance: 779732 },
+  { month: '2026-07', label: 'Jul', inflows: { sales: 412000, collections: 167000, other: 18000, total: 597000 }, outflows: { inventory: 234000, payroll: 92000, rent: 25000, marketing: 21000, other: 11000, total: 383000 }, net: 214000, balance: 993732 },
+]
+
+export const mockCashFlowStats = {
+  current_balance: 456789.50, forecast_3m_end: 993732,
+  scenarios: { optimistic: 1120000, realistic: 993732, pessimistic: 823456 },
+  avg_monthly_net: 178981,
+}

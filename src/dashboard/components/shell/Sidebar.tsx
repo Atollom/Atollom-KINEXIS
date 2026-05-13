@@ -23,7 +23,8 @@ import {
   Truck,
   Menu,
   X,
-  Globe
+  Globe,
+  BarChart2
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -194,6 +195,7 @@ const menuItems: MenuItem[] = [
           { label: 'CxC', href: '/erp/finance/receivables' },
           { label: 'CxP', href: '/erp/finance/payables' },
           { label: 'Bancos', href: '/erp/finance/banking' },
+          { label: 'Costos', href: '/erp/finance/costs' },
           { label: 'Cash Flow', href: '/erp/finance/cashflow' }
         ]
       },
@@ -229,14 +231,37 @@ const menuItems: MenuItem[] = [
     ]
   },
   {
+    label: 'Analytics',
+    icon: BarChart2,
+    roles: ['owner', 'admin', 'contador'],
+    children: [
+      { label: 'Consolidated', href: '/analytics/consolidated' },
+      { label: 'Custom Reports', href: '/analytics/reports' },
+      { label: 'Export Center', href: '/analytics/export' },
+      { label: 'Data Studio', href: '/analytics/bi', badge: 'BI' },
+    ]
+  },
+  {
     label: 'Meta',
     icon: Globe,
     roles: ['owner', 'admin', 'agente'],
     children: [
       { label: 'Dashboard', icon: LayoutDashboard, href: '/meta' },
-      { label: 'WhatsApp', href: '/meta/whatsapp' },
+      {
+        label: 'WhatsApp',
+        children: [
+          { label: 'Mensajes', href: '/meta/whatsapp' },
+          { label: 'Templates', href: '/meta/whatsapp/templates' },
+        ]
+      },
       { label: 'Instagram', href: '/meta/instagram' },
-      { label: 'Facebook', href: '/meta/facebook' },
+      {
+        label: 'Facebook',
+        children: [
+          { label: 'Página', href: '/meta/facebook' },
+          { label: 'Catálogo', href: '/meta/facebook/catalog' },
+        ]
+      },
       { label: 'IG Shopping', href: '/meta/shopping' },
       { label: 'Ads Manager', href: '/meta/ads', badge: '#28' },
       { label: 'Inbox Unificado', href: '/meta/inbox' },
