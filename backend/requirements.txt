@@ -45,5 +45,8 @@ slowapi==0.1.9
 # JWT validation (Supabase JWT — also a transitive dep of supabase client)
 PyJWT==2.10.1
 
+# Stripe (billing + subscriptions)
+stripe==15.1.0
+
 # Logging
 structlog==24.4.0

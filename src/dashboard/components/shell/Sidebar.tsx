@@ -268,6 +268,15 @@ const menuItems: MenuItem[] = [
     ]
   },
   {
+    label: 'Billing',
+    icon: DollarSign,
+    roles: ['owner', 'admin'],
+    children: [
+      { label: 'Mi Plan', href: '/settings/billing' },
+      { label: 'Precios', href: '/billing/pricing' },
+    ]
+  },
+  {
     label: 'Configuración',
     icon: Settings,
     roles: ['owner', 'admin'],
