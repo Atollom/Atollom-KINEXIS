@@ -29,6 +29,7 @@ from src.routers import (
     dashboard_router,
     agents_router,
     stripe_router,
+    shipping_router,
     sandbox_router,
     health_router,
 )
@@ -95,5 +96,6 @@ app.include_router(samantha_router.router)
 app.include_router(dashboard_router.router)
 app.include_router(agents_router.router)
 app.include_router(stripe_router.router)
+app.include_router(shipping_router.router)
 app.include_router(sandbox_router.router)
 app.include_router(health_router.router)
