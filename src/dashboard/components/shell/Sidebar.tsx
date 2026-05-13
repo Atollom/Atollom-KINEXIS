@@ -286,6 +286,7 @@ const menuItems: MenuItem[] = [
       { label: 'Billing',        href: '/settings/billing' },
       { label: 'Sandbox',        href: '/settings/sandbox' },
       { label: 'Testing',        href: '/settings/testing' },
+      { label: 'CFDI Test',      href: '/settings/cfdi-test' },
       { label: 'Data Inspector', href: '/settings/data-inspector' },
     ]
   }

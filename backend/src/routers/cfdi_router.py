@@ -5,9 +5,10 @@ CFDI Router — Endpoints para facturación CFDI multi-tenant.
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, field_validator
 
+from src.auth.jwt_validator import get_current_user
 from src.integrations.cfdi_provider import cfdi_provider
 
 logger = logging.getLogger(__name__)
@@ -91,6 +92,33 @@ async def get_invoices(
     except Exception as exc:
         logger.error(f"get_invoices({tenant_id}): {exc}")
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/invoice")
+async def create_invoice_auth(
+    body: CreateInvoiceRequest,
+    current_user: dict = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Genera CFDI 4.0 — tenant_id extraído del JWT (uso desde frontend)."""
+    tenant_id = current_user["tenant_id"]
+    logger.info("Invoice request (auth): tenant=%s rfc=%s", tenant_id, body.customer_rfc)
+
+    items = [item.model_dump() for item in body.items]
+    result = await cfdi_provider.create_invoice(
+        customer_rfc=body.customer_rfc,
+        customer_name=body.customer_name,
+        items=items,
+        payment_form=body.payment_form,
+        payment_method=body.payment_method,
+        use=body.use,
+        tenant_id=tenant_id,
+    )
+
+    if not result.get("success"):
+        status_code = 429 if "quota" in result.get("error", "").lower() else 422
+        raise HTTPException(status_code=status_code, detail=result.get("error", "CFDI generation failed"))
+
+    return result
 
 
 @router.post("/invoices/{tenant_id}")
