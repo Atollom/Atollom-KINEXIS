@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ToastProvider";
 import { mockShopifyAnalytics } from "@/lib/mockData";
 import {
-  LineChart, Line, BarChart, Bar,
+  LineChart, Line, BarChart, Bar, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 

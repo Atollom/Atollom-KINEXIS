@@ -88,7 +88,8 @@ export default function SandboxPage() {
 
   async function fetchStatus() {
     try {
-      const data = await authenticatedFetch('/api/sandbox/status')
+      const res = await authenticatedFetch('/api/sandbox/status')
+      const data = await res.json()
       setStatus(data)
     } catch {
       showToast({ type: 'error', title: 'Error', message: 'No se pudo cargar el estado del sandbox' })
@@ -102,11 +103,12 @@ export default function SandboxPage() {
   async function handleSync(integration: string) {
     setSyncing(s => ({ ...s, [integration]: true }))
     try {
-      const result = await authenticatedFetch(`/api/sandbox/sync/${integration}`, { method: 'POST' })
+      const res = await authenticatedFetch(`/api/sandbox/sync/${integration}`, { method: 'POST' })
+      const result = await res.json()
       showToast({
         type: 'success',
         title: 'Sincronización completa',
-        message: `${INTEGRATION_CFG[integration]?.label}: ${result.items_synced} registros sincronizados`,
+        message: `${INTEGRATION_CFG[integration]?.label}: ${result.items_synced ?? 'N/A'} registros sincronizados`,
       })
       await fetchStatus()
     } catch (err: any) {

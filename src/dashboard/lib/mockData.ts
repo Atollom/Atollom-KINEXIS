@@ -2405,23 +2405,26 @@ export const mockBIStats = { total_dashboards: 3, total_widgets: 9, total_views:
 // ── Facebook Catalog ──────────────────────────────────────────────────────────
 
 export interface FBCatalogProduct {
-  id: string; retailer_id: string; title: string; price: number
+  id: string; retailer_id: string; sku: string; title: string; name: string; price: number
   availability: 'in stock' | 'out of stock' | 'preorder'
-  status: 'approved' | 'pending' | 'rejected' | 'needs_update'
-  fb_catalog_id: string; impressions: number; clicks: number; purchases: number
+  status: 'approved' | 'pending' | 'rejected' | 'needs_update' | 'disapproved'
+  category: string
+  fb_catalog_id: string; facebook_product_id: string
+  impressions: number; clicks: number; purchases: number
+  issues: string[]
   last_synced: string
 }
 
 export const mockFBCatalog: FBCatalogProduct[] = [
-  { id: 'fbc1', retailer_id: 'ORG-TEN-001', title: 'Tensiómetro Digital OMRON HEM-7156', price: 1299, availability: 'in stock', status: 'approved', fb_catalog_id: 'FB-4567891', impressions: 12340, clicks: 456, purchases: 34, last_synced: '2026-05-12T08:00:00Z' },
-  { id: 'fbc2', retailer_id: 'ORG-OXI-002', title: 'Oxímetro Portátil CMS50D', price: 549, availability: 'in stock', status: 'approved', fb_catalog_id: 'FB-4567892', impressions: 23456, clicks: 890, purchases: 67, last_synced: '2026-05-12T08:00:00Z' },
-  { id: 'fbc3', retailer_id: 'ORG-GLU-003', title: 'Glucómetro FreeStyle Lite Abbott', price: 799, availability: 'in stock', status: 'needs_update', fb_catalog_id: 'FB-4567893', impressions: 7890, clicks: 234, purchases: 12, last_synced: '2026-05-10T08:00:00Z' },
-  { id: 'fbc4', retailer_id: 'ORG-NEB-004', title: 'Nebulizador Compacto NEB-200', price: 1850, availability: 'out of stock', status: 'pending', fb_catalog_id: '', impressions: 0, clicks: 0, purchases: 0, last_synced: '2026-05-11T08:00:00Z' },
-  { id: 'fbc5', retailer_id: 'ORG-TER-005', title: 'Termómetro Infrarrojo Digital', price: 399, availability: 'out of stock', status: 'rejected', fb_catalog_id: 'FB-4567895', impressions: 0, clicks: 0, purchases: 0, last_synced: '2026-05-09T08:00:00Z' },
-  { id: 'fbc6', retailer_id: 'ORG-EST-006', title: 'Estetoscopio 3M Littmann', price: 2300, availability: 'in stock', status: 'approved', fb_catalog_id: 'FB-4567896', impressions: 4560, clicks: 123, purchases: 8, last_synced: '2026-05-12T08:00:00Z' },
+  { id: 'fbc1', retailer_id: 'ORG-TEN-001', sku: 'ORG-TEN-001', title: 'Tensiómetro Digital OMRON HEM-7156', name: 'Tensiómetro Digital OMRON HEM-7156', price: 1299, availability: 'in stock', status: 'approved', category: 'Diagnóstico', fb_catalog_id: 'FB-4567891', facebook_product_id: 'FB-4567891', impressions: 12340, clicks: 456, purchases: 34, issues: [], last_synced: '2026-05-12T08:00:00Z' },
+  { id: 'fbc2', retailer_id: 'ORG-OXI-002', sku: 'ORG-OXI-002', title: 'Oxímetro Portátil CMS50D', name: 'Oxímetro Portátil CMS50D', price: 549, availability: 'in stock', status: 'approved', category: 'Diagnóstico', fb_catalog_id: 'FB-4567892', facebook_product_id: 'FB-4567892', impressions: 23456, clicks: 890, purchases: 67, issues: [], last_synced: '2026-05-12T08:00:00Z' },
+  { id: 'fbc3', retailer_id: 'ORG-GLU-003', sku: 'ORG-GLU-003', title: 'Glucómetro FreeStyle Lite Abbott', name: 'Glucómetro FreeStyle Lite Abbott', price: 799, availability: 'in stock', status: 'needs_update', category: 'Glucometría', fb_catalog_id: 'FB-4567893', facebook_product_id: 'FB-4567893', impressions: 7890, clicks: 234, purchases: 12, issues: ['Imagen sin fondo blanco', 'Descripción muy corta'], last_synced: '2026-05-10T08:00:00Z' },
+  { id: 'fbc4', retailer_id: 'ORG-NEB-004', sku: 'ORG-NEB-004', title: 'Nebulizador Compacto NEB-200', name: 'Nebulizador Compacto NEB-200', price: 1850, availability: 'out of stock', status: 'pending', category: 'Respiratorio', fb_catalog_id: '', facebook_product_id: '', impressions: 0, clicks: 0, purchases: 0, issues: [], last_synced: '2026-05-11T08:00:00Z' },
+  { id: 'fbc5', retailer_id: 'ORG-TER-005', sku: 'ORG-TER-005', title: 'Termómetro Infrarrojo Digital', name: 'Termómetro Infrarrojo Digital', price: 399, availability: 'out of stock', status: 'rejected', category: 'Diagnóstico', fb_catalog_id: 'FB-4567895', facebook_product_id: 'FB-4567895', impressions: 0, clicks: 0, purchases: 0, issues: ['Producto no permitido sin certificación'], last_synced: '2026-05-09T08:00:00Z' },
+  { id: 'fbc6', retailer_id: 'ORG-EST-006', sku: 'ORG-EST-006', title: 'Estetoscopio 3M Littmann', name: 'Estetoscopio 3M Littmann', price: 2300, availability: 'in stock', status: 'approved', category: 'Auscultación', fb_catalog_id: 'FB-4567896', facebook_product_id: 'FB-4567896', impressions: 4560, clicks: 123, purchases: 8, issues: [], last_synced: '2026-05-12T08:00:00Z' },
 ]
 
-export const mockFBCatalogStats = { total: 6, approved: 3, pending: 1, rejected: 1, needs_update: 1, total_purchases: 121, total_revenue: 112345 }
+export const mockFBCatalogStats = { total: 6, approved: 3, pending: 1, rejected: 1, needs_update: 1, active: 4, synced_today: 3, total_purchases: 121, total_revenue: 112345 }
 
 // ── WhatsApp Templates ────────────────────────────────────────────────────────
 
@@ -2430,67 +2433,79 @@ export interface WATemplate {
   language: string; status: 'APPROVED' | 'PENDING' | 'REJECTED' | 'DRAFT'
   header?: string; body: string; footer?: string
   buttons?: Array<{ type: 'QUICK_REPLY' | 'URL' | 'PHONE_NUMBER'; text: string; url?: string }>
-  send_count: number; open_rate: number; created_at: string
+  send_count: number; usage_count: number; open_rate: number; created_at: string
+  variables: number
 }
 
 export const mockWATemplates: WATemplate[] = [
-  { id: 'wat1', name: 'bienvenida_cliente', category: 'MARKETING', language: 'es_MX', status: 'APPROVED', header: 'Bienvenido a KapTools Medical 🎉', body: 'Hola {{1}}, gracias por registrarte. Tu cuenta está lista. ¿En qué podemos ayudarte hoy?', footer: 'KapTools Medical — Para tu salud', buttons: [{ type: 'QUICK_REPLY', text: 'Ver catálogo' }, { type: 'QUICK_REPLY', text: 'Hablar con asesor' }], send_count: 1234, open_rate: 78.4, created_at: '2026-03-01T10:00:00Z' },
-  { id: 'wat2', name: 'confirmacion_pedido', category: 'UTILITY', language: 'es_MX', status: 'APPROVED', header: 'Tu pedido está confirmado ✅', body: 'Hola {{1}}, tu pedido #{{2}} por ${{3}} MXN ha sido confirmado. Tiempo estimado: {{4}} días hábiles.', footer: 'Puedes rastrear tu pedido en nuestra app', buttons: [{ type: 'URL', text: 'Rastrear pedido', url: 'https://kaptools.com/tracking/{{1}}' }], send_count: 2456, open_rate: 91.2, created_at: '2026-03-10T09:00:00Z' },
-  { id: 'wat3', name: 'recordatorio_pago', category: 'UTILITY', language: 'es_MX', status: 'APPROVED', body: 'Hola {{1}}, te recordamos que tienes una factura por ${{2}} con vencimiento el {{3}}. Por favor realiza tu pago para continuar sin interrupciones.', buttons: [{ type: 'URL', text: 'Pagar ahora', url: 'https://kaptools.com/payment/{{1}}' }, { type: 'QUICK_REPLY', text: 'Ya pagué' }], send_count: 456, open_rate: 65.3, created_at: '2026-04-01T08:00:00Z' },
-  { id: 'wat4', name: 'promo_semana_salud', category: 'MARKETING', language: 'es_MX', status: 'PENDING', header: '🩺 Semana de la Salud — 20% OFF', body: 'Hola {{1}}, esta semana todos los equipos de diagnóstico tienen 20% de descuento. ¡Solo hasta el domingo!', footer: 'Oferta exclusiva para clientes registrados', buttons: [{ type: 'URL', text: 'Ver ofertas', url: 'https://kaptools.com/promo' }, { type: 'QUICK_REPLY', text: 'No me interesa' }], send_count: 0, open_rate: 0, created_at: '2026-05-11T14:00:00Z' },
-  { id: 'wat5', name: 'encuesta_satisfaccion', category: 'UTILITY', language: 'es_MX', status: 'APPROVED', body: 'Hola {{1}}, ¿cómo calificarías tu compra reciente de {{2}}? Tu opinión nos ayuda a mejorar.', buttons: [{ type: 'QUICK_REPLY', text: '⭐⭐⭐⭐⭐ Excelente' }, { type: 'QUICK_REPLY', text: '⭐⭐⭐ Regular' }, { type: 'QUICK_REPLY', text: '⭐ Necesita mejorar' }], send_count: 890, open_rate: 83.7, created_at: '2026-04-15T11:00:00Z' },
+  { id: 'wat1', name: 'bienvenida_cliente', category: 'MARKETING', language: 'es_MX', status: 'APPROVED', header: 'Bienvenido a KapTools Medical 🎉', body: 'Hola {{1}}, gracias por registrarte. Tu cuenta está lista. ¿En qué podemos ayudarte hoy?', footer: 'KapTools Medical — Para tu salud', buttons: [{ type: 'QUICK_REPLY', text: 'Ver catálogo' }, { type: 'QUICK_REPLY', text: 'Hablar con asesor' }], send_count: 1234, usage_count: 1234, open_rate: 78.4, variables: 1, created_at: '2026-03-01T10:00:00Z' },
+  { id: 'wat2', name: 'confirmacion_pedido', category: 'UTILITY', language: 'es_MX', status: 'APPROVED', header: 'Tu pedido está confirmado ✅', body: 'Hola {{1}}, tu pedido #{{2}} por ${{3}} MXN ha sido confirmado. Tiempo estimado: {{4}} días hábiles.', footer: 'Puedes rastrear tu pedido en nuestra app', buttons: [{ type: 'URL', text: 'Rastrear pedido', url: 'https://kaptools.com/tracking/{{1}}' }], send_count: 2456, usage_count: 2456, open_rate: 91.2, variables: 4, created_at: '2026-03-10T09:00:00Z' },
+  { id: 'wat3', name: 'recordatorio_pago', category: 'UTILITY', language: 'es_MX', status: 'APPROVED', body: 'Hola {{1}}, te recordamos que tienes una factura por ${{2}} con vencimiento el {{3}}. Por favor realiza tu pago para continuar sin interrupciones.', buttons: [{ type: 'URL', text: 'Pagar ahora', url: 'https://kaptools.com/payment/{{1}}' }, { type: 'QUICK_REPLY', text: 'Ya pagué' }], send_count: 456, usage_count: 456, open_rate: 65.3, variables: 3, created_at: '2026-04-01T08:00:00Z' },
+  { id: 'wat4', name: 'promo_semana_salud', category: 'MARKETING', language: 'es_MX', status: 'PENDING', header: '🩺 Semana de la Salud — 20% OFF', body: 'Hola {{1}}, esta semana todos los equipos de diagnóstico tienen 20% de descuento. ¡Solo hasta el domingo!', footer: 'Oferta exclusiva para clientes registrados', buttons: [{ type: 'URL', text: 'Ver ofertas', url: 'https://kaptools.com/promo' }, { type: 'QUICK_REPLY', text: 'No me interesa' }], send_count: 0, usage_count: 0, open_rate: 0, variables: 1, created_at: '2026-05-11T14:00:00Z' },
+  { id: 'wat5', name: 'encuesta_satisfaccion', category: 'UTILITY', language: 'es_MX', status: 'APPROVED', body: 'Hola {{1}}, ¿cómo calificarías tu compra reciente de {{2}}? Tu opinión nos ayuda a mejorar.', buttons: [{ type: 'QUICK_REPLY', text: '⭐⭐⭐⭐⭐ Excelente' }, { type: 'QUICK_REPLY', text: '⭐⭐⭐ Regular' }, { type: 'QUICK_REPLY', text: '⭐ Necesita mejorar' }], send_count: 890, usage_count: 890, open_rate: 83.7, variables: 2, created_at: '2026-04-15T11:00:00Z' },
 ]
 
 export const mockWATemplateStats = { total: 5, approved: 4, pending: 1, rejected: 0, avg_open_rate: 79.7, total_sent: 5036 }
 
 // ── Cost Analysis ─────────────────────────────────────────────────────────────
 
-export interface CostCategory { category: string; amount: number; percentage: number; variance: number }
-export interface CostProduct { sku: string; product_name: string; cogs: number; units_sold: number; total_cost: number; revenue: number; margin: number }
+export interface CostCategory { name: string; amount: number; percentage: number; color: string }
+export interface CostProduct { sku: string; name: string; revenue: number; cogs: number; gross_margin: number; gross_margin_pct: number }
 export interface CostAnalysis {
-  period: string; total_costs: number
-  by_category: CostCategory[]; by_product: CostProduct[]
-  fixed_costs: number; variable_costs: number; gross_margin: number; break_even_point: number
+  period: string
+  total_revenue: number; total_cogs: number; gross_profit: number; gross_margin_pct: number
+  categories: CostCategory[]
+  top_products: CostProduct[]
 }
 
-export const mockCostAnalysis: CostAnalysis = {
-  period: '2026-05', total_costs: 298765.50,
-  by_category: [
-    { category: 'COGS (Mercancía)', amount: 198453.25, percentage: 66.4, variance: 2.3 },
-    { category: 'Nómina / Labor', amount: 45678.90, percentage: 15.3, variance: -1.2 },
-    { category: 'Logística', amount: 28934.50, percentage: 9.7, variance: 5.6 },
-    { category: 'Marketing', amount: 15234.85, percentage: 5.1, variance: -3.4 },
-    { category: 'Tecnología / SaaS', amount: 10464.00, percentage: 3.5, variance: 0.8 },
-  ],
-  by_product: [
-    { sku: 'ORG-OXI-002', product_name: 'Oxímetro Portátil CMS50D', cogs: 210, units_sold: 312, total_cost: 65520, revenue: 171288, margin: 61.7 },
-    { sku: 'ORG-TEN-001', product_name: 'Tensiómetro Digital OMRON HEM-7156', cogs: 680, units_sold: 148, total_cost: 100640, revenue: 192252, margin: 47.6 },
-    { sku: 'ORG-TER-005', product_name: 'Termómetro Infrarrojo Digital', cogs: 145, units_sold: 89, total_cost: 12905, revenue: 35511, margin: 63.7 },
-    { sku: 'ORG-EST-006', product_name: 'Estetoscopio 3M Littmann', cogs: 1100, units_sold: 42, total_cost: 46200, revenue: 96600, margin: 52.2 },
-    { sku: 'ORG-GLU-003', product_name: 'Glucómetro FreeStyle Lite', cogs: 380, units_sold: 28, total_cost: 10640, revenue: 22372, margin: 52.4 },
-  ],
-  fixed_costs: 89456.00, variable_costs: 209309.50, gross_margin: 45.0, break_even_point: 456789.50,
-}
+const _costCategories: CostCategory[] = [
+  { name: 'COGS (Mercancía)', amount: 198453, percentage: 66.4, color: '#f87171' },
+  { name: 'Nómina / Labor',   amount: 45679,  percentage: 15.3, color: '#fb923c' },
+  { name: 'Logística',        amount: 28935,  percentage: 9.7,  color: '#facc15' },
+  { name: 'Marketing',        amount: 15235,  percentage: 5.1,  color: '#60a5fa' },
+  { name: 'Tecnología / SaaS',amount: 10464,  percentage: 3.5,  color: '#a78bfa' },
+]
+const _costProducts: CostProduct[] = [
+  { sku: 'ORG-OXI-002', name: 'Oxímetro Portátil CMS50D',           revenue: 171288, cogs: 65520,  gross_margin: 105768, gross_margin_pct: 61.7 },
+  { sku: 'ORG-TEN-001', name: 'Tensiómetro Digital OMRON HEM-7156', revenue: 192252, cogs: 100640, gross_margin: 91612,  gross_margin_pct: 47.6 },
+  { sku: 'ORG-TER-005', name: 'Termómetro Infrarrojo Digital',      revenue: 35511,  cogs: 12905,  gross_margin: 22606,  gross_margin_pct: 63.7 },
+  { sku: 'ORG-EST-006', name: 'Estetoscopio 3M Littmann',           revenue: 96600,  cogs: 46200,  gross_margin: 50400,  gross_margin_pct: 52.2 },
+  { sku: 'ORG-GLU-003', name: 'Glucómetro FreeStyle Lite',          revenue: 22372,  cogs: 10640,  gross_margin: 11732,  gross_margin_pct: 52.4 },
+]
 
-export const mockCostStats = { total_costs: 298765.50, revenue: 542789.50, gross_margin: 45.0, fixed_pct: 29.9, variable_pct: 70.1 }
+export const mockCostAnalysis: CostAnalysis[] = [
+  { period: 'Enero',  total_revenue: 498234, total_cogs: 278012, gross_profit: 220222, gross_margin_pct: 44.2, categories: _costCategories, top_products: _costProducts },
+  { period: 'Febrero',total_revenue: 521456, total_cogs: 289234, gross_profit: 232222, gross_margin_pct: 44.5, categories: _costCategories, top_products: _costProducts },
+  { period: 'Marzo',  total_revenue: 542789, total_cogs: 298765, gross_profit: 244024, gross_margin_pct: 45.0, categories: _costCategories, top_products: _costProducts },
+]
+
+export const mockCostStats = {
+  total_costs: 298765.50, revenue: 542789.50, gross_margin: 45.0, fixed_pct: 29.9, variable_pct: 70.1,
+  avg_gross_margin: 44.6, best_category: 'Termómetros', worst_category: 'Tensiómetros', products_analyzed: 47,
+}
 
 // ── Cash Flow Forecast ────────────────────────────────────────────────────────
 
 export interface CashFlowMonth {
   month: string; label: string
-  inflows: { sales: number; collections: number; other: number; total: number }
-  outflows: { inventory: number; payroll: number; rent: number; marketing: number; other: number; total: number }
+  inflows: number; outflows: number
   net: number; balance: number
+  forecast?: boolean
 }
 
 export const mockCashFlowMonths: CashFlowMonth[] = [
-  { month: '2026-05', label: 'Mayo', inflows: { sales: 342567, collections: 123456, other: 12345, total: 478368 }, outflows: { inventory: 198453, payroll: 89456, rent: 25000, marketing: 15234, other: 8765, total: 336908 }, net: 141460, balance: 598250 },
-  { month: '2026-06', label: 'Jun', inflows: { sales: 378901, collections: 145678, other: 15678, total: 540257 }, outflows: { inventory: 215678, payroll: 89456, rent: 25000, marketing: 18765, other: 9876, total: 358775 }, net: 181482, balance: 779732 },
-  { month: '2026-07', label: 'Jul', inflows: { sales: 412000, collections: 167000, other: 18000, total: 597000 }, outflows: { inventory: 234000, payroll: 92000, rent: 25000, marketing: 21000, other: 11000, total: 383000 }, net: 214000, balance: 993732 },
+  { month: 'Mar', label: 'Marzo',  inflows: 456789, outflows: 312456, net: 144333,  balance: 456789, forecast: false },
+  { month: 'Abr', label: 'Abril',  inflows: 478368, outflows: 336908, net: 141460,  balance: 598249, forecast: false },
+  { month: 'May', label: 'Mayo',   inflows: 540257, outflows: 358775, net: 181482,  balance: 779731, forecast: false },
+  { month: 'Jun', label: 'Junio',  inflows: 597000, outflows: 383000, net: 214000,  balance: 993731, forecast: true  },
+  { month: 'Jul', label: 'Julio',  inflows: 620000, outflows: 395000, net: 225000,  balance: 1218731, forecast: true },
+  { month: 'Ago', label: 'Agosto', inflows: 645000, outflows: 408000, net: 237000,  balance: 1455731, forecast: true },
 ]
 
 export const mockCashFlowStats = {
-  current_balance: 456789.50, forecast_3m_end: 993732,
-  scenarios: { optimistic: 1120000, realistic: 993732, pessimistic: 823456 },
-  avg_monthly_net: 178981,
+  current_balance: 779731, forecast_3m_end: 1455731,
+  scenarios: { optimistic: 1600000, realistic: 1455731, pessimistic: 1200000 },
+  avg_monthly_net: 190546,
+  min_balance: 456789,
+  months_positive: 6,
 }

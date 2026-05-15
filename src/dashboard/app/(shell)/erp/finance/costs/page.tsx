@@ -86,7 +86,7 @@ export default function CostAnalysisPage() {
               <Pie data={analysis.categories} dataKey="amount" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
                 {analysis.categories.map((cat, i) => <Cell key={i} fill={cat.color} />)}
               </Pie>
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`$${v.toLocaleString()}`, 'Costo']} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [`$${Number(v ?? 0).toLocaleString()}`, 'Costo']} />
             </PieChart>
           </ResponsiveContainer>
           <div className="space-y-1.5 mt-2">

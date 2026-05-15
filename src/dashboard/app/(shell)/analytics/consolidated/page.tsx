@@ -60,7 +60,7 @@ export default function ConsolidatedDashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
               <XAxis dataKey="channel" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}K`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`$${v.toLocaleString()}`, 'Revenue']} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [`$${Number(v ?? 0).toLocaleString()}`, 'Revenue']} />
               <Bar dataKey="amount" radius={[6, 6, 0, 0]}>
                 {m.revenue.by_channel.map(c => <Cell key={c.channel} fill={c.color} />)}
               </Bar>
@@ -75,7 +75,7 @@ export default function ConsolidatedDashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
               <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}K`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `$${v.toLocaleString()}`} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => `$${Number(v ?? 0).toLocaleString()}`} />
               <Line type="monotone" dataKey="shopify" stroke="#CCFF00" strokeWidth={2} dot={false} name="Shopify" />
               <Line type="monotone" dataKey="ml" stroke="#facc15" strokeWidth={2} dot={false} name="ML" />
               <Line type="monotone" dataKey="amazon" stroke="#fb923c" strokeWidth={2} dot={false} name="Amazon" />

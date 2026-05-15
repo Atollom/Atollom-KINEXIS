@@ -152,7 +152,7 @@ export default function WATemplatesPage() {
                         {preview.buttons.map((btn, i) => (
                           <div key={i} className="text-center py-1 rounded-lg text-[11px] font-bold text-[#4ade80]"
                             style={{ backgroundColor: 'rgba(74,222,128,0.1)' }}>
-                            {btn}
+                            {btn.text}
                           </div>
                         ))}
                       </div>
@@ -169,7 +169,7 @@ export default function WATemplatesPage() {
                   { label: 'Estado', value: STATUS_CONFIG[preview.status]?.label },
                   { label: 'Variables', value: `${preview.variables} variables` },
                   { label: 'Envíos totales', value: preview.usage_count?.toLocaleString() ?? '—' },
-                  { label: 'Último envío', value: preview.last_sent ? new Date(preview.last_sent).toLocaleDateString('es-MX') : '—' },
+                  { label: 'Creado', value: new Date(preview.created_at).toLocaleDateString('es-MX') },
                 ].map(r => (
                   <div key={r.label} className="flex items-center justify-between">
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{r.label}</p>

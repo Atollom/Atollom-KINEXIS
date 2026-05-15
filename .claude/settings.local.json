@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\),**d.get\\('devDependencies',{}\\)}; print\\('recharts:', deps.get\\('recharts','NOT INSTALLED'\\)\\)\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); s=d['summary']; print\\(f'Mock: {s[\\\\\"functional_mock\\\\\"]} | Placeholder: {s[\\\\\"placeholder\\\\\"]} | Real: {s[\\\\\"functional_real\\\\\"]} | Total: {s[\\\\\"total_pages\\\\\"]}'\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}; print\\('recharts' in deps, 'recharts:', deps.get\\('recharts','NOT FOUND'\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./src/dashboard/package.json'\\); const d={...p.dependencies,...\\(p.devDependencies||{}\\)}; console.log\\('recharts:', d.recharts||'NOT FOUND'\\);\")",
+      "Bash(.venv/Scripts/python -c \"import stripe; print\\(stripe.__version__\\)\")",
+      "Bash(.venv/Scripts/pip install *)",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" https://kinexis-api.railway.app/health)",
+      "Bash(curl -s -w '\\\\nHTTP_STATUS:%{http_code}' -X POST https://kinexis-api.railway.app/api/shipping/shopify/rates -H 'Content-Type: application/json' -d '{\"zip_from\":\"03100\",\"zip_to\":\"64000\",\"parcel\":{\"weight\":1.5,\"height\":10,\"width\":20,\"length\":30}}')",
+      "Bash(curl -s \"https://kinexis-api.railway.app/health\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s \"https://kinexis-api.railway.app/docs\")",
+      "Bash(curl -s \"https://kinexis-api.railway.app/openapi.json\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(m.upper\\(\\), p\\) for p,ops in d.get\\('paths',{}\\).items\\(\\) for m in ops]\")",
+      "Bash(curl -sv \"https://kinexis-api.railway.app/openapi.json\")",
+      "Bash(curl -sv \"https://kinexis-api.railway.app/health\")",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" \"https://kinexis-api.railway.app/api/onboarding\")",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" \"https://kinexis-api.railway.app/api/cfdi/invoice\")",
+      "Bash(curl -s -w \"\\\\n---STATUS:%{http_code}---\" https://kinexis-api.railway.app/health)",
+      "Bash(curl -s -w \"\\\\n---STATUS:%{http_code}---\" https://kinexis-api.railway.app/openapi.json)",
+      "Bash(curl -s -w \"\\\\n---STATUS:%{http_code}---\" -H \"Accept: application/json\" https://kinexis-api.railway.app/docs)",
+      "Bash(curl -s -w \"\\\\n---STATUS:%{http_code}---\" https://kinexis-api.railway.app/api/health)",
+      "Bash(curl -si https://kinexis-api.railway.app/openapi.json)",
+      "Bash(python -c \"import sys; sys.path.insert\\(0, '.'\\); import main\")",
+      "Bash(.venv/Scripts/python -c \"import sys; sys.path.insert\\(0, '.'\\); import main\")",
+      "Bash(curl -sf https://kinexis-api.railway.app/openapi.json)",
+      "Bash(curl -sf -o /dev/null -w \"%{http_code}\" https://kinexis-api.railway.app/api/health)",
+      "Bash(curl -s https://atollom-kinexis.onrender.com/openapi.json)",
+      "Bash(python -m json.tool)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); paths=list\\(d['paths'].keys\\(\\)\\); print\\(f'Total endpoints: {len\\(paths\\)}'\\); [print\\(' ', p\\) for p in paths]\")",
+      "WebSearch",
+      "WebFetch(domain:gist.github.com)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\CarlosCortes\\Desktop\\Atollom KINEXIS\\src\\dashboard\\app\\api\\sandbox",
+      "c:\\Users\\CarlosCortes\\Desktop\\Atollom KINEXIS\\backend\\src"
+    ]
+  }
+}

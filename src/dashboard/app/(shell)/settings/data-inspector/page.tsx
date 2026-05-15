@@ -43,7 +43,7 @@ const DATA_OPTIONS: Record<IntegrationKey, InspectorOption[]> = {
 export default function DataInspectorPage() {
   const [integration, setIntegration] = useState<IntegrationKey>('mercadolibre')
   const [option, setOption]           = useState<InspectorOption>(DATA_OPTIONS.mercadolibre[0])
-  const [data, setData]               = useState<unknown>(null)
+  const [data, setData]               = useState<object | null>(null)
   const [loading, setLoading]         = useState(false)
   const [fetchedPath, setFetchedPath] = useState('')
 

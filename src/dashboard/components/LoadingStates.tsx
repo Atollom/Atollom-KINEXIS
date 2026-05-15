@@ -1,12 +1,14 @@
 'use client'
 
+import React from 'react'
+
 // ── Shimmer base ──────────────────────────────────────────────────────────────
 
-function Shimmer({ className = '' }: { className?: string }) {
+function Shimmer({ className = '', style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <div
       className={`animate-shimmer rounded-lg ${className}`}
-      style={{ backgroundColor: 'var(--bg-card)' }}
+      style={{ backgroundColor: 'var(--bg-card)', ...style }}
     />
   )
 }
