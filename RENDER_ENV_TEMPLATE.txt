@@ -1,0 +1,81 @@
+# ══════════════════════════════════════════════════════════════════
+#  KINEXIS — Variables de entorno para Render.com
+#  Copia y pega el bloque completo en:
+#  Render Dashboard → kinexis-backend → Environment → Add from .env
+# ══════════════════════════════════════════════════════════════════
+#
+#  LEYENDA:
+#    [YA TIENES ESTE VALOR]  = copiado de tu backend/.env o frontend/.env.local
+#    [COPIA DE RAILWAY]      = ve a Railway → Variables y copia
+#    [VER INSTRUCCIÓN]       = instrucción específica abajo
+# ══════════════════════════════════════════════════════════════════
+
+# ── Supabase ──────────────────────────────────────────────────────
+SUPABASE_URL=https://smgxbqkfxqbnmytalpos.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtZ3hicWtmeHFibm15dGFscG9zIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTk0Nzk1MywiZXhwIjoyMDkxNTIzOTUzfQ.mCe1LmWo6429Jbg-79ac0FJo8zYpUAIjZtr8wUPd5lw
+
+# [VER INSTRUCCIÓN A] SUPABASE_JWT_SECRET
+# → Supabase Dashboard → Settings → API → JWT Secret (botón "Reveal")
+SUPABASE_JWT_SECRET=[IR A SUPABASE → SETTINGS → API → JWT SECRET]
+
+# ── Base de datos ─────────────────────────────────────────────────
+# [VER INSTRUCCIÓN B] DATABASE_URL
+# La URL actual apunta a Railway y puede no funcionar si el trial expiró.
+# → Supabase Dashboard → Settings → Database → Connection String → "URI"
+#   Formato: postgresql://postgres:[TU_PASSWORD]@db.smgxbqkfxqbnmytalpos.supabase.co:5432/postgres
+DATABASE_URL=[IR A SUPABASE → SETTINGS → DATABASE → CONNECTION STRING → URI]
+
+# ── Seguridad ─────────────────────────────────────────────────────
+ENCRYPTION_KEY=3QDOcCQgNV6sm_9J3kP8e6C8YR-B3hQVc-60uYMubpg=
+
+# ── Frontend / CORS ───────────────────────────────────────────────
+FRONTEND_URL=https://kinexis.atollom.com
+ALLOWED_ORIGINS=https://kinexis.atollom.com,https://dashboard.atollom.com
+
+# ── IA ────────────────────────────────────────────────────────────
+GOOGLE_API_KEY=AIzaSyCfptGqSRsoiqhc5kcoPHpsRAWiYWGIFN8
+ANTHROPIC_API_KEY=[COPIA DE RAILWAY]
+
+# ── Stripe ────────────────────────────────────────────────────────
+STRIPE_SECRET_KEY=[COPIA DE RAILWAY]
+STRIPE_WEBHOOK_SECRET=[COPIA DE RAILWAY]
+STRIPE_PRICE_STARTER=[COPIA DE RAILWAY]
+STRIPE_PRICE_GROWTH=[COPIA DE RAILWAY]
+STRIPE_PRICE_PRO=[COPIA DE RAILWAY]
+STRIPE_PRICE_TOKENS=[COPIA DE RAILWAY]
+STRIPE_PRICE_TIMBRES=[COPIA DE RAILWAY]
+
+# ── Skydropx ──────────────────────────────────────────────────────
+SKYDROPX_ENVIRONMENT=test
+SKYDROPX_CLIENT_ID=[COPIA DE RAILWAY]
+SKYDROPX_CLIENT_SECRET=[COPIA DE RAILWAY]
+
+# ── FacturAPI / Facturama ─────────────────────────────────────────
+FACTURAPI_SECRET_KEY=[COPIA DE RAILWAY]
+FACTURAMA_USER=[COPIA DE RAILWAY]
+FACTURAMA_PASSWORD=[COPIA DE RAILWAY]
+FACTURAMA_SANDBOX=true
+
+# ── Mercado Libre ─────────────────────────────────────────────────
+ML_CLIENT_ID=2563941731044265
+ML_CLIENT_SECRET=vDQxAUGDo4jwDmi4VEyLB5UoXQWe8TP7
+ML_REDIRECT_URI=[COPIA DE RAILWAY si existe]
+
+# ── Entorno ───────────────────────────────────────────────────────
+ENVIRONMENT=production
+PYTHON_VERSION=3.11.0
+
+# ══════════════════════════════════════════════════════════════════
+#  INSTRUCCIÓN A — SUPABASE_JWT_SECRET
+#  1. Ve a https://supabase.com/dashboard/project/smgxbqkfxqbnmytalpos
+#  2. Settings (engranaje izquierdo) → API
+#  3. Sección "JWT Settings" → botón "Reveal" junto a "JWT Secret"
+#  4. Copia el valor (empieza con letras/números, ~43 chars)
+#
+#  INSTRUCCIÓN B — DATABASE_URL (Supabase PostgreSQL)
+#  1. Ve a https://supabase.com/dashboard/project/smgxbqkfxqbnmytalpos
+#  2. Settings → Database → Connection string → URI
+#  3. Copia la URI completa (postgresql://postgres:PASSWORD@db.xxx.supabase.co:5432/postgres)
+#  4. El password es el mismo que pusiste al crear el proyecto Supabase
+#     Si no lo recuerdas: Settings → Database → "Reset database password"
+# ══════════════════════════════════════════════════════════════════

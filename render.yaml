@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: kinexis-backend
+    env: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --log-level info
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
+        value: production
+      # ── Las siguientes variables deben agregarse manualmente en Render Dashboard ──
+      # SUPABASE_URL
+      # SUPABASE_SERVICE_ROLE_KEY
+      # SUPABASE_JWT_SECRET
+      # DATABASE_URL
+      # ENCRYPTION_KEY
+      # ANTHROPIC_API_KEY
+      # GOOGLE_API_KEY
+      # FRONTEND_URL
+      # ALLOWED_ORIGINS
+      # STRIPE_SECRET_KEY
+      # STRIPE_WEBHOOK_SECRET
+      # STRIPE_PRICE_STARTER
+      # STRIPE_PRICE_GROWTH
+      # STRIPE_PRICE_PRO
+      # STRIPE_PRICE_TOKENS
+      # STRIPE_PRICE_TIMBRES
+      # SKYDROPX_ENVIRONMENT
+      # SKYDROPX_CLIENT_ID
+      # SKYDROPX_CLIENT_SECRET
+      # FACTURAPI_SECRET_KEY
+      # FACTURAMA_USER
+      # FACTURAMA_PASSWORD
+      # FACTURAMA_SANDBOX
+      # ML_CLIENT_ID
+      # ML_CLIENT_SECRET
+      # ML_REDIRECT_URI
