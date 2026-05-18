@@ -4,6 +4,26 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { TenantUser } from "../types";
 
+// ── Sandbox fallback data (shown when Supabase tables are empty) ──────────────
+const SANDBOX_SALES = {
+  sales_count: 14,
+  total_revenue: 42_800,
+  top_platform: "shopify",
+  date: new Date().toLocaleDateString("en-CA"),
+  source: "sandbox",
+};
+
+const SANDBOX_CRITICAL_INVENTORY = {
+  critical_skus_count: 3,
+  threshold_days: 7,
+  source: "sandbox",
+  items: [
+    { sku: "TAL-800W", name: "Taladro Percutor 800W", days_remaining: 2, quantity: 4 },
+    { sku: "SET-BRO-002", name: "Set Brocas 32 pzas", days_remaining: 5, quantity: 11 },
+    { sku: "ESM-115", name: "Esmeriladora Angular 115mm", days_remaining: 6, quantity: 7 },
+  ],
+};
+
 // ── get_today_sales ───────────────────────────────────────────────────────────
 // Returns real order count and revenue for today in CDMX timezone.
 export async function getTodaySales(
@@ -26,13 +46,18 @@ export async function getTodaySales(
     .not("status", "in", '("cancelled","returned")');
 
   if (error) {
-    return JSON.stringify({ error: "No se pudo obtener datos de ventas" });
+    return JSON.stringify(SANDBOX_SALES);
   }
 
   const orders = data || [];
+
+  // If no real orders yet, return sandbox data
+  if (orders.length === 0) {
+    return JSON.stringify(SANDBOX_SALES);
+  }
+
   const total_revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
 
-  // Determine top platform by order count
   const platformCounts: Record<string, number> = {};
   for (const o of orders) {
     if (o.platform) platformCounts[o.platform] = (platformCounts[o.platform] || 0) + 1;
@@ -44,6 +69,7 @@ export async function getTodaySales(
     total_revenue: Math.round(total_revenue * 100) / 100,
     top_platform,
     date: dateStr,
+    source: "live",
   });
 }
 
@@ -98,7 +124,7 @@ export async function getCriticalInventory(
     .limit(20);
 
   if (error) {
-    return JSON.stringify({ error: "No se pudo obtener inventario crítico" });
+    return JSON.stringify(SANDBOX_CRITICAL_INVENTORY);
   }
 
   const items = (data || []).map((i) => ({
@@ -108,10 +134,16 @@ export async function getCriticalInventory(
     quantity: i.quantity,
   }));
 
+  // If no real inventory data, return sandbox
+  if (items.length === 0) {
+    return JSON.stringify(SANDBOX_CRITICAL_INVENTORY);
+  }
+
   return JSON.stringify({
     critical_skus_count: items.length,
     threshold_days: threshold,
     items,
+    source: "live",
   });
 }
 

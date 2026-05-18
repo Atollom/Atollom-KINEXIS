@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { mockConversations, mockInboxStats, type Conversation } from "@/lib/mockData";
+import { useEffect, useState } from "react";
+import type { Conversation } from "@/lib/mockData";
 import { useToast } from "@/components/ToastProvider";
 
 type PlatformFilter = "all" | "whatsapp" | "instagram" | "facebook";
@@ -42,12 +42,27 @@ export function InboxView({ defaultPlatform }: InboxViewProps) {
   const { showToast } = useToast();
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>(defaultPlatform ?? "all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [selected, setSelected] = useState<Conversation>(mockConversations[0]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [inboxStats, setInboxStats] = useState({ open: 0, pending: 0, avg_response_time: "..." });
+  const [loadingInbox, setLoadingInbox] = useState(true);
+  const [selected, setSelected] = useState<Conversation | null>(null);
   const [samanthaActive, setSamanthaActive] = useState(true);
   const [draft, setDraft] = useState("");
   const [search, setSearch] = useState("");
 
-  const filtered = mockConversations.filter(c => {
+  useEffect(() => {
+    fetch("/api/inbox/conversations")
+      .then(r => r.json())
+      .then(data => {
+        setConversations(data.conversations ?? []);
+        setInboxStats(data.stats ?? { open: 0, pending: 0, avg_response_time: "—" });
+        setSelected(data.conversations?.[0] ?? null);
+      })
+      .catch(() => showToast({ type: "error", title: "Error", message: "No se pudo cargar el inbox" }))
+      .finally(() => setLoadingInbox(false));
+  }, []);
+
+  const filtered = conversations.filter(c => {
     const p = platformFilter === "all" || c.platform === platformFilter;
     const s = statusFilter === "all" || c.status === statusFilter;
     const q = !search || c.customer.name.toLowerCase().includes(search.toLowerCase()) || c.last_message.toLowerCase().includes(search.toLowerCase());
@@ -55,15 +70,15 @@ export function InboxView({ defaultPlatform }: InboxViewProps) {
   });
 
   const pcounts = {
-    all: mockConversations.length,
-    whatsapp: mockConversations.filter(c => c.platform === "whatsapp").length,
-    instagram: mockConversations.filter(c => c.platform === "instagram").length,
-    facebook: mockConversations.filter(c => c.platform === "facebook").length,
+    all: conversations.length,
+    whatsapp: conversations.filter(c => c.platform === "whatsapp").length,
+    instagram: conversations.filter(c => c.platform === "instagram").length,
+    facebook: conversations.filter(c => c.platform === "facebook").length,
   };
 
   function send() {
     if (!draft.trim()) return;
-    showToast({ type: "success", title: "Mensaje Enviado", message: `→ ${selected.customer.name}` });
+    showToast({ type: "success", title: "Mensaje Enviado", message: `→ ${selected?.customer.name ?? ""}` });
     setDraft("");
   }
 
@@ -73,6 +88,19 @@ export function InboxView({ defaultPlatform }: InboxViewProps) {
 
   return (
     <div className="flex h-[calc(100vh-140px)] -mt-10 -mx-10 overflow-hidden glass-card rounded-none md:rounded-3xl border-0 md:border border-white/5">
+      {loadingInbox && (
+        <div className="flex-1 flex items-center justify-center text-on-surface/30 text-sm gap-3">
+          <span className="material-symbols-outlined !text-[20px] animate-spin">progress_activity</span>
+          Cargando inbox...
+        </div>
+      )}
+      {!loadingInbox && conversations.length === 0 && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 text-on-surface/30">
+          <span className="material-symbols-outlined !text-[40px]">inbox</span>
+          <p className="text-sm">No hay conversaciones aún</p>
+        </div>
+      )}
+      {!loadingInbox && conversations.length > 0 && (<>
 
       {/* ── Left: conversation list ─────────────────────────── */}
       <aside className="w-full md:w-[340px] border-r border-white/5 flex flex-col bg-white/[0.02] flex-shrink-0">
@@ -81,9 +109,9 @@ export function InboxView({ defaultPlatform }: InboxViewProps) {
           {/* Mini KPIs */}
           <div className="flex gap-3 mb-1">
             {[
-              { value: mockInboxStats.open, label: "Abiertas", color: "text-primary" },
-              { value: mockInboxStats.pending, label: "Pendientes", color: "text-amber-400" },
-              { value: mockInboxStats.avg_response_time, label: "Resp. media", color: "text-on-surface/50" },
+              { value: loadingInbox ? "…" : inboxStats.open, label: "Abiertas", color: "text-primary" },
+              { value: loadingInbox ? "…" : inboxStats.pending, label: "Pendientes", color: "text-amber-400" },
+              { value: loadingInbox ? "…" : inboxStats.avg_response_time, label: "Resp. media", color: "text-on-surface/50" },
             ].map(k => (
               <div key={k.label} className="flex-1 text-center">
                 <p className={`text-lg font-black tight-tracking ${k.color}`}>{k.value}</p>
@@ -153,7 +181,7 @@ export function InboxView({ defaultPlatform }: InboxViewProps) {
                 key={conv.id}
                 onClick={() => setSelected(conv)}
                 className={`w-full p-4 flex gap-3 border-b border-white/[0.03] text-left transition-colors hover:bg-white/[0.03] relative ${
-                  selected.id === conv.id ? "bg-primary/5 border-r-2 border-r-primary" : ""
+                  selected?.id === conv.id ? "bg-primary/5 border-r-2 border-r-primary" : ""
                 }`}
               >
                 {/* Avatar */}
@@ -202,116 +230,123 @@ export function InboxView({ defaultPlatform }: InboxViewProps) {
 
       {/* ── Center: chat ───────────────────────────────────── */}
       <main className="flex-1 flex flex-col bg-white/[0.01] min-w-0">
-        {/* Chat header */}
-        <header className="p-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02] flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-              <span className="material-symbols-outlined !text-[18px] text-on-surface/40">person</span>
-            </div>
-            <div>
-              <p className="text-[13px] font-black text-on-surface">{selected.customer.name}</p>
-              <p className="text-[9px] font-bold label-tracking uppercase" style={{ color: PC[selected.platform].color }}>
-                {PC[selected.platform].label} · {selected.customer.phone || selected.customer.username || ""}
-              </p>
-            </div>
-          </div>
+        {selected ? (
+          <>
+            {/* Chat header */}
+            <header className="p-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02] flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined !text-[18px] text-on-surface/40">person</span>
+                </div>
+                <div>
+                  <p className="text-[13px] font-black text-on-surface">{selected.customer.name}</p>
+                  <p className="text-[9px] font-bold label-tracking uppercase" style={{ color: PC[selected.platform].color }}>
+                    {PC[selected.platform].label} · {selected.customer.phone || selected.customer.username || ""}
+                  </p>
+                </div>
+              </div>
 
-          <div className="flex items-center gap-2">
-            {/* AI toggle */}
-            <div className={`flex items-center gap-2 glass-card px-3 py-1.5 rounded-xl transition-all ${!samanthaActive ? "border-amber-500/30 bg-amber-500/5" : "border-white/5"}`}>
-              <span className={`text-[7px] font-black label-tracking uppercase ${samanthaActive ? "text-primary" : "text-amber-400 animate-pulse"}`}>
-                AI {samanthaActive ? "ONLINE" : "PAUSED"}
-              </span>
-              <button
-                onClick={() => setSamanthaActive(v => !v)}
-                className={`relative w-8 h-4 rounded-full transition-colors ${samanthaActive ? "bg-primary/20" : "bg-amber-500/20"}`}
-              >
-                <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${samanthaActive ? "left-4 bg-primary shadow-[0_0_8px_rgba(204,255,0,0.8)]" : "left-0.5 bg-amber-400"}`} />
-              </button>
-            </div>
-
-            <button
-              onClick={() => showToast({ type: "success", title: "Resuelta", message: selected.customer.name })}
-              className="px-3 py-1.5 rounded-xl text-[8px] font-black label-tracking border border-white/10 hover:border-primary/30 text-on-surface/50 transition-all"
-            >
-              RESOLVER
-            </button>
-            <button
-              onClick={() => showToast({ type: "info", title: "Transferido", message: `${selected.customer.name} → Agente humano` })}
-              className="px-3 py-1.5 rounded-xl text-[8px] font-black label-tracking border border-white/10 hover:border-white/20 text-on-surface/40 transition-all"
-            >
-              TRANSFERIR
-            </button>
-            <button className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
-              <span className="material-symbols-outlined !text-[16px] text-on-surface/40">more_vert</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
-          {!samanthaActive && (
-            <div className="sticky top-0 z-10 bg-amber-500/90 backdrop-blur-md border border-amber-400/50 p-3 rounded-2xl flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined !text-[16px] text-black">warning</span>
-                <p className="text-[9px] font-black text-black uppercase label-tracking">Control humano activo — Samantha en pausa</p>
+                <div className={`flex items-center gap-2 glass-card px-3 py-1.5 rounded-xl transition-all ${!samanthaActive ? "border-amber-500/30 bg-amber-500/5" : "border-white/5"}`}>
+                  <span className={`text-[7px] font-black label-tracking uppercase ${samanthaActive ? "text-primary" : "text-amber-400 animate-pulse"}`}>
+                    AI {samanthaActive ? "ONLINE" : "PAUSED"}
+                  </span>
+                  <button
+                    onClick={() => setSamanthaActive(v => !v)}
+                    className={`relative w-8 h-4 rounded-full transition-colors ${samanthaActive ? "bg-primary/20" : "bg-amber-500/20"}`}
+                  >
+                    <div className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${samanthaActive ? "left-4 bg-primary shadow-[0_0_8px_rgba(204,255,0,0.8)]" : "left-0.5 bg-amber-400"}`} />
+                  </button>
+                </div>
+                <button
+                  onClick={() => showToast({ type: "success", title: "Resuelta", message: selected.customer.name })}
+                  className="px-3 py-1.5 rounded-xl text-[8px] font-black label-tracking border border-white/10 hover:border-primary/30 text-on-surface/50 transition-all"
+                >
+                  RESOLVER
+                </button>
+                <button
+                  onClick={() => showToast({ type: "info", title: "Transferido", message: `${selected.customer.name} → Agente humano` })}
+                  className="px-3 py-1.5 rounded-xl text-[8px] font-black label-tracking border border-white/10 hover:border-white/20 text-on-surface/40 transition-all"
+                >
+                  TRANSFERIR
+                </button>
+                <button className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
+                  <span className="material-symbols-outlined !text-[16px] text-on-surface/40">more_vert</span>
+                </button>
               </div>
-              <span className="text-[7px] font-black bg-black text-amber-400 px-2 py-0.5 rounded-full uppercase">MODO MANUAL</span>
-            </div>
-          )}
+            </header>
 
-          {selected.messages.map(msg => (
-            <div key={msg.id} className={`flex flex-col max-w-[72%] ${msg.sender === "customer" ? "self-start" : "self-end"}`}>
-              <div className={`px-4 py-3 rounded-2xl ${
-                msg.sender === "customer"
-                  ? "bg-white/5 border border-white/10 rounded-tl-none"
-                  : msg.sender === "bot"
-                  ? "bg-primary/10 border border-primary/20 rounded-tr-none"
-                  : "bg-blue-500/10 border border-blue-500/20 rounded-tr-none"
-              }`}>
-                <p className="text-[12px] leading-relaxed text-on-surface">{msg.content}</p>
-                <p className="text-[8px] text-on-surface/30 mt-1.5">
-                  {new Date(msg.timestamp).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
-                </p>
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+              {!samanthaActive && (
+                <div className="sticky top-0 z-10 bg-amber-500/90 backdrop-blur-md border border-amber-400/50 p-3 rounded-2xl flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined !text-[16px] text-black">warning</span>
+                    <p className="text-[9px] font-black text-black uppercase label-tracking">Control humano activo — Samantha en pausa</p>
+                  </div>
+                  <span className="text-[7px] font-black bg-black text-amber-400 px-2 py-0.5 rounded-full uppercase">MODO MANUAL</span>
+                </div>
+              )}
+              {selected.messages.map(msg => (
+                <div key={msg.id} className={`flex flex-col max-w-[72%] ${msg.sender === "customer" ? "self-start" : "self-end"}`}>
+                  <div className={`px-4 py-3 rounded-2xl ${
+                    msg.sender === "customer"
+                      ? "bg-white/5 border border-white/10 rounded-tl-none"
+                      : msg.sender === "bot"
+                      ? "bg-primary/10 border border-primary/20 rounded-tr-none"
+                      : "bg-blue-500/10 border border-blue-500/20 rounded-tr-none"
+                  }`}>
+                    <p className="text-[12px] leading-relaxed text-on-surface">{msg.content}</p>
+                    <p className="text-[8px] text-on-surface/30 mt-1.5">
+                      {new Date(msg.timestamp).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                  <span className="text-[8px] font-black uppercase label-tracking mt-1 px-1 opacity-30">
+                    {msg.sender === "bot" ? "Samantha AI" : msg.sender === "agent" ? "Agente" : msg.sender_name}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Input */}
+            <footer className="p-5 border-t border-white/5 bg-white/[0.02] flex-shrink-0">
+              <div className="flex gap-2 items-center">
+                <button className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all flex-shrink-0">
+                  <span className="material-symbols-outlined !text-[16px] text-on-surface/40">attach_file</span>
+                </button>
+                <input
+                  type="text"
+                  placeholder="Escribe un mensaje..."
+                  value={draft}
+                  onChange={e => setDraft(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && send()}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-5 text-[12px] focus:outline-none focus:border-primary/50 transition-all placeholder:text-on-surface/30"
+                />
+                <button
+                  onClick={samanthaReply}
+                  className="px-3 py-2 rounded-xl text-[8px] font-black label-tracking text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-all flex-shrink-0"
+                >
+                  AI
+                </button>
+                <button
+                  onClick={send}
+                  className="w-11 h-11 rounded-2xl bg-primary text-black flex items-center justify-center hover:scale-105 transition-all shadow-glow flex-shrink-0"
+                >
+                  <span className="material-symbols-outlined !text-[18px]">send</span>
+                </button>
               </div>
-              <span className="text-[8px] font-black uppercase label-tracking mt-1 px-1 opacity-30">
-                {msg.sender === "bot" ? "Samantha AI" : msg.sender === "agent" ? "Agente" : msg.sender_name}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Input */}
-        <footer className="p-5 border-t border-white/5 bg-white/[0.02] flex-shrink-0">
-          <div className="flex gap-2 items-center">
-            <button className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all flex-shrink-0">
-              <span className="material-symbols-outlined !text-[16px] text-on-surface/40">attach_file</span>
-            </button>
-            <input
-              type="text"
-              placeholder="Escribe un mensaje..."
-              value={draft}
-              onChange={e => setDraft(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && send()}
-              className="flex-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-5 text-[12px] focus:outline-none focus:border-primary/50 transition-all placeholder:text-on-surface/30"
-            />
-            <button
-              onClick={samanthaReply}
-              className="px-3 py-2 rounded-xl text-[8px] font-black label-tracking text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-all flex-shrink-0"
-            >
-              AI
-            </button>
-            <button
-              onClick={send}
-              className="w-11 h-11 rounded-2xl bg-primary text-black flex items-center justify-center hover:scale-105 transition-all shadow-glow flex-shrink-0"
-            >
-              <span className="material-symbols-outlined !text-[18px]">send</span>
-            </button>
+            </footer>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-on-surface/30">
+            <span className="material-symbols-outlined !text-[48px]">chat_bubble_outline</span>
+            <p className="text-sm">Selecciona una conversación</p>
           </div>
-        </footer>
+        )}
       </main>
 
       {/* ── Right: Samantha insights (xl only) ─────────────── */}
+      {selected && (
       <aside className="hidden xl:flex w-[280px] border-l border-white/5 flex-col p-6 gap-6 bg-white/[0.02]">
         <div className="space-y-3">
           <p className="text-[9px] font-black label-tracking text-primary uppercase">Samantha Intelligence</p>
@@ -367,6 +402,8 @@ export function InboxView({ defaultPlatform }: InboxViewProps) {
           </button>
         </div>
       </aside>
+      )}
+      </>)}
     </div>
   );
 }
