@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("")
+@router.head("")
 async def health():
     return {"status": "healthy", "service": "KINEXIS API", "version": "1.0.0"}
 

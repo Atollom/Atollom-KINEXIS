@@ -80,8 +80,9 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization", "X-Tenant-ID"],
 )
 
-# Health check
+# Health check — GET + HEAD para UptimeRobot y load balancers
 @app.get("/health")
+@app.head("/health")
 async def health():
     return {
         "status": "ok",
