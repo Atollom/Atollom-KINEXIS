@@ -1,8 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { mockBIDashboards, mockBIStats } from '@/lib/mockData'
+import { useState, useEffect } from 'react'
 import { useToast } from '@/components/ToastProvider'
+
+const FALLBACK_STATS = { total_dashboards: 3, total_widgets: 9, total_views: 368, shared_users: 5 }
+const FALLBACK_DASHBOARDS = [
+  { id: 'bi1', name: 'Executive Overview',    description: 'Vista 360° para dirección',       widgets: [{ id: 'w1', type: 'metric', title: 'Revenue MTD', data_source: 'sales', size: 'sm' }, { id: 'w2', type: 'chart', title: 'Ventas por Canal', data_source: 'sales', size: 'lg' }, { id: 'w3', type: 'table', title: 'Top 10 Productos', data_source: 'products', size: 'md' }, { id: 'w4', type: 'metric', title: 'ROAS Global', data_source: 'marketing', size: 'sm' }], shared_with: ['admin@kaptools.com'], created_by: 'Carlos Cortés', last_updated: '2026-05-09T14:30:00Z', views: 234 },
+  { id: 'bi2', name: 'Marketing Performance', description: 'ROI y conversiones por canal',    widgets: [{ id: 'w5', type: 'chart', title: 'ROAS por Canal', data_source: 'marketing', size: 'lg' }, { id: 'w6', type: 'metric', title: 'CAC Promedio', data_source: 'marketing', size: 'sm' }, { id: 'w7', type: 'chart', title: 'Embudo Conversión', data_source: 'funnel', size: 'md' }], shared_with: ['marketing@kaptools.com'], created_by: 'Laura Méndez', last_updated: '2026-05-10T09:00:00Z', views: 89 },
+  { id: 'bi3', name: 'Inventory Intelligence', description: 'Stock, rotación y reorden',      widgets: [{ id: 'w8', type: 'table', title: 'SKUs críticos', data_source: 'inventory', size: 'md' }, { id: 'w9', type: 'metric', title: 'Turnover Rate', data_source: 'inventory', size: 'sm' }], shared_with: ['almacen@kaptools.com'], created_by: 'Carlos Cortés', last_updated: '2026-05-08T16:00:00Z', views: 45 },
+]
 
 const WIDGET_ICONS: Record<string, string> = { metric: 'straighten', chart: 'bar_chart', table: 'table_view', map: 'map' }
 const WIDGET_COLORS: Record<string, string> = { metric: '#CCFF00', chart: '#60a5fa', table: '#a78bfa', map: '#4ade80' }
@@ -10,8 +16,21 @@ const SIZE_SPANS: Record<string, string> = { sm: 'col-span-1', md: 'col-span-1 m
 
 export default function DataStudioPage() {
   const { showToast } = useToast()
-  const [active, setActive] = useState(mockBIDashboards[0].id)
-  const dashboard = mockBIDashboards.find(d => d.id === active)!
+  const [biStats, setBiStats]       = useState(FALLBACK_STATS)
+  const [dashboards, setDashboards] = useState(FALLBACK_DASHBOARDS)
+  const [active, setActive]         = useState(FALLBACK_DASHBOARDS[0].id)
+
+  useEffect(() => {
+    fetch('/api/bi')
+      .then(r => r.json())
+      .then(d => {
+        if (d.stats)      { setBiStats(d.stats) }
+        if (d.dashboards) { setDashboards(d.dashboards); setActive(d.dashboards[0].id) }
+      })
+      .catch(() => {})
+  }, [])
+
+  const dashboard = dashboards.find(d => d.id === active) ?? dashboards[0]
 
   return (
     <div className="space-y-6">
@@ -36,10 +55,10 @@ export default function DataStudioPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Dashboards', value: mockBIStats.total_dashboards, color: 'var(--text-primary)' },
-          { label: 'Widgets', value: mockBIStats.total_widgets, color: '#60a5fa' },
-          { label: 'Vistas totales', value: mockBIStats.total_views.toLocaleString(), color: '#CCFF00' },
-          { label: 'Usuarios', value: mockBIStats.shared_users, color: '#a78bfa' },
+          { label: 'Dashboards', value: biStats.total_dashboards, color: 'var(--text-primary)' },
+          { label: 'Widgets', value: biStats.total_widgets, color: '#60a5fa' },
+          { label: 'Vistas totales', value: biStats.total_views.toLocaleString(), color: '#CCFF00' },
+          { label: 'Usuarios', value: biStats.shared_users, color: '#a78bfa' },
         ].map(s => (
           <div key={s.label} className="glass-card p-4 rounded-2xl">
             <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
@@ -50,7 +69,7 @@ export default function DataStudioPage() {
 
       {/* Dashboard tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        {mockBIDashboards.map(d => (
+        {dashboards.map(d => (
           <button key={d.id} onClick={() => setActive(d.id)}
             className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all"
             style={active === d.id

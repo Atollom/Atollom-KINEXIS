@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockAmazonInventory, mockAmazonStats } from "@/lib/mockData";
 
 type FilterKey = "all" | "standard" | "oversize" | "aging";
 
@@ -15,11 +14,33 @@ function ageColor(days: number) {
   return "text-on-surface";
 }
 
+const FALLBACK_ITEMS = [
+  { sku: 'KAP-TAL-003-FBA', asin: 'B08XYZ1001', title: 'Taladro Percutor Inalámbrico 20V',  fnsku: 'X001ABCDEF', fulfillment_center: 'PHX7', quantity: 145, reserved: 12, inbound: 50,  unfulfillable: 2, storage_type: 'standard', age_days: 45  },
+  { sku: 'KAP-COM-007-FBA', asin: 'B09ABC2002', title: 'Compresor Aire 6 Galones 150 PSI',  fnsku: 'X002GHIJKL', fulfillment_center: 'PHX7', quantity: 34,  reserved: 3,  inbound: 25,  unfulfillable: 1, storage_type: 'oversize', age_days: 67  },
+  { sku: 'KAP-SIE-210-FBA', asin: 'B06GHI4004', title: 'Sierra Circular 7-1/4" 15 Amp',    fnsku: 'X003MNOPQR', fulfillment_center: 'DFW6', quantity: 8,   reserved: 1,  inbound: 40,  unfulfillable: 0, storage_type: 'standard', age_days: 23  },
+  { sku: 'KAP-LIJ-450-FBA', asin: 'B08JKL5005', title: 'Lijadora Orbital 2.4A 14000 OPM',  fnsku: 'X004STUVWX', fulfillment_center: 'ONT8', quantity: 0,   reserved: 0,  inbound: 68,  unfulfillable: 7, storage_type: 'standard', age_days: 34  },
+  { sku: 'KAP-TAL-001-FBA', asin: 'B05MNO6006', title: 'Taladro Inalámbrico 12V Maletín',  fnsku: 'X005YZABCD', fulfillment_center: 'PHX7', quantity: 23,  reserved: 2,  inbound: 30,  unfulfillable: 0, storage_type: 'standard', age_days: 89  },
+  { sku: 'KAP-SIE-210-OLD', asin: 'B06GHI4004', title: 'Sierra Circular 7-1/4" (Lote Mar)', fnsku: 'X006EFGHIJ', fulfillment_center: 'DFW6', quantity: 4,   reserved: 0,  inbound: 0,   unfulfillable: 2, storage_type: 'standard', age_days: 245 },
+]
+const FALLBACK_STATS = { total_inventory_value: 145678 }
+
 export default function AmazonInventoryPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [allItems, setAllItems] = useState(FALLBACK_ITEMS);
+  const [statsData, setStatsData] = useState(FALLBACK_STATS);
 
-  const items = mockAmazonInventory.filter(item =>
+  useEffect(() => {
+    fetch("/api/amazon/inventory")
+      .then(r => r.json())
+      .then(d => {
+        if (d.items) setAllItems(d.items);
+        if (d.stats) setStatsData(d.stats);
+      })
+      .catch(() => {});
+  }, []);
+
+  const items = allItems.filter(item =>
     filter === "all"      ? true :
     filter === "standard" ? item.storage_type === "standard" :
     filter === "oversize" ? item.storage_type === "oversize" :
@@ -27,16 +48,16 @@ export default function AmazonInventoryPage() {
   );
 
   const counts = {
-    all:      mockAmazonInventory.length,
-    standard: mockAmazonInventory.filter(i => i.storage_type === "standard").length,
-    oversize: mockAmazonInventory.filter(i => i.storage_type === "oversize").length,
-    aging:    mockAmazonInventory.filter(i => i.age_days >= AGING_WARN).length,
+    all:      allItems.length,
+    standard: allItems.filter(i => i.storage_type === "standard").length,
+    oversize: allItems.filter(i => i.storage_type === "oversize").length,
+    aging:    allItems.filter(i => i.age_days >= AGING_WARN).length,
   };
 
-  const totalUnits       = mockAmazonInventory.reduce((s, i) => s + i.quantity, 0);
-  const totalReserved    = mockAmazonInventory.reduce((s, i) => s + i.reserved, 0);
-  const totalInbound     = mockAmazonInventory.reduce((s, i) => s + i.inbound, 0);
-  const totalUnfulfill   = mockAmazonInventory.reduce((s, i) => s + i.unfulfillable, 0);
+  const totalUnits     = allItems.reduce((s, i) => s + i.quantity, 0);
+  const totalReserved  = allItems.reduce((s, i) => s + i.reserved, 0);
+  const totalInbound   = allItems.reduce((s, i) => s + i.inbound, 0);
+  const totalUnfulfill = allItems.reduce((s, i) => s + i.unfulfillable, 0);
 
   return (
     <div className="space-y-10 animate-in">
@@ -50,7 +71,7 @@ export default function AmazonInventoryPage() {
             Inventario Amazon
           </h1>
           <p className="text-sm text-on-surface-variant">
-            Posición en Fulfillment Centers · Valor total <span className="text-primary font-bold">${mockAmazonStats.total_inventory_value.toLocaleString()} USD</span>
+            Posición en Fulfillment Centers · Valor total <span className="text-primary font-bold">${statsData.total_inventory_value.toLocaleString()} USD</span>
           </p>
         </div>
         <button

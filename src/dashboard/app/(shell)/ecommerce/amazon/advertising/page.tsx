@@ -1,12 +1,33 @@
-import type { Metadata } from 'next'
-import { mockAmazonCampaigns, mockAmazonAdStats } from '@/lib/mockData'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Amazon Advertising — KINEXIS',
-  description: 'Gestiona campañas de publicidad SP, SB y SD en Amazon.',
-}
+import { useState, useEffect } from 'react'
+import type { Metadata } from 'next'
+
+// metadata can't be exported from client components — moved to layout if needed
+
+const FALLBACK_STATS = { total_spend: 1181.90, total_sales: 4961, avg_acos: 24.3, avg_roas: 4.12, total_impressions: 163400, total_clicks: 4876 }
+const FALLBACK_CAMPAIGNS = [
+  { id: 'ac1', name: 'SP - Herramientas Exact Match', type: 'SP', status: 'enabled', budget: 500, spend: 312.40, impressions: 28400, clicks: 892,  acos: 18.2, roas: 5.49, sales: 1716 },
+  { id: 'ac2', name: 'SB - Marca KapTools',           type: 'SB', status: 'enabled', budget: 300, spend: 201.80, impressions: 54200, clicks: 1203, acos: 22.4, roas: 4.46, sales: 900  },
+  { id: 'ac3', name: 'SP - Compresores Broad',        type: 'SP', status: 'enabled', budget: 400, spend: 389.10, impressions: 61000, clicks: 2140, acos: 31.5, roas: 3.17, sales: 1235 },
+  { id: 'ac4', name: 'SD - Retargeting Visitantes',   type: 'SD', status: 'paused',  budget: 200, spend: 0,      impressions: 0,     clicks: 0,    acos: 0,    roas: 0,    sales: 0    },
+  { id: 'ac5', name: 'SP - Taladros Automatch',       type: 'SP', status: 'enabled', budget: 350, spend: 278.60, impressions: 19800, clicks: 641,  acos: 25.1, roas: 3.98, sales: 1110 },
+]
 
 export default function AmazonAdvertisingPage() {
+  const [stats, setStats]       = useState(FALLBACK_STATS)
+  const [campaigns, setCampaigns] = useState(FALLBACK_CAMPAIGNS)
+
+  useEffect(() => {
+    fetch('/api/amazon/advertising')
+      .then(r => r.json())
+      .then(d => {
+        if (d.stats)     setStats(d.stats)
+        if (d.campaigns) setCampaigns(d.campaigns)
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -35,12 +56,12 @@ export default function AmazonAdvertisingPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: 'Inversión total', value: `$${mockAmazonAdStats.total_spend.toLocaleString()}`, color: '#fb923c' },
-          { label: 'Ventas totales', value: `$${mockAmazonAdStats.total_sales.toLocaleString()}`, color: '#4ade80' },
-          { label: 'ACOS prom.', value: `${mockAmazonAdStats.avg_acos}%`, color: mockAmazonAdStats.avg_acos < 25 ? '#4ade80' : '#facc15' },
-          { label: 'ROAS prom.', value: `${mockAmazonAdStats.avg_roas}x`, color: '#CCFF00' },
-          { label: 'Impresiones', value: mockAmazonAdStats.total_impressions.toLocaleString(), color: 'var(--text-primary)' },
-          { label: 'Clics', value: mockAmazonAdStats.total_clicks.toLocaleString(), color: '#60a5fa' },
+          { label: 'Inversión total', value: `$${stats.total_spend.toLocaleString()}`,     color: '#fb923c' },
+          { label: 'Ventas totales',  value: `$${stats.total_sales.toLocaleString()}`,     color: '#4ade80' },
+          { label: 'ACOS prom.',      value: `${stats.avg_acos}%`,                         color: stats.avg_acos < 25 ? '#4ade80' : '#facc15' },
+          { label: 'ROAS prom.',      value: `${stats.avg_roas}x`,                         color: '#CCFF00' },
+          { label: 'Impresiones',     value: stats.total_impressions.toLocaleString(),     color: 'var(--text-primary)' },
+          { label: 'Clics',           value: stats.total_clicks.toLocaleString(),          color: '#60a5fa' },
         ].map(s => (
           <div key={s.label} className="glass-card p-4 rounded-2xl">
             <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
@@ -64,7 +85,7 @@ export default function AmazonAdvertisingPage() {
               </tr>
             </thead>
             <tbody>
-              {mockAmazonCampaigns.map(c => (
+              {campaigns.map(c => (
                 <tr key={c.id} className="border-b transition-colors hover:bg-white/[0.02] cursor-pointer" style={{ borderColor: 'var(--border-color)' }}>
                   <td className="px-5 py-3 font-bold" style={{ color: 'var(--text-primary)', maxWidth: 200 }}>{c.name}</td>
                   <td className="px-5 py-3">
