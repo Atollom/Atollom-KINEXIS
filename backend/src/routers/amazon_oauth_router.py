@@ -10,8 +10,9 @@ Flow:
   6. Backend redirects browser back to dashboard (/settings/sandbox?amazon=connected)
 
 Required env vars:
-  AMAZON_LWA_CLIENT_ID      — from Amazon Developer Console SP-API app
-  AMAZON_LWA_CLIENT_SECRET  — from Amazon Developer Console SP-API app
+  AMAZON_SP_APP_ID          — SP-API Application ID  (amzn1.sp.solution.xxx) — used in consent URL
+  AMAZON_LWA_CLIENT_ID      — LWA Client ID          (amzn1.application-oa2-client.xxx) — used in token exchange
+  AMAZON_LWA_CLIENT_SECRET  — LWA Client Secret
   BACKEND_URL               — full URL of this backend (e.g. https://kinexis.onrender.com)
   DASHBOARD_URL             — frontend URL (e.g. https://dashboard.atollom.com)
   ENCRYPTION_KEY            — used to sign CSRF state tokens
@@ -46,7 +47,12 @@ CONSENT_URLS = {
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
+def _sp_app_id() -> str:
+    """SP-API Application ID (amzn1.sp.solution.xxx) — goes in the Seller Central consent URL."""
+    return os.getenv("AMAZON_SP_APP_ID", "")
+
 def _lwa_client_id() -> str:
+    """LWA OAuth2 client ID (amzn1.application-oa2-client.xxx) — used for token exchange."""
     return os.getenv("AMAZON_LWA_CLIENT_ID", "")
 
 def _lwa_client_secret() -> str:
@@ -112,8 +118,13 @@ async def connect_amazon(
     Returns the Amazon LWA authorization URL.
     Frontend opens this URL (window.location.href) to start the OAuth flow.
     """
-    client_id = _lwa_client_id()
-    if not client_id:
+    sp_app_id = _sp_app_id()
+    if not sp_app_id:
+        raise HTTPException(
+            status_code=503,
+            detail="AMAZON_SP_APP_ID not configured — add it in Render dashboard",
+        )
+    if not _lwa_client_id():
         raise HTTPException(
             status_code=503,
             detail="AMAZON_LWA_CLIENT_ID not configured — add it in Render dashboard",
@@ -126,9 +137,11 @@ async def connect_amazon(
     consent_base = CONSENT_URLS.get(marketplace_id, CONSENT_URLS["A1AM78C64UM0Y8"])
     callback_uri = f"{_backend_url()}/api/integrations/amazon/callback"
 
+    # application_id = SP-API App ID (amzn1.sp.solution.xxx)
+    # NOT the LWA client_id — those are different identifiers
     auth_url = (
         f"{consent_base}"
-        f"?application_id={client_id}"
+        f"?application_id={sp_app_id}"
         f"&state={state}"
         f"&redirect_uri={callback_uri}"
         f"&version=beta"
