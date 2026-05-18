@@ -50,3 +50,9 @@ stripe==15.1.0
 
 # Logging
 structlog==24.4.0
+
+# PDF generation (Quote Generator — Agente #32)
+reportlab==4.2.5
+
+# Amazon SP-API (Frente B — requiere credenciales LWA + AWS)
+python-amazon-sp-api==0.19.13

@@ -1,11 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockQuotes, mockQuotesStats } from "@/lib/mockData";
-import type { Quote } from "@/lib/mockData";
+
+interface Quote {
+  id: string;
+  folio: string;
+  client: string;
+  rfc: string;
+  amount: number;
+  items: number;
+  status: "draft" | "sent" | "viewed" | "accepted" | "rejected";
+  created_at: string;
+  expires_at: string;
+  agent: string;
+  channel: string;
+}
+
+interface QuotesStats {
+  total: number;
+  draft: number;
+  sent: number;
+  viewed: number;
+  accepted: number;
+  rejected: number;
+  total_amount: number;
+  accepted_amount: number;
+  conversion_rate: number;
+  avg_ticket: number;
+}
 
 type FilterKey = "all" | "draft" | "sent" | "viewed" | "accepted" | "rejected";
+
+const FALLBACK_QUOTES: Quote[] = [
+  { id: "q1", folio: "COT-2026-089", client: "Constructora ABC S.A.",     rfc: "CAB850101ABC", amount: 87450,  items: 12, status: "accepted", created_at: "2026-05-01", expires_at: "2026-05-31", agent: "Ana López",  channel: "WhatsApp" },
+  { id: "q2", folio: "COT-2026-090", client: "Ferretería El Martillo",    rfc: "FEM920301XYZ", amount: 34200,  items: 6,  status: "viewed",   created_at: "2026-05-03", expires_at: "2026-06-02", agent: "Carlos R.",  channel: "Email"    },
+  { id: "q3", folio: "COT-2026-091", client: "Industrias Monterrey S.A.", rfc: "IMO780615DEF", amount: 156780, items: 23, status: "sent",     created_at: "2026-05-05", expires_at: "2026-06-04", agent: "María G.",   channel: "Email"    },
+  { id: "q4", folio: "COT-2026-092", client: "Grupo Constructor Norte",   rfc: "GCN910204GHI", amount: 45300,  items: 8,  status: "draft",    created_at: "2026-05-07", expires_at: "2026-06-06", agent: "Roberto M.", channel: "Directo"  },
+  { id: "q5", folio: "COT-2026-093", client: "Tornillos y Perfiles SA",   rfc: "TYP850722JKL", amount: 23100,  items: 4,  status: "rejected", created_at: "2026-05-02", expires_at: "2026-05-22", agent: "Ana López",  channel: "WhatsApp" },
+  { id: "q6", folio: "COT-2026-094", client: "Herramientas Durango S.A.", rfc: "HDU930918MNO", amount: 98560,  items: 17, status: "viewed",   created_at: "2026-05-08", expires_at: "2026-06-07", agent: "Carlos R.",  channel: "Email"    },
+];
+
+const FALLBACK_STATS: QuotesStats = {
+  total: 6, draft: 1, sent: 1, viewed: 2, accepted: 1, rejected: 1,
+  total_amount: 445390, accepted_amount: 87450, conversion_rate: 16.7, avg_ticket: 74232,
+};
 
 const STATUS_CFG: Record<Quote["status"], { label: string; color: string; bg: string; icon: string }> = {
   draft:    { label: "Borrador",  color: "text-on-surface/50", bg: "bg-white/5",      icon: "edit_note"    },
@@ -21,13 +60,44 @@ function fmtDate(iso: string) {
 }
 function fmtK(n: number) { return n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n}`; }
 
+// Builds a demo PDF payload from a quote row (uses placeholder items matching the known total)
+function quoteToPayload(q: Quote) {
+  const unitPrice = Math.round(q.amount / 1.16 / q.items);
+  return {
+    customer: { name: q.client, rfc: q.rfc, contact: q.agent, email: `ventas@${q.client.toLowerCase().replace(/\s/g, "").slice(0, 12)}.mx` },
+    items: Array.from({ length: q.items }, (_, i) => ({
+      sku:         `SKU-${(i + 1).toString().padStart(3, "0")}`,
+      description: `Producto ${i + 1}`,
+      quantity:    1,
+      unit_price:  unitPrice,
+    })),
+    payment_terms: "30_days",
+    valid_until:   q.expires_at,
+    notes:         "",
+    tax_rate:      0.16,
+  };
+}
+
 export default function CRMQuotesPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
+  const [quotes, setQuotes] = useState<Quote[]>(FALLBACK_QUOTES);
+  const [stats, setStats] = useState<QuotesStats>(FALLBACK_STATS);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const base = filter === "all" ? mockQuotes : mockQuotes.filter(q => q.status === filter);
-  const quotes = search
+  useEffect(() => {
+    fetch("/api/crm/quotes")
+      .then(r => r.json())
+      .then(d => {
+        if (Array.isArray(d.quotes))      setQuotes(d.quotes);
+        if (d.stats?.total !== undefined) setStats(d.stats);
+      })
+      .catch(() => {});
+  }, []);
+
+  const base = filter === "all" ? quotes : quotes.filter(q => q.status === filter);
+  const visible = search
     ? base.filter(q =>
         q.client.toLowerCase().includes(search.toLowerCase()) ||
         q.folio.toLowerCase().includes(search.toLowerCase()) ||
@@ -36,13 +106,37 @@ export default function CRMQuotesPage() {
     : base;
 
   const counts: Record<FilterKey, number> = {
-    all:      mockQuotes.length,
-    draft:    mockQuotesStats.draft,
-    sent:     mockQuotesStats.sent,
-    viewed:   mockQuotesStats.viewed,
-    accepted: mockQuotesStats.accepted,
-    rejected: mockQuotesStats.rejected,
+    all:      quotes.length,
+    draft:    stats.draft,
+    sent:     stats.sent,
+    viewed:   stats.viewed,
+    accepted: stats.accepted,
+    rejected: stats.rejected,
   };
+
+  async function downloadPDF(q: Quote) {
+    setDownloadingId(q.id);
+    try {
+      const res = await fetch("/api/quotes/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(quoteToPayload(q)),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = url;
+      a.download = `${q.folio}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast({ type: "success", title: "PDF descargado", message: `${q.folio} → descarga iniciada` });
+    } catch {
+      showToast({ type: "error", title: "Error PDF", message: "No se pudo generar el PDF. Verifica la conexión." });
+    } finally {
+      setDownloadingId(null);
+    }
+  }
 
   return (
     <div className="space-y-10 animate-in">
@@ -61,8 +155,8 @@ export default function CRMQuotesPage() {
             Cotizaciones
           </h1>
           <p className="text-sm text-on-surface-variant">
-            {mockQuotesStats.total} cotizaciones ·{" "}
-            <span className="text-purple-400 font-bold">${(mockQuotesStats.total_amount / 1000).toFixed(0)}k</span>{" "}
+            {stats.total} cotizaciones ·{" "}
+            <span className="text-purple-400 font-bold">${(stats.total_amount / 1000).toFixed(0)}k</span>{" "}
             en pipeline
           </p>
         </div>
@@ -87,11 +181,11 @@ export default function CRMQuotesPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: "Total Pipeline",  value: `$${(mockQuotesStats.total_amount / 1000).toFixed(0)}k`,    icon: "paid",            color: "text-purple-400" },
-          { label: "Aceptadas",       value: `$${(mockQuotesStats.accepted_amount / 1000).toFixed(0)}k`, icon: "check_circle",    color: "text-[#CCFF00]"  },
-          { label: "Conversión",      value: `${mockQuotesStats.conversion_rate}%`,                       icon: "percent",         color: "text-amber-400"  },
-          { label: "Ticket Promedio", value: `$${(mockQuotesStats.avg_ticket / 1000).toFixed(0)}k`,       icon: "receipt_long",    color: "text-blue-400"   },
-          { label: "Pendientes",      value: mockQuotesStats.sent + mockQuotesStats.viewed,               icon: "pending_actions", color: "text-orange-400" },
+          { label: "Total Pipeline",  value: `$${(stats.total_amount / 1000).toFixed(0)}k`,    icon: "paid",            color: "text-purple-400" },
+          { label: "Aceptadas",       value: `$${(stats.accepted_amount / 1000).toFixed(0)}k`, icon: "check_circle",    color: "text-[#CCFF00]"  },
+          { label: "Conversión",      value: `${stats.conversion_rate}%`,                       icon: "percent",         color: "text-amber-400"  },
+          { label: "Ticket Promedio", value: `$${(stats.avg_ticket / 1000).toFixed(0)}k`,       icon: "receipt_long",    color: "text-blue-400"   },
+          { label: "Pendientes",      value: stats.sent + stats.viewed,                         icon: "pending_actions", color: "text-orange-400" },
         ].map(kpi => (
           <div key={kpi.label} className="glass-card rounded-[1.5rem] border border-white/5 p-6">
             <div className="flex items-center gap-3 mb-3">
@@ -140,11 +234,11 @@ export default function CRMQuotesPage() {
         </div>
 
         <div className="divide-y divide-white/5">
-          {quotes.map(q => {
+          {visible.map(q => {
             const sCfg = STATUS_CFG[q.status];
-            const expiresTs = new Date(q.expires_at).getTime();
-            const isExpiring = expiresTs < Date.now() + 5 * 86400000;
-            const isActive = q.status !== "accepted" && q.status !== "rejected";
+            const isExpiring = new Date(q.expires_at).getTime() < Date.now() + 5 * 86400000;
+            const isActive   = q.status !== "accepted" && q.status !== "rejected";
+            const isLoading  = downloadingId === q.id;
             return (
               <div
                 key={q.id}
@@ -164,11 +258,8 @@ export default function CRMQuotesPage() {
                 </div>
 
                 <span className="text-[10px] font-mono text-on-surface/50 truncate">{q.rfc}</span>
-
                 <span className="text-xs font-black text-on-surface">{fmtK(q.amount)}</span>
-
                 <span className="text-xs text-on-surface/50">{q.items} art.</span>
-
                 <span className="text-[10px] text-on-surface/50">{fmtDate(q.created_at)}</span>
 
                 <div>
@@ -182,10 +273,14 @@ export default function CRMQuotesPage() {
 
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={() => showToast({ type: "info", title: "PDF generado", message: `${q.folio} → descarga iniciada` })}
-                    className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-on-surface/60 text-[9px] font-black hover:bg-white/10 transition-colors flex items-center gap-1"
+                    onClick={() => downloadPDF(q)}
+                    disabled={isLoading}
+                    className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-on-surface/60 text-[9px] font-black hover:bg-white/10 transition-colors flex items-center gap-1 disabled:opacity-40"
                   >
-                    <span className="material-symbols-outlined !text-[10px]">picture_as_pdf</span>
+                    {isLoading
+                      ? <span className="material-symbols-outlined !text-[10px] animate-spin">progress_activity</span>
+                      : <span className="material-symbols-outlined !text-[10px]">picture_as_pdf</span>
+                    }
                     PDF
                   </button>
                   {isActive && (

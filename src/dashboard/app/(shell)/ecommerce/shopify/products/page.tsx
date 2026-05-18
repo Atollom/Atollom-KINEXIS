@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockShopifyProducts, mockShopifyStats } from "@/lib/mockData";
+import type { ShopifyProduct } from "@/lib/mockData";
 
 type FilterKey = "all" | "active" | "draft" | "low_stock";
 const LOW = 20;
@@ -13,11 +13,25 @@ const STATUS_CFG = {
   archived: { label: "Archivado", color: "text-on-surface/40", bg: "bg-white/5",       icon: "archive"      },
 } as const;
 
+const FALLBACK_SPY_STATS = { total_products: 0, active_products: 0, revenue_month: 0 };
+
 export default function ShopifyProductsPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [products, setProducts] = useState<ShopifyProduct[]>([]);
+  const [spyStats, setSpyStats] = useState(FALLBACK_SPY_STATS);
 
-  const filtered = mockShopifyProducts.filter(p =>
+  useEffect(() => {
+    fetch("/api/shopify/products")
+      .then(r => r.json())
+      .then(d => {
+        setProducts(d.products || []);
+        setSpyStats(d.stats || FALLBACK_SPY_STATS);
+      })
+      .catch(() => {});
+  }, []);
+
+  const filtered = products.filter(p =>
     filter === "all"       ? true :
     filter === "active"    ? p.status === "active" :
     filter === "draft"     ? p.status === "draft" :
@@ -25,10 +39,10 @@ export default function ShopifyProductsPage() {
   );
 
   const counts = {
-    all:       mockShopifyProducts.length,
-    active:    mockShopifyProducts.filter(p => p.status === "active").length,
-    draft:     mockShopifyProducts.filter(p => p.status === "draft").length,
-    low_stock: mockShopifyProducts.filter(p => p.total_inventory < LOW).length,
+    all:       products.length,
+    active:    products.filter(p => p.status === "active").length,
+    draft:     products.filter(p => p.status === "draft").length,
+    low_stock: products.filter(p => p.total_inventory < LOW).length,
   };
 
   return (
@@ -43,7 +57,7 @@ export default function ShopifyProductsPage() {
             Catálogo Shopify
           </h1>
           <p className="text-sm text-on-surface-variant">
-            {mockShopifyStats.total_products} productos · {mockShopifyStats.active_products} activos · Kap Tools Store
+            {spyStats.total_products} productos · {spyStats.active_products} activos · Kap Tools Store
           </p>
         </div>
         <button
@@ -58,9 +72,9 @@ export default function ShopifyProductsPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Productos", value: mockShopifyStats.total_products,  icon: "inventory_2",  color: "text-on-surface"  },
-          { label: "Activos",         value: mockShopifyStats.active_products,  icon: "store",        color: "text-[#CCFF00]"   },
-          { label: "Revenue (mes)",   value: `$${(mockShopifyStats.revenue_month / 1000).toFixed(1)}k`, icon: "trending_up", color: "text-[#CCFF00]" },
+          { label: "Total Productos", value: spyStats.total_products,  icon: "inventory_2",  color: "text-on-surface"  },
+          { label: "Activos",         value: spyStats.active_products,  icon: "store",        color: "text-[#CCFF00]"   },
+          { label: "Revenue (mes)",   value: `$${(spyStats.revenue_month / 1000).toFixed(1)}k`, icon: "trending_up", color: "text-[#CCFF00]" },
           { label: "Bajo Stock",      value: counts.low_stock,                  icon: "warning",      color: "text-red-400"     },
         ].map(kpi => (
           <div key={kpi.label} className="glass-card rounded-[1.5rem] border border-white/5 p-6">

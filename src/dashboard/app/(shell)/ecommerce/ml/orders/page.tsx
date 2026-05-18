@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockMLOrders } from "@/lib/mockData";
 import type { MLOrder } from "@/lib/mockData";
 
 type FilterKey = "all" | "paid" | "shipped" | "delivered" | "cancelled";
@@ -31,20 +30,28 @@ function fmtDate(iso: string) {
 export default function MLOrdersPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [orders, setOrders] = useState<MLOrder[]>([]);
+
+  useEffect(() => {
+    fetch("/api/ml/orders")
+      .then(r => r.json())
+      .then(d => setOrders(d.orders || []))
+      .catch(() => {});
+  }, []);
 
   const filtered = filter === "all"
-    ? mockMLOrders
-    : mockMLOrders.filter(o => STATUS_CFG[o.status].filterKey === filter);
+    ? orders
+    : orders.filter(o => STATUS_CFG[o.status].filterKey === filter);
 
   const counts = {
-    all:       mockMLOrders.length,
-    paid:      mockMLOrders.filter(o => ["paid", "confirmed", "payment_required"].includes(o.status)).length,
-    shipped:   mockMLOrders.filter(o => o.status === "shipped").length,
-    delivered: mockMLOrders.filter(o => o.status === "delivered").length,
-    cancelled: mockMLOrders.filter(o => o.status === "cancelled").length,
+    all:       orders.length,
+    paid:      orders.filter(o => ["paid", "confirmed", "payment_required"].includes(o.status)).length,
+    shipped:   orders.filter(o => o.status === "shipped").length,
+    delivered: orders.filter(o => o.status === "delivered").length,
+    cancelled: orders.filter(o => o.status === "cancelled").length,
   };
 
-  const revenue = mockMLOrders
+  const revenue = orders
     .filter(o => o.status !== "cancelled")
     .reduce((s, o) => s + o.total_amount, 0);
 

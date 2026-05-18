@@ -7,12 +7,14 @@ import logging
 from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from src.routers.ecommerce_router import ecommerce_router as _ecommerce
 from src.routers.crm_router import crm_router as _crm
 from src.routers.erp_router import erp_router as _erp
 from src.routers.meta_router import meta_router as _meta
+from src.agents.crm.agent_32_quote_generator import quote_generator
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +41,47 @@ async def agents_health():
         "domains": list(_DOMAIN_ROUTERS.keys()),
         "routers_active": len(_DOMAIN_ROUTERS),
     }
+
+
+class QuotePDFRequest(BaseModel):
+    customer: Dict[str, Any]
+    items: list
+    payment_terms: str = "30_days"
+    valid_until: str = ""
+    notes: str = ""
+    tax_rate: float = 0.16
+
+
+@router.post("/crm/quotes/pdf", response_class=Response)
+async def generate_quote_pdf(req: QuotePDFRequest):
+    """Generate a branded PDF cotización and return it as application/pdf."""
+    payload: Dict[str, Any] = {
+        "customer":      req.customer,
+        "items":         req.items,
+        "payment_terms": req.payment_terms,
+        "tax_rate":      req.tax_rate,
+    }
+    if req.valid_until:
+        payload["valid_until"] = req.valid_until
+    if req.notes:
+        payload["notes"] = req.notes
+
+    result = await quote_generator.execute(payload)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "PDF generation failed"))
+
+    data = result["data"]
+    pdf_bytes: bytes = data.get("pdf_bytes") or b""
+    if not pdf_bytes:
+        raise HTTPException(status_code=500, detail="PDF bytes empty")
+
+    quote_number = data.get("quote_number", "cotizacion")
+    filename = f"cotizacion_{quote_number}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.post("/{domain}/route")

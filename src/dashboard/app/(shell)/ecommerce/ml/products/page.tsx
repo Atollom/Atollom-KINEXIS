@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockMLProducts, mockMLStats } from "@/lib/mockData";
 import type { MLProduct } from "@/lib/mockData";
 
 const LOW_STOCK_THRESHOLD = 10;
@@ -32,16 +31,30 @@ const CAT_ICON: Record<string, string> = {
   Medición: "straighten", EPP: "safety_check", Corte: "content_cut",
 };
 
+const FALLBACK_STATS = { total_products: 0, active_products: 0, total_sales_month: 0 };
+
 export default function MLProductsPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<FilterKey>("all");
   const [editingPrice, setEditingPrice] = useState<string | null>(null);
-  const [prices, setPrices] = useState<Record<string, number>>(
-    Object.fromEntries(mockMLProducts.map(p => [p.id, p.price]))
-  );
+  const [products, setProducts] = useState<MLProduct[]>([]);
+  const [mlStats, setMlStats] = useState(FALLBACK_STATS);
+  const [prices, setPrices] = useState<Record<string, number>>({});
   const [draft, setDraft] = useState("");
 
-  const withStatus = mockMLProducts.map(p => ({ ...p, displayStatus: getDisplayStatus(p) }));
+  useEffect(() => {
+    fetch("/api/ml/products")
+      .then(r => r.json())
+      .then(d => {
+        const prods: MLProduct[] = d.products || [];
+        setProducts(prods);
+        setMlStats(d.stats || FALLBACK_STATS);
+        setPrices(Object.fromEntries(prods.map(p => [p.id, p.price])));
+      })
+      .catch(() => {});
+  }, []);
+
+  const withStatus = products.map(p => ({ ...p, displayStatus: getDisplayStatus(p) }));
 
   const filtered = filter === "all"
     ? withStatus
@@ -78,7 +91,7 @@ export default function MLProductsPage() {
             Catálogo ML
           </h1>
           <p className="text-sm text-on-surface-variant">
-            {mockMLStats.total_products} publicaciones · Kap Tools
+            {mlStats.total_products} publicaciones · Kap Tools
           </p>
         </div>
         <button
@@ -93,10 +106,10 @@ export default function MLProductsPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Productos", value: mockMLStats.total_products, icon: "inventory_2",     color: "text-on-surface" },
-          { label: "Activos",          value: mockMLStats.active_products, icon: "check_circle",   color: "text-[#CCFF00]"  },
-          { label: "Bajo Stock",        value: counts.low_stock,            icon: "warning",         color: "text-amber-400"  },
-          { label: "Ventas del Mes",    value: `$${(mockMLStats.total_sales_month/1000).toFixed(0)}k`, icon: "trending_up", color: "text-blue-400" },
+          { label: "Total Productos", value: mlStats.total_products, icon: "inventory_2",     color: "text-on-surface" },
+          { label: "Activos",          value: mlStats.active_products, icon: "check_circle",   color: "text-[#CCFF00]"  },
+          { label: "Bajo Stock",        value: counts.low_stock,        icon: "warning",         color: "text-amber-400"  },
+          { label: "Ventas del Mes",    value: `$${(mlStats.total_sales_month/1000).toFixed(0)}k`, icon: "trending_up", color: "text-blue-400" },
         ].map(kpi => (
           <div key={kpi.label} className="glass-card rounded-[1.5rem] border border-white/5 p-6">
             <div className="flex items-center gap-3 mb-3">

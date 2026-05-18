@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { CFDI_EMITIDAS, CFDI_STATS, type CFDIFactura } from "@/lib/mockData";
+import { useState, useMemo, useEffect } from "react";
+import { CFDI_STATS, type CFDIFactura } from "@/lib/mockData";
 import { useToast } from "@/components/ToastProvider";
 
 type Filter = "todas" | "vigentes" | "canceladas" | "ppd";
@@ -33,24 +33,38 @@ function StatusBadge({ status, complemento }: { status: CFDIFactura["status"]; c
   );
 }
 
+const FALLBACK_CFDI_STATS = { emitidas: { total: 0, monto_total: 0, iva_total: 0, canceladas: 0 } };
+
 export default function FacturasEmitidasPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<Filter>("todas");
+  const [invoices, setInvoices] = useState<CFDIFactura[]>([]);
+  const [cfdiStats, setCfdiStats] = useState(CFDI_STATS);
+
+  useEffect(() => {
+    fetch("/api/cfdi/invoices")
+      .then(r => r.json())
+      .then(d => {
+        setInvoices(d.invoices || []);
+        if (d.stats) setCfdiStats(d.stats);
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
-    if (filter === "vigentes") return CFDI_EMITIDAS.filter(f => f.status === "vigente" && !f.complemento_pendiente);
-    if (filter === "canceladas") return CFDI_EMITIDAS.filter(f => f.status === "cancelada");
-    if (filter === "ppd") return CFDI_EMITIDAS.filter(f => f.metodo_pago === "PPD");
-    return CFDI_EMITIDAS;
-  }, [filter]);
+    if (filter === "vigentes")   return invoices.filter(f => f.status === "vigente" && !f.complemento_pendiente);
+    if (filter === "canceladas") return invoices.filter(f => f.status === "cancelada");
+    if (filter === "ppd")        return invoices.filter(f => f.metodo_pago === "PPD");
+    return invoices;
+  }, [filter, invoices]);
 
   const totalFiltrado = filtered.reduce((s, f) => s + f.total, 0);
 
   const counts = {
-    todas: CFDI_EMITIDAS.length,
-    vigentes: CFDI_EMITIDAS.filter(f => f.status === "vigente" && !f.complemento_pendiente).length,
-    canceladas: CFDI_EMITIDAS.filter(f => f.status === "cancelada").length,
-    ppd: CFDI_EMITIDAS.filter(f => f.metodo_pago === "PPD").length,
+    todas:      invoices.length,
+    vigentes:   invoices.filter(f => f.status === "vigente" && !f.complemento_pendiente).length,
+    canceladas: invoices.filter(f => f.status === "cancelada").length,
+    ppd:        invoices.filter(f => f.metodo_pago === "PPD").length,
   };
 
   function toast(action: string, folio: string) {
@@ -90,10 +104,10 @@ export default function FacturasEmitidasPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Emitidas (mes)", value: CFDI_STATS.emitidas.total, icon: "receipt_long", color: "text-primary" },
-          { label: "Total Facturado", value: FMT.format(CFDI_STATS.emitidas.monto_total), icon: "payments", color: "text-blue-400" },
-          { label: "IVA Acumulado", value: FMT.format(CFDI_STATS.emitidas.iva_total), icon: "account_balance", color: "text-amber-400" },
-          { label: "Canceladas", value: CFDI_STATS.emitidas.canceladas, icon: "cancel", color: "text-red-400" },
+          { label: "Emitidas (mes)", value: cfdiStats.emitidas.total, icon: "receipt_long", color: "text-primary" },
+          { label: "Total Facturado", value: FMT.format(cfdiStats.emitidas.monto_total), icon: "payments", color: "text-blue-400" },
+          { label: "IVA Acumulado", value: FMT.format(cfdiStats.emitidas.iva_total), icon: "account_balance", color: "text-amber-400" },
+          { label: "Canceladas", value: cfdiStats.emitidas.canceladas, icon: "cancel", color: "text-red-400" },
         ].map(k => (
           <div key={k.label} className="glass-card p-6 rounded-[1.5rem] border border-white/5">
             <div className="flex items-center gap-2 mb-3">

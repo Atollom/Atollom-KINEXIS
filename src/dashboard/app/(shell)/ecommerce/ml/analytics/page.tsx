@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
 import { mockMLAnalytics } from "@/lib/mockData";
+
+type MLAnalyticsData = typeof mockMLAnalytics;
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -33,7 +35,16 @@ function ChartTooltip({ active, payload, label }: any) {
 export default function MLAnalyticsPage() {
   const { showToast } = useToast();
   const [period, setPeriod] = useState<Period>("7d");
-  const d = mockMLAnalytics;
+  const [analytics, setAnalytics] = useState<MLAnalyticsData>(mockMLAnalytics);
+
+  useEffect(() => {
+    fetch("/api/ml/analytics")
+      .then(r => r.json())
+      .then(d => { if (d.summary) setAnalytics(d); })
+      .catch(() => {});
+  }, []);
+
+  const d = analytics;
   const trend = period === "7d" ? d.sales_trend.slice(-7) : d.sales_trend;
 
   return (

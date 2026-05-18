@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockShopifyOrders, mockShopifyStats } from "@/lib/mockData";
+import type { ShopifyOrder } from "@/lib/mockData";
 
 type FilterKey = "all" | "unfulfilled" | "fulfilled" | "partial";
 
@@ -26,11 +26,25 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
+const FALLBACK_SHOPIFY_STATS = { total_orders_month: 0, revenue_month: 0, avg_order_value: 0 };
+
 export default function ShopifyOrdersPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [orders, setOrders] = useState<ShopifyOrder[]>([]);
+  const [shopifyStats, setShopifyStats] = useState(FALLBACK_SHOPIFY_STATS);
 
-  const filtered = mockShopifyOrders.filter(o =>
+  useEffect(() => {
+    fetch("/api/shopify/orders")
+      .then(r => r.json())
+      .then(d => {
+        setOrders(d.orders || []);
+        setShopifyStats(d.stats || FALLBACK_SHOPIFY_STATS);
+      })
+      .catch(() => {});
+  }, []);
+
+  const filtered = orders.filter(o =>
     filter === "all"         ? true :
     filter === "unfulfilled" ? (o.fulfillment_status === "unfulfilled" || o.fulfillment_status === null) :
     filter === "fulfilled"   ? o.fulfillment_status === "fulfilled" :
@@ -38,10 +52,10 @@ export default function ShopifyOrdersPage() {
   );
 
   const counts = {
-    all:         mockShopifyOrders.length,
-    unfulfilled: mockShopifyOrders.filter(o => o.fulfillment_status === "unfulfilled" || o.fulfillment_status === null).length,
-    fulfilled:   mockShopifyOrders.filter(o => o.fulfillment_status === "fulfilled").length,
-    partial:     mockShopifyOrders.filter(o => o.fulfillment_status === "partial").length,
+    all:         orders.length,
+    unfulfilled: orders.filter(o => o.fulfillment_status === "unfulfilled" || o.fulfillment_status === null).length,
+    fulfilled:   orders.filter(o => o.fulfillment_status === "fulfilled").length,
+    partial:     orders.filter(o => o.fulfillment_status === "partial").length,
   };
 
   return (
@@ -56,7 +70,7 @@ export default function ShopifyOrdersPage() {
             Órdenes Shopify
           </h1>
           <p className="text-sm text-on-surface-variant">
-            {mockShopifyStats.total_orders_month} órdenes este mes · {counts.unfulfilled} pendientes de cumplir
+            {shopifyStats.total_orders_month} órdenes este mes · {counts.unfulfilled} pendientes de cumplir
           </p>
         </div>
         <button
@@ -71,9 +85,9 @@ export default function ShopifyOrdersPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Órdenes (mes)",    value: mockShopifyStats.total_orders_month,   icon: "receipt_long",    color: "text-on-surface"  },
-          { label: "Revenue (mes)",    value: `$${(mockShopifyStats.revenue_month / 1000).toFixed(1)}k`, icon: "trending_up", color: "text-[#CCFF00]" },
-          { label: "Ticket Promedio",  value: `$${mockShopifyStats.avg_order_value.toFixed(0)}`, icon: "payments", color: "text-blue-400" },
+          { label: "Órdenes (mes)",    value: shopifyStats.total_orders_month,   icon: "receipt_long",    color: "text-on-surface"  },
+          { label: "Revenue (mes)",    value: `$${(shopifyStats.revenue_month / 1000).toFixed(1)}k`, icon: "trending_up", color: "text-[#CCFF00]" },
+          { label: "Ticket Promedio",  value: `$${shopifyStats.avg_order_value.toFixed(0)}`, icon: "payments", color: "text-blue-400" },
           { label: "Pendiente Cumplir",value: counts.unfulfilled,                    icon: "pending_actions", color: "text-amber-400"   },
         ].map(kpi => (
           <div key={kpi.label} className="glass-card rounded-[1.5rem] border border-white/5 p-6">
