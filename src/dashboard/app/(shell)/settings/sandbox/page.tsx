@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { authenticatedFetch } from '@/lib/api-client'
 import { useToast } from '@/components/ToastProvider'
 
@@ -15,6 +16,15 @@ interface SandboxStatus {
   mode: string
   integrations: Record<string, IntegrationState>
   sync_log_count: number
+}
+
+interface AmazonConnectionStatus {
+  connected: boolean
+  seller_id: string | null
+  marketplace_id?: string
+  environment?: string
+  connected_at?: string | null
+  note?: string
 }
 
 const INTEGRATION_CFG: Record<
@@ -79,12 +89,24 @@ function StatusDot({ status }: { status: string }) {
   )
 }
 
+const MARKETPLACE_LABELS: Record<string, string> = {
+  'A1AM78C64UM0Y8': 'Amazon México (MX)',
+  'ATVPDKIKX0DER':  'Amazon EE.UU. (US)',
+}
+
 export default function SandboxPage() {
   const { showToast } = useToast()
+  const searchParams = useSearchParams()
+
   const [status, setStatus] = useState<SandboxStatus | null>(null)
   const [syncing, setSyncing] = useState<Record<string, boolean>>({})
   const [resetting, setResetting] = useState(false)
   const [loading, setLoading] = useState(true)
+
+  const [amazonStatus, setAmazonStatus] = useState<AmazonConnectionStatus | null>(null)
+  const [amazonLoading, setAmazonLoading] = useState(true)
+  const [amazonConnecting, setAmazonConnecting] = useState(false)
+  const [amazonDisconnecting, setAmazonDisconnecting] = useState(false)
 
   async function fetchStatus() {
     try {
@@ -98,7 +120,36 @@ export default function SandboxPage() {
     }
   }
 
-  useEffect(() => { fetchStatus() }, [])
+  async function fetchAmazonStatus() {
+    try {
+      const res = await authenticatedFetch('/api/integrations/amazon/status')
+      const data = await res.json()
+      setAmazonStatus(data)
+    } catch {
+      setAmazonStatus({ connected: false, seller_id: null })
+    } finally {
+      setAmazonLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStatus()
+    fetchAmazonStatus()
+
+    // Handle redirect back from Amazon OAuth
+    const result = searchParams.get('amazon')
+    if (result === 'connected') {
+      showToast({ type: 'success', title: 'Amazon conectado', message: 'Cuenta de vendedor vinculada correctamente' })
+      // Clean the query param from the URL without reload
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (result === 'error') {
+      showToast({ type: 'error', title: 'Error al conectar Amazon', message: 'No se pudo completar la autorización. Intenta nuevamente.' })
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (result === 'invalid_state') {
+      showToast({ type: 'error', title: 'Sesión expirada', message: 'La solicitud de autorización expiró. Intenta nuevamente.' })
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
 
   async function handleSync(integration: string) {
     setSyncing(s => ({ ...s, [integration]: true }))
@@ -128,6 +179,36 @@ export default function SandboxPage() {
       showToast({ type: 'error', title: 'Error', message: err?.message ?? 'Solo owner/admin puede hacer reset' })
     } finally {
       setResetting(false)
+    }
+  }
+
+  async function handleAmazonConnect() {
+    setAmazonConnecting(true)
+    try {
+      const res = await authenticatedFetch('/api/integrations/amazon/connect?marketplace_id=A1AM78C64UM0Y8')
+      const data = await res.json()
+      if (data.auth_url) {
+        window.location.href = data.auth_url
+      } else {
+        showToast({ type: 'error', title: 'Error', message: data.detail ?? 'No se pudo obtener la URL de autorización' })
+        setAmazonConnecting(false)
+      }
+    } catch {
+      showToast({ type: 'error', title: 'Error de red', message: 'No se pudo contactar el servidor' })
+      setAmazonConnecting(false)
+    }
+  }
+
+  async function handleAmazonDisconnect() {
+    setAmazonDisconnecting(true)
+    try {
+      await authenticatedFetch('/api/integrations/amazon/disconnect', { method: 'DELETE' })
+      showToast({ type: 'success', title: 'Amazon desconectado', message: 'Las credenciales han sido eliminadas' })
+      setAmazonStatus({ connected: false, seller_id: null })
+    } catch {
+      showToast({ type: 'error', title: 'Error', message: 'No se pudo desconectar. Intenta nuevamente.' })
+    } finally {
+      setAmazonDisconnecting(false)
     }
   }
 
@@ -255,6 +336,102 @@ export default function SandboxPage() {
           })}
         </div>
       )}
+
+      {/* Amazon SP-API Real Connection */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="material-symbols-outlined !text-[16px] text-orange-400">link</span>
+          <h2 className="text-sm font-bold label-tracking text-white/60">CONEXIÓN AMAZON SP-API REAL</h2>
+        </div>
+
+        <div className="glass-card p-6">
+          {amazonLoading ? (
+            <div className="animate-pulse h-24 rounded-lg bg-white/5" />
+          ) : amazonStatus?.connected ? (
+            /* Connected state */
+            <div className="space-y-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-400/10 flex items-center justify-center">
+                    <span className="material-symbols-outlined !text-[22px] text-orange-400">inventory_2</span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-orange-400 tight-tracking">Amazon</span>
+                      <span className="w-2 h-2 rounded-full bg-[#CCFF00] shadow-[0_0_6px_#CCFF00]" />
+                    </div>
+                    <p className="text-[11px] text-white/40 mt-0.5">SP-API · acceso real a tu cuenta de vendedor</p>
+                  </div>
+                </div>
+                <span className="text-[10px] label-tracking px-2 py-0.5 rounded-full font-bold bg-[#CCFF00]/10 text-[#CCFF00]">
+                  CONECTADO
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="bg-white/5 rounded-xl p-3">
+                  <p className="text-[10px] label-tracking text-white/30 mb-1">SELLER ID</p>
+                  <p className="text-sm font-mono font-bold text-white/80">{amazonStatus.seller_id}</p>
+                </div>
+                <div className="bg-white/5 rounded-xl p-3">
+                  <p className="text-[10px] label-tracking text-white/30 mb-1">MARKETPLACE</p>
+                  <p className="text-sm font-bold text-white/80">
+                    {MARKETPLACE_LABELS[amazonStatus.marketplace_id ?? ''] ?? amazonStatus.marketplace_id}
+                  </p>
+                </div>
+                {amazonStatus.connected_at && (
+                  <div className="bg-white/5 rounded-xl p-3 col-span-2">
+                    <p className="text-[10px] label-tracking text-white/30 mb-1">CONECTADO EL</p>
+                    <p className="text-sm text-white/60">
+                      {new Date(amazonStatus.connected_at).toLocaleString('es-MX')}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={handleAmazonDisconnect}
+                disabled={amazonDisconnecting}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 text-sm font-semibold hover:bg-red-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className={`material-symbols-outlined !text-[16px] ${amazonDisconnecting ? 'animate-spin' : ''}`}>
+                  {amazonDisconnecting ? 'progress_activity' : 'link_off'}
+                </span>
+                {amazonDisconnecting ? 'Desconectando...' : 'Desconectar cuenta Amazon'}
+              </button>
+            </div>
+          ) : (
+            /* Disconnected state */
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                  <span className="material-symbols-outlined !text-[22px] text-white/30">inventory_2</span>
+                </div>
+                <div>
+                  <p className="font-bold text-sm text-white/50 tight-tracking">Amazon SP-API</p>
+                  <p className="text-[11px] text-white/30 mt-0.5">Sin conexión — usando datos simulados</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-white/40 leading-relaxed">
+                Conecta tu cuenta de vendedor de Amazon para que KINEXIS acceda a órdenes,
+                inventario FBA y catálogo en tiempo real. Requiere credenciales LWA configuradas en el servidor.
+              </p>
+
+              <button
+                onClick={handleAmazonConnect}
+                disabled={amazonConnecting}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-orange-400/20 bg-orange-400/10 text-orange-400 text-sm font-semibold hover:bg-orange-400/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className={`material-symbols-outlined !text-[16px] ${amazonConnecting ? 'animate-spin' : ''}`}>
+                  {amazonConnecting ? 'progress_activity' : 'add_link'}
+                </span>
+                {amazonConnecting ? 'Redirigiendo a Amazon...' : 'Conectar cuenta Amazon'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Info footer */}
       <div className="glass-card p-5 border-white/5">

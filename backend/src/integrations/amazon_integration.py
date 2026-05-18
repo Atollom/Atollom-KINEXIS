@@ -84,6 +84,32 @@ class AmazonIntegration(BaseIntegration):
         self.refresh_token  = cfg.get("refresh_token")  or os.getenv("AMAZON_REFRESH_TOKEN")
         self._access_token: Optional[str] = None
 
+    @classmethod
+    async def get_instance_for_tenant(cls, tenant_id: str) -> "AmazonIntegration":
+        """
+        Returns an AmazonIntegration loaded with the tenant's stored credentials.
+        Falls back to the global env-based instance if no DB row found.
+        """
+        try:
+            from src.utils.database import db
+            row = await db.fetch_one(
+                "SELECT seller_id, marketplace_id, refresh_token, environment "
+                "FROM amazon_credentials WHERE tenant_id = $1::uuid",
+                tenant_id,
+            )
+            if row:
+                config: Dict[str, Any] = {
+                    "seller_id":      row["seller_id"],
+                    "marketplace_id": row["marketplace_id"],
+                    "refresh_token":  row["refresh_token"],
+                }
+                if row["environment"] == "sandbox":
+                    config["sandbox"] = True
+                return cls(config)
+        except Exception as exc:
+            logger.warning("[AMAZON] get_instance_for_tenant failed: %s", exc)
+        return cls()
+
     # ── Connection test ───────────────────────────────────────────────────────
 
     async def test_connection(self) -> Dict[str, Any]:
