@@ -175,4 +175,46 @@ class ShopifyIntegration(BaseIntegration):
                 return (await resp.json()).get("inventory_level", {})
 
 
+    async def update_price_by_sku(self, sku: str, price: float) -> Dict[str, Any]:
+        """Find the variant matching `sku` and update its price via Admin REST API."""
+        async with aiohttp.ClientSession() as session:
+            # Search all products for the variant with this SKU
+            async with session.get(
+                self._api_url("products.json"),
+                headers=self._get_headers(),
+                params={"fields": "id,variants", "limit": 250},
+            ) as resp:
+                products = (await resp.json()).get("products", [])
+
+        variant_id: Optional[int] = None
+        old_price: Optional[float] = None
+        for product in products:
+            for variant in product.get("variants", []):
+                if variant.get("sku") == sku:
+                    variant_id = variant["id"]
+                    old_price = float(variant.get("price", 0))
+                    break
+            if variant_id:
+                break
+
+        if not variant_id:
+            return {"status": "sku_not_found", "sku": sku}
+
+        async with aiohttp.ClientSession() as session:
+            async with session.put(
+                self._api_url(f"variants/{variant_id}.json"),
+                headers=self._get_headers(),
+                json={"variant": {"id": variant_id, "price": str(round(price, 2))}},
+            ) as resp:
+                updated = (await resp.json()).get("variant", {})
+
+        return {
+            "status": "updated",
+            "sku": sku,
+            "variant_id": variant_id,
+            "old_price": old_price,
+            "new_price": float(updated.get("price", price)),
+        }
+
+
 shopify_integration = ShopifyIntegration()

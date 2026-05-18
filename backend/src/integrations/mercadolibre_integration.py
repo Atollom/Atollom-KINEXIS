@@ -276,4 +276,23 @@ class MercadoLibreIntegration(BaseIntegration):
                 return await resp.json()
 
 
+    async def update_item_price(self, item_id: str, price: float) -> Dict[str, Any]:
+        """PUT /items/{item_id} — updates listing price."""
+        await self._ensure_token_valid()
+        async with aiohttp.ClientSession() as session:
+            async with session.put(
+                f"{self._get_base_url()}/items/{item_id}",
+                headers=self._auth_headers(),
+                json={"price": round(price, 2)},
+            ) as resp:
+                data = await resp.json()
+                if resp.status not in (200, 201):
+                    return {"status": "api_error", "item_id": item_id, "detail": data}
+                return {
+                    "status": "updated",
+                    "item_id": item_id,
+                    "new_price": data.get("price", price),
+                }
+
+
 ml_integration = MercadoLibreIntegration()

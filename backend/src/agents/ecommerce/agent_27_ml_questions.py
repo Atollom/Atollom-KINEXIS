@@ -168,8 +168,8 @@ class Agent27MLQuestions:
             "answered_via_api": answered_via_api,
             "answered_at": datetime.now(timezone.utc).isoformat(),
         }
-        if not answered_via_api:
-            result["note"] = "ML API answer posting pending — configure credentials in .env"
+        if not answered_via_api and not auto_answered:
+            result["escalated"] = True
         return result
 
 

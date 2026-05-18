@@ -1,10 +1,10 @@
 """
 Agente #6: Price Manager x3
-Responsabilidad: Actualizar precios en 3 canales simultáneos (ML, Amazon, Shopify)
+Responsabilidad: Actualizar precios en ML, Amazon y Shopify en paralelo
 Autor: Carlos Cortés (Atollom Labs)
-Fecha: 2026-04-21
 """
 
+import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
@@ -14,39 +14,25 @@ logger = logging.getLogger(__name__)
 VALID_CHANNELS = {"ml", "amazon", "shopify"}
 VALID_STRATEGIES = {"fixed", "competitive", "dynamic"}
 
-# Margen competitivo por canal (aplica estrategia "competitive")
+# Margen por canal para estrategia "competitive"
 CHANNEL_MARGINS: Dict[str, float] = {
-    "ml": 1.05,       # ML: +5% por comisiones
-    "amazon": 1.08,   # Amazon: +8% por FBA fees
-    "shopify": 1.00,  # Shopify: precio base
+    "ml":      1.05,   # +5% por comisiones ML
+    "amazon":  1.08,   # +8% por FBA fees
+    "shopify": 1.00,   # precio base
 }
 
 
 class Agent06PriceManager:
     """
-    Price Manager x3 — Actualización de precios en ML, Amazon y Shopify.
-
-    Estrategias:
-      fixed       → Mismo precio en todos los canales
-      competitive → Ajuste por canal según márgenes de comisión
-      dynamic     → Precio basado en competencia (requiere API datos)
+    Price Manager x3 — Actualiza precios en ML, Amazon y Shopify en paralelo.
 
     Input:
         {
-            "sku":       str    — SKU del producto
-            "base_price": float — Precio base MXN
-            "channels":  list  — ["ml", "amazon", "shopify"]
-            "strategy":  str   — fixed | competitive | dynamic
-        }
-
-    Output:
-        {
-            "sku":     str
-            "updates": {
-                "ml":      {old_price, new_price, status}
-                "amazon":  {old_price, new_price, status}
-                "shopify": {old_price, new_price, status}
-            }
+            "sku":         str    — SKU del producto
+            "base_price":  float  — Precio base MXN
+            "channels":    list   — ["ml", "amazon", "shopify"]
+            "strategy":    str    — fixed | competitive | dynamic
+            "item_ids":    dict   — {"ml": "MLB123", "amazon": "ASIN123"} (necesario para ML/Amazon)
         }
     """
 
@@ -55,16 +41,15 @@ class Agent06PriceManager:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.name = "Agent #6 - Price Manager"
-        logger.info(f"{self.name} initialized")
+        logger.info("%s initialized", self.name)
 
     async def execute(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Actualiza precios en los canales especificados."""
         try:
             validated = self._validate_input(input_data)
             result = await self._process(validated)
             logger.info(
-                f"{self.name} updated prices for sku={validated['sku']} "
-                f"channels={validated['channels']}"
+                "%s sku=%s channels=%s strategy=%s",
+                self.name, validated["sku"], validated["channels"], validated["strategy"],
             )
             return {
                 "success": True,
@@ -73,7 +58,7 @@ class Agent06PriceManager:
                 "data": result,
             }
         except Exception as e:
-            logger.error(f"{self.name} failed: {e}")
+            logger.error("%s failed: %s", self.name, e)
             return {
                 "success": False,
                 "agent": self.name,
@@ -102,53 +87,102 @@ class Agent06PriceManager:
         invalid = set(channels) - VALID_CHANNELS
         if invalid:
             raise ValueError(f"Invalid channels: {invalid}. Valid: {VALID_CHANNELS}")
-        data["channels"] = list(set(channels))  # deduplicate
+        data["channels"] = list(set(channels))
 
         strategy = data.get("strategy", "fixed")
         if strategy not in VALID_STRATEGIES:
             raise ValueError(f"Invalid strategy. Valid: {VALID_STRATEGIES}")
         data["strategy"] = strategy
 
+        data.setdefault("item_ids", {})
         return data
 
-    def _calculate_channel_price(self, base_price: float, channel: str, strategy: str) -> float:
+    def _calc_price(self, base: float, channel: str, strategy: str) -> float:
         if strategy == "fixed":
-            return round(base_price, 2)
-        elif strategy == "competitive":
-            margin = CHANNEL_MARGINS.get(channel, 1.0)
-            return round(base_price * margin, 2)
-        else:  # dynamic — placeholder, needs market data API
-            return round(base_price, 2)
+            return round(base, 2)
+        if strategy == "competitive":
+            return round(base * CHANNEL_MARGINS.get(channel, 1.0), 2)
+        # dynamic — future: use market data API
+        return round(base, 2)
+
+    # ── Per-channel API calls ─────────────────────────────────────────────────
+
+    async def _update_shopify(self, sku: str, price: float) -> Dict[str, Any]:
+        try:
+            from src.integrations.shopify_integration import shopify_integration
+            result = await shopify_integration.update_price_by_sku(sku, price)
+            return {
+                "new_price":  price,
+                "old_price":  result.get("old_price"),
+                "status":     result.get("status", "updated"),
+            }
+        except Exception as e:
+            logger.warning("%s Shopify update failed: %s", self.name, e)
+            return {"new_price": price, "old_price": None, "status": "api_error", "error": str(e)}
+
+    async def _update_ml(self, item_id: Optional[str], price: float) -> Dict[str, Any]:
+        if not item_id:
+            return {"new_price": price, "old_price": None, "status": "skipped_no_item_id"}
+        try:
+            from src.integrations.mercadolibre_integration import ml_integration
+            result = await ml_integration.update_item_price(item_id, price)
+            return {
+                "new_price": price,
+                "old_price": None,
+                "item_id":   item_id,
+                "status":    result.get("status", "updated"),
+            }
+        except Exception as e:
+            logger.warning("%s ML update failed: %s", self.name, e)
+            return {"new_price": price, "old_price": None, "status": "api_error", "error": str(e)}
+
+    async def _update_amazon(self, item_id: Optional[str], price: float) -> Dict[str, Any]:
+        if not item_id:
+            return {"new_price": price, "old_price": None, "status": "skipped_no_item_id"}
+        # Amazon SP-API price update requires Listings API (Fase 3 — needs LWA tokens)
+        return {
+            "new_price": price,
+            "old_price": None,
+            "item_id":   item_id,
+            "status":    "pending_sp_api_credentials",
+        }
 
     async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        TODO Fase 2: Llamar APIs reales en paralelo con asyncio.gather()
-        await asyncio.gather(
-            ml_api.update_price(sku, ml_price),
-            amazon_sp_api.update_price(sku, amazon_price),
-            shopify_api.update_price(sku, shopify_price),
-        )
-        """
         base = data["base_price"]
         strategy = data["strategy"]
-        updates: Dict[str, Dict] = {}
+        channels = data["channels"]
+        sku = data["sku"]
+        item_ids = data.get("item_ids", {})
 
-        for channel in data["channels"]:
-            new_price = self._calculate_channel_price(base, channel, strategy)
-            updates[channel] = {
-                "old_price": None,       # None until API integration
-                "new_price": new_price,
-                "status": "pending_api_integration",
-                "strategy_applied": strategy,
-            }
+        # Calculate target price per channel
+        prices = {ch: self._calc_price(base, ch, strategy) for ch in channels}
+
+        # Build coroutines for requested channels
+        tasks = {}
+        if "shopify" in channels:
+            tasks["shopify"] = self._update_shopify(sku, prices["shopify"])
+        if "ml" in channels:
+            tasks["ml"] = self._update_ml(item_ids.get("ml"), prices["ml"])
+        if "amazon" in channels:
+            tasks["amazon"] = self._update_amazon(item_ids.get("amazon"), prices["amazon"])
+
+        # Execute in parallel
+        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+        updates: Dict[str, Any] = {}
+        for channel, result in zip(tasks.keys(), results):
+            if isinstance(result, Exception):
+                updates[channel] = {"new_price": prices[channel], "status": "exception", "error": str(result)}
+            elif isinstance(result, dict):
+                updates[channel] = {**result, "strategy_applied": strategy}
+            else:
+                updates[channel] = {"new_price": prices[channel], "status": "unknown_result"}
 
         return {
-            "sku": data["sku"],
-            "base_price": base,
-            "strategy": strategy,
+            "sku":              sku,
+            "base_price":       base,
+            "strategy":         strategy,
             "channels_updated": len(updates),
-            "updates": updates,
-            "note": "ML/Amazon/Shopify API integration pending — Fase 2",
+            "updates":          updates,
         }
 
 
