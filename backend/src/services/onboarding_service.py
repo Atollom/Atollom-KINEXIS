@@ -8,10 +8,12 @@ import re
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..utils.database import db
 from ..utils.encryption import encryption
+from ..utils.email import send_welcome_email
+from ..utils.supabase_admin import create_auth_user
 from ..sandbox import sandbox
 
 logger = logging.getLogger(__name__)
@@ -66,22 +68,31 @@ class OnboardingService:
             slug = await self._unique_slug(company["name"])
             plan = self._plan_for_limit(billing.get("invoice_limit", 200))
 
+            pending_users: List[Tuple[str, str, str]] = []  # (email, temp_pw, full_name)
+
             async with db.transaction() as conn:
                 tenant_id = await self._insert_tenant(conn, company, billing, slug, plan)
                 await self._insert_fiscal_config(conn, tenant_id, billing)
                 integrations = await self._insert_integrations(
                     conn, tenant_id, ecommerce, messaging, billing
                 )
-                users_created = await self._insert_users(conn, tenant_id, users)
+                pending_users = await self._insert_users(conn, tenant_id, users)
                 await conn.execute(
                     "UPDATE tenants SET onboarding_completed=TRUE, "
                     "onboarding_completed_at=NOW() WHERE id=$1",
                     tenant_id,
                 )
 
+            users_created = len(pending_users)
             logger.info(f"Onboarding complete: tenant={tenant_id} slug={slug}")
 
-            # Fire sandbox seed after DB commit — non-blocking, failure is safe to ignore
+            # Non-blocking post-commit tasks: Supabase auth + welcome emails
+            asyncio.create_task(
+                self._post_onboarding_tasks(
+                    str(tenant_id), company.get("name", ""), pending_users
+                )
+            )
+            # Sandbox seed
             asyncio.create_task(self._seed_sandbox(str(tenant_id)))
 
             return {
@@ -280,8 +291,12 @@ class OnboardingService:
         conn,
         tenant_id: uuid.UUID,
         users: List[Dict[str, Any]],
-    ) -> int:
-        count = 0
+    ) -> List[Tuple[str, str, str]]:
+        """
+        Inserts users into the DB with encrypted temp passwords.
+        Returns list of (email, temp_pw, full_name) for post-commit processing.
+        """
+        pending: List[Tuple[str, str, str]] = []
         for user in users:
             email = user.get("email", "").strip().lower()
             full_name = user.get("full_name", "").strip()
@@ -291,7 +306,6 @@ class OnboardingService:
                 logger.warning(f"Skipping invalid user entry: {user}")
                 continue
 
-            # Temporary password — Fase 2: send via email (Resend/SendGrid)
             temp_pw = secrets.token_urlsafe(16)
 
             await conn.execute(
@@ -307,10 +321,44 @@ class OnboardingService:
                 tenant_id, email, full_name, role,
                 encryption.encrypt_str(temp_pw),
             )
-            count += 1
+            pending.append((email, temp_pw, full_name))
             logger.info(f"User upserted: {email} ({role})")
 
-        return count
+        return pending
+
+    async def _post_onboarding_tasks(
+        self,
+        tenant_id: str,
+        company_name: str,
+        pending_users: List[Tuple[str, str, str]],
+    ) -> None:
+        """
+        Runs after DB transaction commits:
+        1. Creates Supabase Auth users so they can actually log in.
+        2. Links supabase_user_id in the users table.
+        3. Sends welcome email with temp password.
+        All failures are non-fatal — logged as warnings only.
+        """
+        for email, temp_pw, full_name in pending_users:
+            # Create Supabase Auth user
+            supabase_id = await create_auth_user(email, temp_pw, full_name)
+
+            # Link supabase_user_id if creation succeeded
+            if supabase_id:
+                try:
+                    await db.execute(
+                        "UPDATE users SET supabase_user_id=$1 WHERE email=$2 AND tenant_id=$3::uuid",
+                        supabase_id, email, tenant_id,
+                    )
+                    logger.info("[ONBOARDING] Linked supabase_user_id for %s", email)
+                except Exception as exc:
+                    logger.warning("[ONBOARDING] Could not link supabase_user_id for %s: %s", email, exc)
+
+            # Send welcome email (non-blocking, failure is safe)
+            try:
+                await send_welcome_email(email, full_name, company_name, temp_pw)
+            except Exception as exc:
+                logger.warning("[ONBOARDING] Welcome email failed for %s: %s", email, exc)
 
     # ── Sandbox seeding ───────────────────────────────────────────────────────
 

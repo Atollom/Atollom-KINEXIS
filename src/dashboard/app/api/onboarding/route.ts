@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 
-const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:8000'
+const BACKEND_URL =
+  process.env.PYTHON_BACKEND_URL ??
+  process.env.BACKEND_URL ??
+  'http://localhost:8000'
 
 export async function POST(request: Request) {
   try {

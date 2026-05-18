@@ -24,6 +24,7 @@ logging.basicConfig(
 # Import routers
 from src.routers import (
     onboarding_router,
+    auth_router,
     cfdi_router,
     samantha_router,
     dashboard_router,
@@ -91,6 +92,7 @@ async def health():
 
 # Mount routers
 app.include_router(onboarding_router.router)
+app.include_router(auth_router.router)
 app.include_router(cfdi_router.router)
 app.include_router(samantha_router.router)
 app.include_router(dashboard_router.router)
