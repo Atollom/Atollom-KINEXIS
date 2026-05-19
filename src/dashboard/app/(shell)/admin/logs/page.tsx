@@ -27,14 +27,16 @@ export default function AdminLogsPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
+    let mounted = true
     authenticatedFetch('/api/admin/logs')
       .then(r => {
         if (r.status === 403) throw new Error('forbidden')
         return r.ok ? r.json() : null
       })
-      .then(d => { if (d?.logs) setLogs(d.logs) })
-      .catch(e => setError(e.message === 'forbidden' ? 'Acceso restringido a Super Admin' : 'Error cargando logs'))
-      .finally(() => setLoading(false))
+      .then(d => { if (mounted && d?.logs) setLogs(d.logs) })
+      .catch(e => { if (mounted) setError(e.message === 'forbidden' ? 'Acceso restringido a Super Admin' : 'Error cargando logs') })
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
   }, [])
 
   const filtered = logs.filter(l =>

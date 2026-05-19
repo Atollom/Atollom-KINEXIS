@@ -56,7 +56,21 @@ export default function OperationsFulfillmentPage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(load, [])
+  useEffect(() => {
+    let mounted = true
+    setLoading(true)
+    authenticatedFetch('/api/operations/fulfillment')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (mounted && d?.orders) {
+          setData(d)
+          setDataSource('live')
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
+  }, [])
 
   const handleStatusChange = async (orderId: string, status: string) => {
     setUpdating(orderId)

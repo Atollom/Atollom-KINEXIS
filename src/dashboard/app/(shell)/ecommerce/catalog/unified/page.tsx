@@ -21,17 +21,19 @@ export default function UnifiedCatalogPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
+    let mounted = true
     authenticatedFetch('/api/ecommerce/products')
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         const list = d?.products ?? d
-        if (Array.isArray(list) && list.length > 0) {
+        if (mounted && Array.isArray(list) && list.length > 0) {
           setProducts(list)
           setDataSource('live')
         }
       })
       .catch(() => {})
-      .finally(() => setLoading(false))
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
   }, [])
 
   const filtered = products.filter(p =>

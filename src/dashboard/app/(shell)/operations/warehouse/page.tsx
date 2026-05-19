@@ -47,16 +47,18 @@ export default function WarehousePage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'low' | 'out'>('all')
 
   useEffect(() => {
+    let mounted = true
     authenticatedFetch('/api/operations/warehouse')
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d?.items) {
+        if (mounted && d?.items) {
           setData(d)
           setDataSource('live')
         }
       })
       .catch(() => {})
-      .finally(() => setLoading(false))
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
   }, [])
 
   const filtered = data.items.filter(i => {

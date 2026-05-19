@@ -61,11 +61,13 @@ export default function BillingPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => {
+    let mounted = true
     authenticatedFetch('/api/settings/billing')
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setBilling(d) })
+      .then(d => { if (mounted && d) setBilling(d) })
       .catch(() => {})
-      .finally(() => setLoading(false))
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
   }, [])
 
   const handleUpgrade = async (planId: string) => {

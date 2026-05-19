@@ -54,16 +54,18 @@ export default function QualityPage() {
   const [tab, setTab] = useState<'returns' | 'tickets'>('tickets')
 
   useEffect(() => {
+    let mounted = true
     authenticatedFetch('/api/operations/quality')
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d?.kpis) {
+        if (mounted && d?.kpis) {
           setData(d)
           setDataSource('live')
         }
       })
       .catch(() => {})
-      .finally(() => setLoading(false))
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
   }, [])
 
   return (

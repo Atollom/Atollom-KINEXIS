@@ -30,16 +30,18 @@ export default function InventoryAnalyticsPage() {
   const [dataSource, setDataSource] = useState<'live' | 'mock'>('mock')
 
   useEffect(() => {
+    let mounted = true
     authenticatedFetch('/api/analytics/inventory')
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d?.kpis) {
+        if (mounted && d?.kpis) {
           setData(d)
           setDataSource('live')
         }
       })
       .catch(() => {})
-      .finally(() => setLoading(false))
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
   }, [])
 
   const fmt = (v: number) => v >= 1000000 ? `$${(v / 1e6).toFixed(2)}M` : v >= 1000 ? `$${(v / 1000).toFixed(0)}K` : `$${v.toFixed(0)}`

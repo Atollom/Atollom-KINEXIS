@@ -32,14 +32,16 @@ export default function AdminTenantsPage() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
+    let mounted = true
     authenticatedFetch('/api/admin/tenants')
       .then(r => {
         if (r.status === 403) throw new Error('forbidden')
         return r.ok ? r.json() : null
       })
-      .then(d => { if (d?.tenants) setTenants(d.tenants) })
-      .catch(e => setError(e.message === 'forbidden' ? 'Acceso restringido a Super Admin' : 'Error cargando datos'))
-      .finally(() => setLoading(false))
+      .then(d => { if (mounted && d?.tenants) setTenants(d.tenants) })
+      .catch(e => { if (mounted) setError(e.message === 'forbidden' ? 'Acceso restringido a Super Admin' : 'Error cargando datos') })
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
   }, [])
 
   const filtered = tenants.filter(t =>
