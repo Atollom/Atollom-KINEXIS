@@ -1,13 +1,11 @@
 """
 Agente #19: NPS Collector
-Responsabilidad: Medir satisfacción (NPS) post-venta automáticamente
-Autor: Carlos Cortés (Atollom Labs)
-Fecha: 2026-04-21
+Responsabilidad: Registrar NPS en Supabase y disparar follow-up para detractores
 """
 
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -22,69 +20,47 @@ NEGATIVE_KEYWORDS = {
 
 
 def _classify_nps(score: int) -> tuple[str, str]:
-    """Returns (category, sentiment)."""
     if score >= 9:
         return "promoter", "positive"
     elif score >= 7:
         return "passive", "neutral"
-    else:
-        return "detractor", "negative"
+    return "detractor", "negative"
 
 
 def _analyze_sentiment(feedback: str) -> str:
     if not feedback:
         return "neutral"
     words = set(feedback.lower().split())
-    pos_hits = words & POSITIVE_KEYWORDS
-    neg_hits = words & NEGATIVE_KEYWORDS
-    if len(pos_hits) > len(neg_hits):
+    pos = words & POSITIVE_KEYWORDS
+    neg = words & NEGATIVE_KEYWORDS
+    if len(pos) > len(neg):
         return "positive"
-    elif len(neg_hits) > len(pos_hits):
+    elif len(neg) > len(pos):
         return "negative"
     return "neutral"
 
 
-def _calculate_response_days(survey_sent_at: Optional[str], responded_at: Optional[str]) -> Optional[int]:
-    if not survey_sent_at or not responded_at:
+def _response_days(sent_at: Optional[str], responded_at: Optional[str]) -> Optional[int]:
+    if not sent_at or not responded_at:
         return None
     try:
-        sent = datetime.fromisoformat(survey_sent_at.replace("Z", "+00:00"))
-        responded = datetime.fromisoformat(responded_at.replace("Z", "+00:00"))
-        delta = responded - sent
-        return max(0, delta.days)
+        s = datetime.fromisoformat(sent_at.replace("Z", "+00:00"))
+        r = datetime.fromisoformat(responded_at.replace("Z", "+00:00"))
+        return max(0, (r - s).days)
     except (ValueError, TypeError):
         return None
 
 
 class Agent19NPSCollector:
     """
-    NPS Collector — Recolección y análisis de Net Promoter Score post-venta.
-
-    Clasificación NPS:
-      Promotor   (9-10) → cliente satisfecho, candidato a referido
-      Pasivo     (7-8)  → neutral, oportunidad de mejora
-      Detractor  (0-6)  → insatisfecho, requiere seguimiento urgente
+    NPS Collector — Registra respuestas NPS y dispara follow-up para detractores.
 
     Input:
         {
-            "customer_id":    str  — ID del cliente
-            "order_id":       str  — ID de la orden
-            "score":          int  — 0 a 10
-            "feedback":       str  — (opcional) comentario libre
-            "survey_sent_at": str  — (opcional) ISO timestamp envío
-            "responded_at":   str  — (opcional) ISO timestamp respuesta
-        }
-
-    Output:
-        {
-            "customer_id":     str
-            "order_id":        str
-            "nps_score":       int
-            "category":        str  — promoter | passive | detractor
-            "sentiment":       str  — positive | neutral | negative
-            "response_time_days": int | None
-            "action_required": str | None
-            "stored_at":       str
+            "customer_id": str, "order_id": str, "score": int (0-10),
+            "feedback": str (opcional), "tenant_id": str (opcional),
+            "customer_email": str (opcional), "customer_name": str (opcional),
+            "survey_sent_at": str (opcional), "responded_at": str (opcional)
         }
     """
 
@@ -93,72 +69,100 @@ class Agent19NPSCollector:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.name = "Agent #19 - NPS Collector"
-        logger.info(f"{self.name} initialized")
+        logger.info("%s initialized", self.name)
 
     async def execute(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Registra y analiza respuesta NPS."""
         try:
             validated = self._validate_input(input_data)
             result = await self._process(validated)
-            logger.info(
-                f"{self.name} customer={validated['customer_id']} "
-                f"score={validated['score']} category={result.get('category')}"
-            )
-            return {
-                "success": True,
-                "agent": self.name,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "data": result,
-            }
+            logger.info("%s customer=%s score=%s category=%s",
+                        self.name, validated["customer_id"],
+                        validated["score"], result.get("category"))
+            return {"success": True, "agent": self.name,
+                    "timestamp": datetime.now(timezone.utc).isoformat(), "data": result}
         except Exception as e:
-            logger.error(f"{self.name} failed: {e}")
-            return {
-                "success": False,
-                "agent": self.name,
-                "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
+            logger.error("%s failed: %s", self.name, e)
+            return {"success": False, "agent": self.name, "error": str(e),
+                    "timestamp": datetime.now(timezone.utc).isoformat()}
 
     def _validate_input(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        for field in self.REQUIRED_FIELDS:
-            if field not in data:
-                raise ValueError(f"Missing required field: {field}")
-
+        for f in self.REQUIRED_FIELDS:
+            if f not in data:
+                raise ValueError(f"Missing required field: {f}")
         score = data["score"]
         if not isinstance(score, int) or not (0 <= score <= 10):
             raise ValueError("score must be an integer between 0 and 10")
-
         return data
 
-    async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        TODO Fase 2:
-        - Persist NPS response to Supabase (table: nps_responses)
-        - Trigger Agent #33 Follow-up for detractors
-        - Update customer health score
-        - Aggregate NPS metrics by period
-        """
-        score = data["score"]
-        feedback = data.get("feedback", "")
-        category, default_sentiment = _classify_nps(score)
-        feedback_sentiment = _analyze_sentiment(feedback) if feedback else default_sentiment
-        response_days = _calculate_response_days(
-            data.get("survey_sent_at"), data.get("responded_at")
-        )
-        action_required = "follow_up_detractor" if category == "detractor" else None
+    async def _persist(self, record: Dict, tenant_id: Optional[str]) -> None:
+        from src.utils.database import db
+        try:
+            await db.execute(
+                """
+                INSERT INTO nps_responses
+                    (tenant_id, customer_id, order_id, score, category,
+                     sentiment, feedback, response_time_days, created_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+                ON CONFLICT (customer_id, order_id) DO UPDATE SET
+                    score = EXCLUDED.score, category = EXCLUDED.category,
+                    sentiment = EXCLUDED.sentiment, feedback = EXCLUDED.feedback
+                """,
+                tenant_id,
+                record["customer_id"],
+                record["order_id"],
+                record["nps_score"],
+                record["category"],
+                record["sentiment"],
+                record.get("feedback", ""),
+                record.get("response_time_days"),
+            )
+        except Exception as e:
+            logger.warning("%s DB persist failed: %s", self.name, e)
 
-        return {
-            "customer_id": data["customer_id"],
-            "order_id": data["order_id"],
-            "nps_score": score,
-            "category": category,
-            "sentiment": feedback_sentiment,
-            "feedback": feedback,
-            "response_time_days": response_days,
-            "action_required": action_required,
-            "stored_at": datetime.now(timezone.utc).isoformat(),
-            "note": "Supabase NPS persistence & follow-up trigger pending — Fase 2",
+    async def _trigger_followup(self, data: Dict, category: str) -> Dict:
+        if category != "detractor":
+            return {"triggered": False, "reason": f"category={category}"}
+        customer_email = str(data.get("customer_email", "")).strip()
+        if not customer_email:
+            return {"triggered": False, "reason": "no customer_email provided"}
+        try:
+            from src.agents.crm.agent_33_follow_up import follow_up
+            result = await follow_up.execute({
+                "lead_id":    data["customer_id"],
+                "lead_name":  data.get("customer_name", "estimado cliente"),
+                "email":      customer_email,
+                "days_inactive": 1,
+                "stage":      "interested",
+                "channel":    "email",
+            })
+            return {"triggered": True, "follow_up_result": result.get("success")}
+        except Exception as e:
+            logger.warning("%s follow-up trigger failed: %s", self.name, e)
+            return {"triggered": False, "reason": str(e)}
+
+    async def _process(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        score     = data["score"]
+        feedback  = data.get("feedback", "")
+        tenant_id = data.get("tenant_id")
+        category, default_sentiment = _classify_nps(score)
+        sentiment = _analyze_sentiment(feedback) if feedback else default_sentiment
+        resp_days = _response_days(data.get("survey_sent_at"), data.get("responded_at"))
+
+        record = {
+            "customer_id":        data["customer_id"],
+            "order_id":           data["order_id"],
+            "nps_score":          score,
+            "category":           category,
+            "sentiment":          sentiment,
+            "feedback":           feedback,
+            "response_time_days": resp_days,
+            "action_required":    "follow_up_detractor" if category == "detractor" else None,
+            "stored_at":          datetime.now(timezone.utc).isoformat(),
         }
+
+        await self._persist(record, tenant_id)
+        record["follow_up"] = await self._trigger_followup(data, category)
+        return record
 
 
 nps_collector = Agent19NPSCollector()
