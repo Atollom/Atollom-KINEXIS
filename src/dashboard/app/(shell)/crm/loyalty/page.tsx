@@ -1,15 +1,33 @@
-import type { Metadata } from 'next'
-import { mockLoyaltyPrograms, mockLoyaltyStats } from '@/lib/mockData'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Loyalty Programs — KINEXIS',
-  description: 'Programas de fidelización: puntos, niveles y recompensas.',
+import { useState, useEffect } from 'react'
+import { mockLoyaltyPrograms, mockLoyaltyStats, type LoyaltyProgram } from '@/lib/mockData'
+import { authenticatedFetch } from '@/lib/api-client'
+
+interface LoyaltyStats {
+  total_programs: number; total_members: number; total_points_outstanding: number; redemption_rate: number
 }
 
-const TIER_COLORS = ['#cd7f32', '#94a3b8', '#CCFF00', '#60a5fa']
-
 export default function LoyaltyProgramsPage() {
-  const totalPoints = mockLoyaltyStats.total_points_outstanding
+  const [programs, setPrograms] = useState<LoyaltyProgram[]>(mockLoyaltyPrograms)
+  const [stats, setStats] = useState<LoyaltyStats>(mockLoyaltyStats)
+  const [source, setSource] = useState<'live' | 'mock'>('mock')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    authenticatedFetch('/api/crm/loyalty')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && Array.isArray(data.programs) && data.programs.length > 0) {
+          setPrograms(data.programs)
+          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
+          setSource('live')
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -20,6 +38,13 @@ export default function LoyaltyProgramsPage() {
             </h1>
             <span className="px-2 py-1 rounded-full bg-purple-400/10 border border-purple-400/20 text-[9px] font-black label-tracking text-purple-400">
               CRM
+            </span>
+            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
+              loading ? 'border-white/10 text-white/30' :
+              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
+              'border-amber-500/30 bg-amber-500/10 text-amber-400'
+            }`}>
+              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
             </span>
           </div>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -38,10 +63,10 @@ export default function LoyaltyProgramsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Programas', value: mockLoyaltyStats.total_programs, color: 'var(--text-primary)' },
-          { label: 'Miembros totales', value: mockLoyaltyStats.total_members.toLocaleString(), color: '#a78bfa' },
-          { label: 'Puntos vigentes', value: totalPoints.toLocaleString(), color: '#CCFF00' },
-          { label: 'Redención', value: `${mockLoyaltyStats.redemption_rate}%`, color: '#4ade80' },
+          { label: 'Programas',       value: stats.total_programs,                        color: 'var(--text-primary)' },
+          { label: 'Miembros totales', value: stats.total_members.toLocaleString(),        color: '#a78bfa' },
+          { label: 'Puntos vigentes', value: stats.total_points_outstanding.toLocaleString(), color: '#CCFF00' },
+          { label: 'Redención',       value: `${stats.redemption_rate}%`,                 color: '#4ade80' },
         ].map(s => (
           <div key={s.label} className="glass-card p-4 rounded-2xl">
             <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
@@ -51,7 +76,7 @@ export default function LoyaltyProgramsPage() {
       </div>
 
       {/* Programs */}
-      {mockLoyaltyPrograms.map(prog => (
+      {programs.map(prog => (
         <div key={prog.id} className="glass-card rounded-2xl p-5 space-y-5" style={{ border: '1px solid var(--border-color)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -98,7 +123,7 @@ export default function LoyaltyProgramsPage() {
             <div>
               <p className="text-[10px] label-tracking mb-2" style={{ color: 'var(--text-muted)' }}>NIVELES</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {prog.tiers.map((tier, i) => (
+                {prog.tiers.map(tier => (
                   <div key={tier.name} className="rounded-xl p-3 space-y-2" style={{ backgroundColor: 'var(--bg-card)', border: `1px solid ${tier.color}30` }}>
                     <div className="flex items-center justify-between">
                       <p className="font-black text-sm" style={{ color: tier.color }}>{tier.name}</p>

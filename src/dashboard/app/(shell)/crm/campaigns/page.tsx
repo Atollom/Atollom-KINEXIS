@@ -1,19 +1,41 @@
-import type { Metadata } from 'next'
-import { mockEmailCampaigns, mockEmailCampaignStats } from '@/lib/mockData'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Campañas Email — KINEXIS',
-  description: 'Gestiona campañas de email marketing y sus métricas.',
-}
+import { useState, useEffect } from 'react'
+import { mockEmailCampaigns, mockEmailCampaignStats, type EmailCampaign } from '@/lib/mockData'
+import { authenticatedFetch } from '@/lib/api-client'
 
 const STATUS_CONFIG = {
-  sent: { label: 'Enviada', color: '#4ade80', bg: 'bg-green-400/10' },
-  sending: { label: 'Enviando', color: '#CCFF00', bg: 'bg-[#CCFF00]/10' },
-  scheduled: { label: 'Programada', color: '#60a5fa', bg: 'bg-blue-400/10' },
-  draft: { label: 'Borrador', color: '#94a3b8', bg: 'bg-white/5' },
+  sent:      { label: 'Enviada',     color: '#4ade80', bg: 'bg-green-400/10' },
+  sending:   { label: 'Enviando',    color: '#CCFF00', bg: 'bg-[#CCFF00]/10' },
+  scheduled: { label: 'Programada',  color: '#60a5fa', bg: 'bg-blue-400/10'  },
+  draft:     { label: 'Borrador',    color: '#94a3b8', bg: 'bg-white/5'      },
+}
+
+interface CampaignStats {
+  total: number; sent: number; draft: number; scheduled: number
+  avg_open_rate: number; avg_click_rate: number; total_revenue: number
 }
 
 export default function EmailCampaignsPage() {
+  const [campaigns, setCampaigns] = useState<EmailCampaign[]>(mockEmailCampaigns)
+  const [stats, setStats] = useState<CampaignStats>(mockEmailCampaignStats)
+  const [source, setSource] = useState<'live' | 'mock'>('mock')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    authenticatedFetch('/api/crm/campaigns')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && Array.isArray(data.campaigns) && data.campaigns.length > 0) {
+          setCampaigns(data.campaigns)
+          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
+          setSource('live')
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -24,6 +46,13 @@ export default function EmailCampaignsPage() {
             </h1>
             <span className="px-2 py-1 rounded-full bg-purple-400/10 border border-purple-400/20 text-[9px] font-black label-tracking text-purple-400">
               AGENTE #22
+            </span>
+            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
+              loading ? 'border-white/10 text-white/30' :
+              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
+              'border-amber-500/30 bg-amber-500/10 text-amber-400'
+            }`}>
+              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
             </span>
           </div>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -42,13 +71,13 @@ export default function EmailCampaignsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {[
-          { label: 'Total', value: mockEmailCampaignStats.total, color: 'var(--text-primary)' },
-          { label: 'Enviadas', value: mockEmailCampaignStats.sent, color: '#4ade80' },
-          { label: 'Borrador', value: mockEmailCampaignStats.draft, color: 'var(--text-muted)' },
-          { label: 'Programadas', value: mockEmailCampaignStats.scheduled, color: '#60a5fa' },
-          { label: 'Open Rate prom.', value: `${mockEmailCampaignStats.avg_open_rate}%`, color: '#a78bfa' },
-          { label: 'Click Rate prom.', value: `${mockEmailCampaignStats.avg_click_rate}%`, color: '#CCFF00' },
-          { label: 'Revenue total', value: `$${mockEmailCampaignStats.total_revenue.toLocaleString()}`, color: '#4ade80' },
+          { label: 'Total',            value: stats.total,                                        color: 'var(--text-primary)' },
+          { label: 'Enviadas',         value: stats.sent,                                         color: '#4ade80' },
+          { label: 'Borrador',         value: stats.draft,                                        color: 'var(--text-muted)' },
+          { label: 'Programadas',      value: stats.scheduled,                                    color: '#60a5fa' },
+          { label: 'Open Rate prom.',  value: `${stats.avg_open_rate}%`,                          color: '#a78bfa' },
+          { label: 'Click Rate prom.', value: `${stats.avg_click_rate}%`,                         color: '#CCFF00' },
+          { label: 'Revenue total',    value: `$${stats.total_revenue.toLocaleString()}`,          color: '#4ade80' },
         ].map(s => (
           <div key={s.label} className="glass-card p-4 rounded-2xl">
             <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
@@ -63,8 +92,8 @@ export default function EmailCampaignsPage() {
           <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Historial de campañas</h2>
         </div>
         <div className="divide-y" style={{ borderColor: 'var(--border-color)' }}>
-          {mockEmailCampaigns.map(c => {
-            const sc = STATUS_CONFIG[c.status]
+          {campaigns.map(c => {
+            const sc = STATUS_CONFIG[c.status] ?? STATUS_CONFIG['draft']
             return (
               <div key={c.id} className="px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-white/[0.02] transition-colors cursor-pointer">
                 <div className="flex-1 min-w-0">

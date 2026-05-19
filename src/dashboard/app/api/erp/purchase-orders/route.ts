@@ -64,8 +64,8 @@ export async function GET(req: NextRequest) {
       };
     }));
 
-  } catch (error: any) {
-    console.error('[Purchase Orders GET] Error:', error);
+  } catch (err) {
+    console.error('[Purchase Orders GET] Error:', err);
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     if (error) throw error;
     return NextResponse.json({ success: true, po_id: data.id }, { status: 201 });
 
-  } catch (err: any) {
+  } catch (err) {
     console.error('[Purchase Orders POST] Error:', err);
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
@@ -194,7 +194,7 @@ export async function PATCH(req: NextRequest) {
     if (error) throw error;
     return NextResponse.json({ success: true, po: data });
 
-  } catch (err: any) {
+  } catch (err) {
     console.error('[Purchase Orders PATCH] Error:', err);
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }

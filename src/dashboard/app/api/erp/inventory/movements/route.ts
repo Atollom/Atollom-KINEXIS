@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
       .in('sku', skus)
       .eq('tenant_id', tenant_id);
 
-    const productMap = (products || []).reduce((acc: any, curr: any) => {
+    const productMap = (products || []).reduce<Record<string, string>>((acc, curr) => {
       acc[curr.sku] = curr.name;
       return acc;
     }, {});
@@ -65,8 +65,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(formatted);
 
-  } catch (error: any) {
-    console.error('[Inventory Movements API] Error:', error);
+  } catch (err) {
+    console.error('[Inventory Movements API] Error:', err);
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }

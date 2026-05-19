@@ -1,14 +1,20 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
 import {
   mockFinanceSnapshot, mockFinanceHistory, mockFinanceByChannel,
   mockARAging, mockAPSummary,
+  type FinanceSnapshot,
 } from "@/lib/mockData";
+import { authenticatedFetch } from "@/lib/api-client";
 import {
   LineChart, Line, BarChart, Bar, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
+
+interface ARAging  { range: string; amount: number; count: number }
+interface APEntry  { supplier: string; amount: number; status: 'pending' | 'overdue' | 'scheduled'; due: string }
 
 function fmtK(n: number) { return n >= 1000000 ? `$${(n / 1000000).toFixed(2)}M` : n >= 1000 ? `$${(n / 1000).toFixed(0)}k` : `$${n}`; }
 
@@ -35,11 +41,30 @@ const CHANNEL_COLORS = ["#CCFF00", "#fb923c", "#60a5fa", "#c084fc"];
 
 export default function ERPFinancePage() {
   const { showToast } = useToast();
-  const snap = mockFinanceSnapshot;
+  const [snap, setSnap] = useState<FinanceSnapshot>(mockFinanceSnapshot);
+  const [arAging, setArAging] = useState<ARAging[]>(mockARAging);
+  const [apSummary, setApSummary] = useState<APEntry[]>(mockAPSummary);
+  const [dataSource, setDataSource] = useState<string>("mock");
+  const [loading, setLoading] = useState(true);
 
-  const totalAR = mockARAging.reduce((s, a) => s + a.amount, 0);
-  const maxAR = Math.max(...mockARAging.map(a => a.amount));
-  const overdueAP = mockAPSummary.filter(a => a.status === "overdue").length;
+  useEffect(() => {
+    authenticatedFetch("/api/erp/finance?period=month")
+      .then(r => r.ok ? r.json() : null)
+      .then((d: Record<string, unknown> | null) => {
+        if (d && !d.error) {
+          setSnap(d as unknown as FinanceSnapshot);
+          setDataSource(String(d.source ?? "live"));
+          if (Array.isArray(d.ar_aging) && d.ar_aging.length > 0)  setArAging(d.ar_aging as ARAging[]);
+          if (Array.isArray(d.ap_summary) && d.ap_summary.length > 0) setApSummary(d.ap_summary as APEntry[]);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalAR = arAging.reduce((s, a) => s + a.amount, 0);
+  const maxAR = Math.max(...arAging.map(a => a.amount), 1);
+  const overdueAP = apSummary.filter(a => a.status === "overdue").length;
 
   return (
     <div className="space-y-10 animate-in">
@@ -52,6 +77,13 @@ export default function ERPFinancePage() {
             </span>
             <span className="px-2 py-1 rounded-full bg-primary/10 border border-primary/20 text-[9px] font-black label-tracking text-primary">
               AGENTE #18
+            </span>
+            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
+              loading ? "border-white/10 text-white/30" :
+              dataSource === "supabase" ? "border-green-500/30 bg-green-500/10 text-green-400" :
+              "border-amber-500/30 bg-amber-500/10 text-amber-400"
+            }`}>
+              {loading ? "CARGANDO" : dataSource === "supabase" ? "LIVE" : "SANDBOX"}
             </span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">
@@ -176,7 +208,7 @@ export default function ERPFinancePage() {
             <span className="text-xl font-black text-[#CCFF00]">{fmtK(snap.ar_total)}</span>
           </div>
           <div className="space-y-4">
-            {mockARAging.map(a => {
+            {arAging.map(a => {
               const pct = (a.amount / maxAR) * 100;
               const isRisk = a.range.startsWith(">") || a.range.startsWith("61");
               return (
@@ -214,7 +246,7 @@ export default function ERPFinancePage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-sm font-black text-on-surface">Cuentas por Pagar</h3>
-              <p className="text-[10px] text-on-surface/40 mt-0.5">Proveedores · {mockAPSummary.length} facturas</p>
+              <p className="text-[10px] text-on-surface/40 mt-0.5">Proveedores · {apSummary.length} facturas</p>
             </div>
             <div className="text-right">
               <span className="text-xl font-black text-red-400">{fmtK(snap.ap_total)}</span>
@@ -224,7 +256,7 @@ export default function ERPFinancePage() {
             </div>
           </div>
           <div className="space-y-3">
-            {mockAPSummary.map(ap => {
+            {apSummary.map(ap => {
               const sCfg = AP_STATUS_CFG[ap.status];
               return (
                 <div key={ap.supplier} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">

@@ -1,18 +1,39 @@
-import type { Metadata } from 'next'
-import { mockCustomerSegments, mockCustomerSegmentStats } from '@/lib/mockData'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Segmentos — KINEXIS',
-  description: 'Segmentación inteligente de clientes por comportamiento y valor.',
-}
+import { useState, useEffect } from 'react'
+import { mockCustomerSegments, mockCustomerSegmentStats, type CustomerSegment } from '@/lib/mockData'
+import { authenticatedFetch } from '@/lib/api-client'
 
 const CHURN_CONFIG = {
-  low: { label: 'Bajo', color: '#4ade80', bg: 'bg-green-400/10' },
+  low:    { label: 'Bajo',  color: '#4ade80', bg: 'bg-green-400/10' },
   medium: { label: 'Medio', color: '#facc15', bg: 'bg-yellow-400/10' },
-  high: { label: 'Alto', color: '#f87171', bg: 'bg-red-400/10' },
+  high:   { label: 'Alto',  color: '#f87171', bg: 'bg-red-400/10' },
+}
+
+interface SegmentStats {
+  total_segments: number; total_customers: number; avg_ltv: number; high_risk_count: number
 }
 
 export default function CustomerSegmentsPage() {
+  const [segments, setSegments] = useState<CustomerSegment[]>(mockCustomerSegments)
+  const [stats, setStats] = useState<SegmentStats>(mockCustomerSegmentStats)
+  const [source, setSource] = useState<'live' | 'mock'>('mock')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    authenticatedFetch('/api/crm/segments')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && Array.isArray(data.segments) && data.segments.length > 0) {
+          setSegments(data.segments)
+          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
+          setSource('live')
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -23,6 +44,13 @@ export default function CustomerSegmentsPage() {
             </h1>
             <span className="px-2 py-1 rounded-full bg-purple-400/10 border border-purple-400/20 text-[9px] font-black label-tracking text-purple-400">
               AGENTE #20
+            </span>
+            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
+              loading ? 'border-white/10 text-white/30' :
+              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
+              'border-amber-500/30 bg-amber-500/10 text-amber-400'
+            }`}>
+              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
             </span>
           </div>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -41,10 +69,10 @@ export default function CustomerSegmentsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Segmentos', value: mockCustomerSegmentStats.total_segments, color: 'var(--text-primary)' },
-          { label: 'Clientes totales', value: mockCustomerSegmentStats.total_customers.toLocaleString(), color: '#a78bfa' },
-          { label: 'LTV promedio', value: `$${mockCustomerSegmentStats.avg_ltv.toLocaleString()}`, color: '#CCFF00' },
-          { label: 'En riesgo', value: mockCustomerSegmentStats.high_risk_count.toLocaleString(), color: '#f87171' },
+          { label: 'Segmentos',       value: stats.total_segments,               color: 'var(--text-primary)' },
+          { label: 'Clientes totales', value: stats.total_customers.toLocaleString(), color: '#a78bfa' },
+          { label: 'LTV promedio',    value: `$${stats.avg_ltv.toLocaleString()}`, color: '#CCFF00' },
+          { label: 'En riesgo',       value: stats.high_risk_count.toLocaleString(), color: '#f87171' },
         ].map(s => (
           <div key={s.label} className="glass-card p-4 rounded-2xl">
             <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
@@ -55,7 +83,7 @@ export default function CustomerSegmentsPage() {
 
       {/* Segment cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {mockCustomerSegments.map(seg => {
+        {segments.map(seg => {
           const cc = CHURN_CONFIG[seg.churn_risk]
           return (
             <div key={seg.id} className="glass-card rounded-2xl p-5 space-y-4 hover:border-purple-400/20 transition-colors cursor-pointer" style={{ border: '1px solid var(--border-color)' }}>

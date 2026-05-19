@@ -1,19 +1,40 @@
-import type { Metadata } from 'next'
-import { mockSalesReports, mockSalesReportStats } from '@/lib/mockData'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Sales Reports — KINEXIS',
-  description: 'Reportes de pipeline, forecast y rendimiento del equipo de ventas.',
-}
+import { useState, useEffect } from 'react'
+import { mockSalesReports, mockSalesReportStats, type SalesReport } from '@/lib/mockData'
+import { authenticatedFetch } from '@/lib/api-client'
 
 const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-  pipeline: { label: 'Pipeline', icon: 'bar_chart', color: '#a78bfa' },
-  forecast: { label: 'Forecast', icon: 'trending_up', color: '#CCFF00' },
-  performance: { label: 'Performance', icon: 'speed', color: '#fb923c' },
-  activity: { label: 'Actividad', icon: 'event_note', color: '#60a5fa' },
+  pipeline:    { label: 'Pipeline',    icon: 'bar_chart',   color: '#a78bfa' },
+  forecast:    { label: 'Forecast',    icon: 'trending_up', color: '#CCFF00' },
+  performance: { label: 'Performance', icon: 'speed',       color: '#fb923c' },
+  activity:    { label: 'Actividad',   icon: 'event_note',  color: '#60a5fa' },
+}
+
+interface ReportStats {
+  reports: number; total_pipeline_value: number; avg_conversion: number; avg_deal_size: number
 }
 
 export default function SalesReportsPage() {
+  const [reports, setReports] = useState<SalesReport[]>(mockSalesReports)
+  const [stats, setStats] = useState<ReportStats>(mockSalesReportStats)
+  const [source, setSource] = useState<'live' | 'mock'>('mock')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    authenticatedFetch('/api/crm/reports')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && Array.isArray(data.reports) && data.reports.length > 0) {
+          setReports(data.reports)
+          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
+          setSource('live')
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -24,6 +45,13 @@ export default function SalesReportsPage() {
             </h1>
             <span className="px-2 py-1 rounded-full bg-purple-400/10 border border-purple-400/20 text-[9px] font-black label-tracking text-purple-400">
               CRM
+            </span>
+            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
+              loading ? 'border-white/10 text-white/30' :
+              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
+              'border-amber-500/30 bg-amber-500/10 text-amber-400'
+            }`}>
+              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
             </span>
           </div>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -42,10 +70,10 @@ export default function SalesReportsPage() {
       {/* KPI summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Pipeline activo', value: `$${mockSalesReportStats.total_pipeline_value.toLocaleString()}`, color: '#a78bfa' },
-          { label: 'Conversión prom.', value: `${mockSalesReportStats.avg_conversion}%`, color: '#CCFF00' },
-          { label: 'Deal size prom.', value: `$${mockSalesReportStats.avg_deal_size.toLocaleString()}`, color: '#4ade80' },
-          { label: 'Reportes', value: mockSalesReportStats.reports, color: 'var(--text-primary)' },
+          { label: 'Pipeline activo',  value: `$${stats.total_pipeline_value.toLocaleString()}`, color: '#a78bfa' },
+          { label: 'Conversión prom.', value: `${stats.avg_conversion}%`,                        color: '#CCFF00' },
+          { label: 'Deal size prom.',  value: `$${stats.avg_deal_size.toLocaleString()}`,         color: '#4ade80' },
+          { label: 'Reportes',         value: stats.reports,                                      color: 'var(--text-primary)' },
         ].map(s => (
           <div key={s.label} className="glass-card p-4 rounded-2xl">
             <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
@@ -56,8 +84,8 @@ export default function SalesReportsPage() {
 
       {/* Report cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mockSalesReports.map(rep => {
-          const tc = TYPE_CONFIG[rep.type]
+        {reports.map(rep => {
+          const tc = TYPE_CONFIG[rep.type] ?? TYPE_CONFIG['activity']
           return (
             <div key={rep.id} className="glass-card rounded-2xl p-5 space-y-4 hover:border-purple-400/20 transition-colors cursor-pointer" style={{ border: '1px solid var(--border-color)' }}>
               <div className="flex items-start gap-3">
