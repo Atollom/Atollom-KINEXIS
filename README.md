@@ -1,23 +1,40 @@
-# KINEXIS — AI-Native ERP Platform
+# KINEXIS — Plataforma SaaS Omnicanal E-commerce
 
-**Multi-tenant SaaS** for Mexican e-commerce operators. Unified E-commerce + CRM + ERP orchestrated by Samantha, an autonomous AI concierge powered by 43 specialized agents.
+Sistema completo de gestión para vendedores en Amazon, Mercado Libre, Shopify y más, orquestado por **Samantha AI** con 43 agentes especializados.
+
+[![Deploy](https://img.shields.io/badge/frontend-Vercel-black)](https://kinexis.atollom.com)
+[![Backend](https://img.shields.io/badge/backend-Railway-purple)](https://atollom-kinexis-production.up.railway.app)
+[![Version](https://img.shields.io/badge/version-1.0.0--beta-green)]()
+
+---
+
+## Funcionalidades
+
+- **Multi-canal** — Sincroniza órdenes, inventario y precios entre ML, Amazon, Shopify y B2B
+- **ERP Integrado** — Finanzas, compras, inventario, facturación CFDI 4.0
+- **CRM Completo** — Pipeline, leads, soporte, NPS, portal B2B
+- **43 Agentes IA** — Automatización inteligente por dominio
+- **Samantha AI** — Asistente virtual con Claude Sonnet 4.6 + memoria persistente
+- **Analytics** — Reportes en tiempo real de ventas, inventario y clientes
+- **Multi-tenant** — Aislamiento completo por empresa via RLS
 
 ---
 
 ## Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Backend | FastAPI 0.115 + Python 3.12 (Railway) |
+| Capa | Tecnología |
+|------|-----------|
 | Frontend | Next.js 14 App Router + TypeScript (Vercel) |
-| Database | PostgreSQL 15 + pgvector (Supabase) |
+| Backend | FastAPI 0.115 + Python 3.12 (Railway) |
+| Base de datos | PostgreSQL 15 + pgvector (Supabase) |
 | Auth | Supabase Auth + Row Level Security |
 | AI / LLM | Google Gemini 2.5 Flash · Anthropic Claude Sonnet 4.6 |
 | Cache | Redis 7 (Railway) |
+| Pagos | Stripe |
 
 ---
 
-## Samantha AI — Agent Orchestration
+## Arquitectura — Samantha AI
 
 ```
 User Query
@@ -40,127 +57,103 @@ AgentDispatcher (lazy-load → execute → format with LLM)
     ├── agent_33_follow_up           ← CRM: lead follow-up
     ├── agent_02_amazon_fba          ← E-commerce: FBA sync
     ├── agent_03_shopify_fulfillment ← E-commerce: Shopify
-    └── ... 15 more agents
+    └── ... 34 more agents
     │
     ▼
 Proactive Greeting (urgencies surfaced on "hola")
     │
     ▼
-Conversational LLM Fallback (Gemini 2.5 Flash · Claude Sonnet 4.6)
+Conversational LLM Fallback
 ```
-
-### Proactive Intelligence
-
-Samantha runs a `ContextAnalyzer` on every request — four parallel queries against live DB data:
-
-| Check | Trigger | Severity |
-|-------|---------|----------|
-| Inventory | stock ≤ 10 units | critical (≤3) · high (≤10) |
-| CFDI | completed orders without invoice | high (≥3) · medium |
-| Overdue | payments pending > 30 days | high |
-| CRM | leads stale > 3 days | medium |
-
-Results are injected into the system prompt and surfaced as a proactive greeting when urgencies exist.
 
 ---
 
-## Project Structure
+## Integraciones
+
+| Plataforma | Uso |
+|-----------|-----|
+| Mercado Libre | Productos, órdenes, preguntas, fulfillment |
+| Amazon SP-API | FBA, inventario, reportes |
+| Shopify | Productos, órdenes, descuentos |
+| FacturAPI | CFDI 4.0 / SAT México |
+| Skydropx | Guías de envío, tarifas de paquetería |
+| WhatsApp Business | Mensajería de clientes |
+| Instagram / Facebook | DMs, gestión de ads |
+| Stripe | Suscripciones y pagos |
+| Resend | Emails transaccionales |
+
+---
+
+## Estructura del Proyecto
 
 ```
 Atollom-KINEXIS/
 ├── backend/                    # FastAPI API + AI agents (Railway)
-│   ├── main.py                 # Application entry point
+│   ├── main.py                 # Entry point
 │   ├── src/
-│   │   ├── agents/             # 43 specialized agents
-│   │   │   ├── samantha/       # Core AI orchestrator (core.py)
-│   │   │   ├── erp/            # Inventory, finance, CFDI, logistics
-│   │   │   ├── crm/            # Leads, NPS, quotes, follow-ups
-│   │   │   ├── ecommerce/      # ML, Amazon FBA, Shopify
-│   │   │   └── meta/           # WhatsApp, Instagram, Facebook
+│   │   ├── agents/             # 43 agentes especializados
 │   │   ├── routers/            # FastAPI route handlers
-│   │   ├── services/           # intent_classifier, agent_dispatcher,
-│   │   │                       # memory_service, context_analyzer
-│   │   └── integrations/       # External APIs (ML, Amazon, Shopify,
-│   │                           # FacturAPI, Skydropx)
+│   │   ├── services/           # intent_classifier, memory_service, context_analyzer
+│   │   └── integrations/       # External APIs
 │   ├── tests/                  # Pytest suite (443+ tests)
 │   └── requirements.txt
 │
 ├── src/dashboard/              # Next.js 14 frontend (Vercel)
-│   ├── app/                    # App Router pages
-│   │   ├── (shell)/            # Authenticated shell (sidebar + Samantha panel)
-│   │   ├── login/              # Auth pages
-│   │   ├── api/                # Next.js API routes (auth proxy layer)
-│   │   ├── dashboard/          # Role-based dashboards
-│   │   ├── ecommerce/          # ML, Amazon, Shopify modules
-│   │   ├── crm/                # Pipeline, inbox, sales, support
-│   │   └── erp/                # CFDI, accounting, finance, inventory
-│   ├── components/
-│   │   ├── shell/              # Sidebar, Header, Breadcrumbs
-│   │   ├── samantha/           # SamanthaFixedPanel
-│   │   ├── dashboards/         # Role-specific dashboards
-│   │   ├── ToastProvider.tsx   # Real-time toast notifications
-│   │   ├── NotificationBadge.tsx
-│   │   └── UrgencyPanel.tsx    # Live urgency indicators
-│   └── lib/                    # Supabase clients, auth helpers
+│   ├── app/
+│   │   ├── (shell)/            # Shell autenticado
+│   │   │   ├── dashboard/      # Dashboards por rol
+│   │   │   ├── ecommerce/      # ML, Amazon, Shopify, Catalog
+│   │   │   ├── crm/            # Pipeline, inbox, sales, support
+│   │   │   ├── erp/            # CFDI, finanzas, inventario, compras
+│   │   │   ├── analytics/      # Ventas, inventario, clientes
+│   │   │   ├── operations/     # Fulfillment, envíos, almacén, calidad
+│   │   │   ├── settings/       # Perfil, usuarios, billing, integraciones
+│   │   │   └── admin/          # Panel super admin
+│   │   ├── onboarding/         # Wizard de onboarding
+│   │   └── api/                # Next.js API routes (auth proxy)
+│   └── components/
 │
-├── docs/
-│   ├── API.md                  # Full API reference
-│   ├── ARCHITECTURE.md         # System design
-│   ├── SECURITY.md             # Security model
-│   └── DECISIONS.md            # Architecture decision log
-│
-├── migrations/                 # Supabase SQL migrations
-├── scripts/                    # Seed scripts + admin utilities
-└── CLAUDE.md                   # AI assistant context
+├── migrations/                 # Supabase SQL migrations (43 archivos)
+├── docs/                       # API.md, ARCHITECTURE.md, USER_GUIDE.md
+├── scripts/                    # Backup scripts
+└── .github/workflows/          # GitHub Actions
 ```
 
 ---
 
-## Integrations
+## Setup Local
 
-| Platform | Purpose |
-|----------|---------|
-| Mercado Libre | Products, orders, questions, fulfillment |
-| Amazon MWS | FBA shipments, inventory sync |
-| Shopify | Products, orders, fulfillment |
-| FacturAPI | CFDI 4.0 / SAT Mexico e-invoicing |
-| Skydropx | Shipping labels, carrier rates |
-| WhatsApp Business | Customer messaging |
-| Instagram / Facebook | DMs, ads management |
-| Stripe | Subscription billing |
+### Prerequisitos
 
----
-
-## Setup
-
-### Prerequisites
-
-- Python 3.12+
 - Node.js 18+
-- Supabase project
-- Google AI API key (`GOOGLE_API_KEY`)
+- Python 3.12+
+- Cuenta Supabase
+- Google AI API key
 
-### Backend (local)
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp ../.env.example .env          # fill in secrets
-uvicorn main:app --reload --port 8000
-```
-
-### Frontend (local)
+### Frontend
 
 ```bash
 cd src/dashboard
 npm install
-cp .env.local.example .env.local  # fill in Supabase keys + PYTHON_BACKEND_URL
-npm run dev                        # http://localhost:3000
+cp .env.local.example .env.local  # llenar con credenciales Supabase
+npm run dev
+# http://localhost:3000
 ```
 
-### Tests
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # Mac/Linux
+pip install -r requirements.txt
+cp ../.env.example .env         # llenar secrets
+uvicorn main:app --reload --port 8000
+# http://localhost:8000/docs
+```
+
+### Tests Backend
 
 ```bash
 cd backend
@@ -170,50 +163,94 @@ python -m pytest tests/ -v
 
 ---
 
+## Variables de Entorno
+
+### Frontend (`src/dashboard/.env.local`)
+
+| Variable | Descripción |
+|----------|------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key pública |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role (API routes) |
+| `PYTHON_BACKEND_URL` | URL del backend Railway |
+| `NEXT_PUBLIC_SENTRY_DSN` | DSN Sentry (opcional) |
+
+### Backend (`backend/.env`)
+
+| Variable | Descripción |
+|----------|------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `SUPABASE_URL` | URL del proyecto Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key |
+| `GOOGLE_API_KEY` | Gemini 2.5 Flash |
+| `ANTHROPIC_API_KEY` | Claude Sonnet (fallback LLM) |
+| `STRIPE_SECRET_KEY` | Stripe pagos |
+| `FACTURAPI_SECRET_KEY` | FacturAPI CFDI |
+| `SKYDROPX_API_KEY` | Paquetería |
+| `RESEND_API_KEY` | Emails transaccionales |
+| `ENCRYPTION_KEY` | Fernet key para API keys vault |
+| `ALLOWED_ORIGINS` | CORS origins (comma-separated) |
+| `SENTRY_DSN` | DSN Sentry backend (opcional) |
+
+---
+
 ## Deploy
 
-| Service | Config | Trigger |
+| Servicio | Config | Trigger |
 |---------|--------|---------|
-| **Backend** | `backend/railway.json` — root `/backend`, start `uvicorn main:app --host 0.0.0.0 --port $PORT` | Push to `main` |
-| **Frontend** | Vercel auto-detected Next.js in `src/dashboard/` | Push to `main` |
+| **Frontend** | Vercel — auto-detected Next.js | Push a `main` |
+| **Backend** | Railway — `uvicorn main:app --host 0.0.0.0 --port $PORT` | Push a `main` |
 
-### Environment Variables
-
-**Backend (Railway)**
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `SUPABASE_URL` | ✅ | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Service role key (bypasses RLS) |
-| `GOOGLE_API_KEY` | ✅ | Gemini 2.5 Flash |
-| `ANTHROPIC_API_KEY` | optional | Claude fallback provider |
-| `LLM_PROVIDER` | optional | `gemini` (default) or `anthropic` |
-| `REDIS_URL` | optional | Memory caching |
-| `ALLOWED_ORIGINS` | optional | CORS origins (comma-separated) |
-
-**Frontend (Vercel)**
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Service role (Next.js API routes) |
-| `PYTHON_BACKEND_URL` | ✅ | Railway backend URL |
-
-**Production URLs:**
+**URLs de producción:**
 - Dashboard: `https://kinexis.atollom.com`
-- Backend API: `https://atollom-kinexis-production.up.railway.app`
+- API: `https://atollom-kinexis-production.up.railway.app`
+- API Docs: `https://atollom-kinexis-production.up.railway.app/docs`
 
 ---
 
-## Multi-Tenant Architecture
+## Seguridad
 
-- Every table has `tenant_id FK → tenants` with Row Level Security
-- 5 RBAC roles: `owner`, `admin`, `agente`, `almacenista`, `contador`
-- Samantha memory scoped per `tenant_id + user_id`
-- Dashboard route serves role-specific component (`DashboardOwner`, `DashboardVendedor`, `DashboardAlmacen`)
+- **RLS** — Row Level Security en todas las tablas via `tenant_id`
+- **RBAC** — 5 roles: `owner`, `admin`, `agente`, `almacenista`, `contador`
+- **Vault** — API keys encriptadas con Fernet, nunca expuestas al cliente
+- **CORS** — Origins específicos configurados via env var
+- **Rate limiting** — SlowAPI, 100 req/min por defecto
+- **Security headers** — CSP, HSTS, X-Frame-Options en todas las responses
 
 ---
 
-*Built by [Atollom Labs](https://atollom.com) · KINEXIS v1 · Production: May 2026*
+## Monitoreo
+
+| Herramienta | Uso |
+|------------|-----|
+| Vercel Analytics | Frontend performance |
+| Railway Metrics | Backend CPU/RAM |
+| Sentry | Error tracking frontend + backend |
+| UptimeRobot | Health check cada 5 min |
+
+---
+
+## Roles y Permisos
+
+| Rol | Acceso |
+|-----|--------|
+| `owner` | Todo, incluyendo billing y gestión de usuarios |
+| `admin` | Operaciones completas, no puede cambiar billing |
+| `agente` | CRM, órdenes, cotizaciones |
+| `almacenista` | Inventario, despacho, devoluciones |
+| `contador` | ERP, CFDI, finanzas (solo lectura) |
+| `atollom_admin` | Panel admin cross-tenant |
+
+---
+
+## Documentación
+
+- [API Reference](docs/API.md)
+- [User Guide](docs/USER_GUIDE.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Security](docs/SECURITY.md)
+- [Decisions Log](docs/DECISIONS.md)
+
+---
+
+*Construido por [Atollom Labs](https://atollom.com) · KINEXIS v1.0.0-beta · Mayo 2026*
