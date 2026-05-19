@@ -28,6 +28,11 @@ const nextConfig = {
       },
     ]
   },
-};
+}
 
-export default nextConfig;
+// Bundle analyzer — run with: ANALYZE=true npm run build
+const withBundleAnalyzer = process.env.ANALYZE === 'true'
+  ? require('@next/bundle-analyzer')({ enabled: true })
+  : (config) => config
+
+export default withBundleAnalyzer(nextConfig)

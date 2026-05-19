@@ -1,0 +1,48 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Daily at 2:00 AM UTC (8:00 PM Mexico City)
+    - cron: '0 2 * * *'
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: Supabase Backup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client
+
+      - name: Create backup
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          DATE=$(date +%Y%m%d_%H%M%S)
+          mkdir -p backups
+          pg_dump "$SUPABASE_DB_URL" \
+            --no-owner \
+            --no-acl \
+            --format=plain \
+            > "backups/kinexis_backup_${DATE}.sql"
+          echo "Backup size: $(du -h backups/kinexis_backup_${DATE}.sql | cut -f1)"
+          echo "BACKUP_FILE=backups/kinexis_backup_${DATE}.sql" >> $GITHUB_ENV
+
+      - name: Upload backup as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_number }}
+          path: backups/
+          # Keep backups for 30 days
+          retention-days: 30
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Database backup failed! Check Supabase_DB_URL secret."
