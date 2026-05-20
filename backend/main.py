@@ -6,6 +6,9 @@ import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -14,6 +17,18 @@ from slowapi.errors import RateLimitExceeded
 
 from src.core.limiter import limiter
 from src.middleware.security_headers import SecurityHeadersMiddleware
+
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    traces_sample_rate=1.0,
+    profiles_sample_rate=1.0,
+    environment=os.getenv("ENVIRONMENT", "sandbox"),
+    integrations=[
+        FastApiIntegration(transaction_style="endpoint"),
+    ],
+    send_default_pii=True,
+)
+print(f"🔍 Sentry initialized for environment: {os.getenv('ENVIRONMENT', 'sandbox')}")
 
 # Configure root logger so all logger.info() calls in the app are visible in Railway
 logging.basicConfig(
@@ -104,3 +119,14 @@ app.include_router(shipping_router.router)
 app.include_router(sandbox_router.router)
 app.include_router(health_router.router)
 app.include_router(amazon_oauth_router.router)
+
+
+@app.get("/sentry-test", tags=["Testing"])
+async def sentry_test():
+    """Test endpoint — genera un ZeroDivisionError intencional para verificar Sentry."""
+    try:
+        result = 1 / 0
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        raise
+    return {"message": "This will never be reached"}
