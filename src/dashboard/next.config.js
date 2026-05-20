@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -32,7 +34,17 @@ const nextConfig = {
 
 // Bundle analyzer — run with: ANALYZE=true npm run build
 const withBundleAnalyzer = process.env.ANALYZE === 'true'
-  ? require('@next/bundle-analyzer')({ enabled: true })
+  ? (await import('@next/bundle-analyzer')).default({ enabled: true })
   : (config) => config
 
-export default withBundleAnalyzer(nextConfig)
+const sentryConfig = {
+  org: 'atollom-ai',
+  project: 'kinexis-frontend',
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+  disableLogger: true,
+  automaticVercelMonitors: true,
+}
+
+export default withSentryConfig(withBundleAnalyzer(nextConfig), sentryConfig)
