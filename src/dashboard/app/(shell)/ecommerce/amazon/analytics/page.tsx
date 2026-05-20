@@ -76,7 +76,7 @@ export default function AmazonAnalyticsPage() {
 
   const d = data;
   const trend = period === "7d" ? d.sales_trend.slice(-7) : d.sales_trend;
-  const totalFees = d.fees.reduce((s: { amount: number }, f: { amount: number }) => s + f.amount, 0);
+  const totalFees = d.fees.reduce((s: number, f: { amount: number }) => s + f.amount, 0);
   const netRevenue = d.summary.total_sales - totalFees;
 
   const monthlyChart = (d.monthly_sales || []).map((m: { month: string; revenue: number; units: number }) => ({ month: m.month.split(" ")[0].toUpperCase(), revenue: m.revenue, units: m.units }));
