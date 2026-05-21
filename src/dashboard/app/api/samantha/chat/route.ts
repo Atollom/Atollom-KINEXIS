@@ -1,97 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createServiceClient } from '@/lib/supabase';
 
-export async function POST(req: NextRequest) {
-  // Single admin client — used for both JWT validation and DB queries.
-  // Replaces createBrowserClient (browser-only) which was causing
-  // inconsistent behavior on consecutive server-side requests.
-  const admin = createServiceClient();
-
-  // ── 1. Resolve user identity ─────────────────────────────────────
-  const authHeader = req.headers.get('authorization') ?? '';
-  const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-  let userId: string | null = null;
-  let userEmail: string | null = null;
-
-  if (bearerToken) {
-    const { data: { user }, error } = await admin.auth.getUser(bearerToken);
-    if (error || !user) {
-      console.error('[Samantha] Invalid bearer token:', error?.message);
-      return NextResponse.json({
-        error: 'Token inválido',
-        response: 'Tu sesión expiró. Por favor recarga la página e inicia sesión de nuevo.',
-      }, { status: 401 });
-    }
-    userId = user.id;
-    userEmail = user.email ?? null;
-    console.log(`[Samantha] Token valid — user: ${userEmail} (${userId})`);
-  } else {
-    // Fallback: SSR cookie session
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({
-        error: 'Sin sesión',
-        response: 'No tienes sesión activa. Por favor inicia sesión para usar Samantha.',
-      }, { status: 401 });
-    }
-    userId = user.id;
-    userEmail = user.email ?? null;
-    console.log(`[Samantha] Cookie session — user: ${userEmail} (${userId})`);
-  }
-
-  // ── 2. Lookup tenant (service role bypasses RLS) ─────────────────
-  const SELECT = 'tenant_id, role, full_name, tenants(plan, name)';
-  let profile: Record<string, any> | null = null;
-
-  const { data: byId, error: errById } = await admin
-    .from('users')
-    .select(SELECT)
-    .eq('supabase_user_id', userId)
-    .maybeSingle();
-
-  console.log(`[Samantha] Lookup by supabase_user_id=${userId}:`, byId, errById?.message);
-  profile = byId;
-
-  if (!profile && userEmail) {
-    const { data: byEmail, error: errByEmail } = await admin
-      .from('users')
-      .select(SELECT)
-      .eq('email', userEmail)
-      .maybeSingle();
-
-    console.log(`[Samantha] Fallback by email=${userEmail}:`, byEmail, errByEmail?.message);
-
-    if (byEmail) {
-      profile = byEmail;
-      await admin
-        .from('users')
-        .update({ supabase_user_id: userId })
-        .eq('email', userEmail);
-      console.log(`[Samantha] Backfilled supabase_user_id for ${userEmail}`);
-    }
-  }
-
-  if (!profile) {
-    console.error(`[Samantha] No profile found for user ${userEmail} (${userId})`);
-    return NextResponse.json({
-      error: 'Perfil no encontrado',
-      response: `Tu cuenta (${userEmail}) está autenticada pero no tiene perfil en KINEXIS. Contacta al administrador.`,
-    }, { status: 403 });
-  }
-
-  console.log(`[Samantha] Profile found — tenant_id: ${profile.tenant_id}, role: ${profile.role}`);
-
-  // ── 3. Call Python backend ────────────────────────────────────────
-  try {
-    const body = await req.json();
-    const backendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
-    const isOnboarding = body.context?.page === 'onboarding';
-
-    console.log(`[Samantha] Calling backend ${backendUrl}/api/samantha/chat — tenant: ${profile.tenant_id} — context: ${isOnboarding ? 'onboarding' : 'default'}`);
-
-    const onboardingSystemPrompt = `Eres Samantha, concierge personal de KINEXIS.
+const ONBOARDING_SYSTEM_PROMPT = `Eres Samantha, concierge personal de KINEXIS.
 
 Tu rol es como un concierge de hotel 5 estrellas:
 - Amable, profesional, proactiva
@@ -109,29 +19,112 @@ El usuario está en onboarding. Ayúdalo a:
 
 Haz preguntas una a la vez. Sé conversacional, no formal. Usa emojis con moderación.`;
 
+export async function POST(req: NextRequest) {
+  const admin = createServiceClient();
+  const body = await req.json();
+  const isOnboarding = body.context?.page === 'onboarding';
+
+  // ── 1. Resolve Supabase user identity ────────────────────────────
+  const authHeader = req.headers.get('authorization') ?? '';
+  const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+  let userId: string | null = null;
+  let userEmail: string | null = null;
+
+  if (bearerToken) {
+    const { data: { user }, error } = await admin.auth.getUser(bearerToken);
+    if (!error && user) {
+      userId = user.id;
+      userEmail = user.email ?? null;
+    }
+  }
+
+  // Fallback: SSR cookie session
+  if (!userId) {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      userId = user.id;
+      userEmail = user.email ?? null;
+    }
+  }
+
+  if (!userId) {
+    return NextResponse.json({
+      error: 'Sin sesión',
+      response: 'No tienes sesión activa. Por favor inicia sesión para usar Samantha.',
+    }, { status: 401 });
+  }
+
+  // ── 2. Lookup tenant profile (optional for onboarding) ───────────
+  let tenantId: string | null = body.tenant_id ?? null;
+  let profile: Record<string, any> | null = null;
+
+  const { data: byId } = await admin
+    .from('users')
+    .select('tenant_id, role, full_name, tenants(plan, name)')
+    .eq('supabase_user_id', userId)
+    .maybeSingle();
+
+  profile = byId;
+
+  if (!profile && userEmail) {
+    const { data: byEmail } = await admin
+      .from('users')
+      .select('tenant_id, role, full_name, tenants(plan, name)')
+      .eq('email', userEmail)
+      .maybeSingle();
+
+    if (byEmail) {
+      profile = byEmail;
+      // Backfill supabase_user_id for future lookups
+      await admin.from('users').update({ supabase_user_id: userId }).eq('email', userEmail);
+    }
+  }
+
+  if (profile) {
+    tenantId = profile.tenant_id;
+  }
+
+  // Onboarding mode: allow chat without an existing tenant profile
+  if (!profile && !isOnboarding) {
+    return NextResponse.json({
+      error: 'Perfil no encontrado',
+      response: `Tu cuenta (${userEmail}) está autenticada pero no tiene perfil en KINEXIS. Contacta al administrador.`,
+    }, { status: 403 });
+  }
+
+  // ── 3. Call Python backend ────────────────────────────────────────
+  try {
+    const backendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
+
+    // For onboarding mode without a tenant, use the onboarding system prompt
+    // and a nil UUID so the Python backend can skip credits/context checks
+    const effectiveTenantId = tenantId ?? '00000000-0000-0000-0000-000000000000';
+    const systemPrompt = isOnboarding ? ONBOARDING_SYSTEM_PROMPT : undefined;
+
     const response = await fetch(`${backendUrl}/api/samantha/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         query: body.query,
         history: body.history || [],
-        tenant_id: profile.tenant_id,
+        tenant_id: effectiveTenantId,
         supabase_user_id: userId,
         session_id: body.session_id ?? null,
-        ...(isOnboarding && { system_prompt: onboardingSystemPrompt, context: 'onboarding' }),
+        ...(systemPrompt ? { system_prompt: systemPrompt } : {}),
+        context: body.context ?? null,
       }),
-      // 25s timeout — stays under Vercel's 30s serverless limit
       signal: AbortSignal.timeout(25000),
     });
 
     if (!response.ok) {
       const errText = await response.text();
       console.error(`[Samantha] Backend error ${response.status}:`, errText);
-      throw new Error(`Backend ${response.status}: ${errText.slice(0, 300)}`);
+      throw new Error(`Backend ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(`[Samantha] Response OK — credits_remaining: ${data.credits_remaining}`);
     return NextResponse.json(data);
 
   } catch (error: any) {

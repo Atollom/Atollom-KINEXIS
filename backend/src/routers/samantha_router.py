@@ -51,8 +51,16 @@ async def chat(fastapi_request: Request, request: ChatRequest):
     """
     logger.info("chat() called — supabase_user_id=%s", request.supabase_user_id)
 
-    # 1. Check credits
-    credits = await check_credits(request.tenant_id)
+    # Onboarding concierge mode: system_prompt supplied → skip credits + DB context.
+    # tenant_id may be the nil UUID (00000000-...) for pre-onboarding users.
+    is_onboarding = bool(request.system_prompt)
+    NIL_UUID = "00000000-0000-0000-0000-000000000000"
+
+    # 1. Check credits (skip for onboarding or nil tenant)
+    if is_onboarding or request.tenant_id == NIL_UUID:
+        credits = {"ok": True, "remaining": 999, "limit": 999}
+    else:
+        credits = await check_credits(request.tenant_id)
     if not credits["ok"]:
         return {
             "response": (
@@ -65,18 +73,27 @@ async def chat(fastapi_request: Request, request: ChatRequest):
             "suggested_actions": [{"label": "Actualizar plan", "action": "upgrade"}],
         }
 
-    # 2. Fetch live DB context
-    try:
-        context = await get_tenant_context(request.tenant_id)
-    except Exception as exc:
-        logger.warning("DB context fetch failed: %s — using empty context", exc)
+    # 2. Fetch live DB context (skip for onboarding or nil tenant)
+    if is_onboarding or request.tenant_id == NIL_UUID:
         context = {
             "tenant_name": "tu empresa",
-            "plan": "starter",
+            "plan": "trial",
             "products_count": 0, "orders_count": 0, "revenue_30d": 0.0,
             "customers_count": 0, "invoices_count": 0,
             "low_stock": [], "recent_orders": [],
         }
+    else:
+        try:
+            context = await get_tenant_context(request.tenant_id)
+        except Exception as exc:
+            logger.warning("DB context fetch failed: %s — using empty context", exc)
+            context = {
+                "tenant_name": "tu empresa",
+                "plan": "starter",
+                "products_count": 0, "orders_count": 0, "revenue_30d": 0.0,
+                "customers_count": 0, "invoices_count": 0,
+                "low_stock": [], "recent_orders": [],
+            }
 
     # 3. Resolve supabase_user_id → internal users.id, then load memory context
     memory_context = ""
@@ -141,7 +158,6 @@ async def chat(fastapi_request: Request, request: ChatRequest):
     history: List[Dict[str, Any]] = [
         {"role": m.role, "content": m.content} for m in request.history
     ]
-    is_onboarding = bool(request.system_prompt)
     logger.info(
         "samantha_chat mode=%s context=%s tenant_id=%s",
         "concierge" if is_onboarding else "assistant",
@@ -164,11 +180,12 @@ async def chat(fastapi_request: Request, request: ChatRequest):
             detail=f"Error al consultar el modelo de IA: {exc}",
         )
 
-    # 6. Decrement credits (fire-and-forget)
-    try:
-        await decrement_credits(request.tenant_id)
-    except Exception:
-        pass
+    # 6. Decrement credits — skip for onboarding / nil tenant
+    if not is_onboarding and request.tenant_id != NIL_UUID:
+        try:
+            await decrement_credits(request.tenant_id)
+        except Exception:
+            pass
 
     return {
         "response": response_text,
