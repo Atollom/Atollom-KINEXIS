@@ -2,52 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ========== DARK MODE & LIGHT MODE VARIABLES ========== */
+/* ========== DESIGN TOKENS (Dark — only mode) ========== */
 :root {
-  /* LIGHT MODE — default */
-  --background: #FFFFFF;
-  --foreground: #1A1A1A;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
-  --primary: #CDFF00;
-  --primary-foreground: #1A1A1A;
+  --background: #0a0e27;
+  --foreground: #ffffff;
+  --card: #111827;
+  --card-foreground: #ffffff;
+  --primary: #ccff00;
+  --primary-foreground: #000000;
 
-  /* bg-base slightly off-white so white cards stand out */
-  --bg-base:       #EAEAEC;
-  --bg-surface:    rgba(255, 255, 255, 0.95);
-  --bg-card:       rgba(255, 255, 255, 0.98);
-  --bg-card-hover: rgba(255, 255, 255, 1);
+  --bg-base:       linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  --bg-surface:    rgba(15, 23, 42, 0.7);
+  --bg-card:       rgba(30, 41, 59, 0.4);
+  --bg-card-hover: rgba(51, 65, 85, 0.5);
 
-  --glass-border: rgba(0, 0, 0, 0.10);
-  --glass-shine:  rgba(255, 255, 255, 0.9);
-  --blur-sm: 12px;
-  --blur-md: 24px;
-  --blur-lg: 40px;
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shine:  rgba(255, 255, 255, 0.05);
+  --blur-sm: 8px;
+  --blur-md: 16px;
+  --blur-lg: 24px;
 
-  --text-primary:   #111111;
-  --text-secondary: #444444;
-  --text-muted:     #777777;
+  --text-primary:   rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-muted:     rgba(255, 255, 255, 0.4);
 
-  --accent-primary:   #CDFF00;
-  --accent-secondary: #B8E600;
-  --accent-warning:   #FFCC00;
-  --accent-danger:    #FF3B30;
+  --accent-primary:   #ccff00;
+  --accent-secondary: #7fb518;
+  --accent-warning:   #fbbf24;
+  --accent-danger:    #f87171;
 
-  --gradient-brand:  linear-gradient(135deg, #CDFF00 0%, #B8E600 100%);
-  --gradient-subtle: linear-gradient(135deg, rgba(205,255,0,0.08) 0%, rgba(184,230,0,0.08) 100%);
+  --gradient-brand:  linear-gradient(135deg, #ccff00 0%, #7fb518 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(204,255,0,0.1) 0%, rgba(127,181,24,0.1) 100%);
 
-  --shadow-ambient: 0 0 40px rgba(0,0,0,0.04);
-  --shadow-sm:  0 1px 4px rgba(0,0,0,0.10);
-  --shadow-md:  0 2px 12px rgba(0,0,0,0.12);
-  --shadow-lg:  0 4px 24px rgba(0,0,0,0.16);
-  --shadow-glow: 0 0 24px rgba(205,255,0,0.25);
+  --shadow-ambient: 0 0 60px rgba(0,0,0,0.3);
+  --shadow-sm:  0 2px 8px rgba(0,0,0,0.2);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.3), 0 0 0 1px var(--glass-border);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--glass-border), inset 0 1px 0 var(--glass-shine);
+  --shadow-glow: 0 0 40px rgba(204,255,0,0.15);
 
-  /* borders visible against white cards */
-  --border-color:   #C8C8C8;
-  --border-subtle:  #D8D8D8;
-  --border-light:   #D8D8D8;
-  --border-medium:  #BBBBBB;
-  --border-heavy:   #888888;
+  --border-color:  rgba(255,255,255,0.05);
+  --border-subtle: rgba(255,255,255,0.05);
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -56,8 +50,8 @@
   --radius-full: 9999px;
 }
 
+/* .dark mirrors :root — kept for Tailwind dark: variants and explicit dark wrappers */
 .dark {
-  /* DARK MODE VARIABLES (KINEXIS Default) */
   --background: #0a0e27;
   --foreground: #ffffff;
   --card: #111827;
@@ -98,104 +92,6 @@
   --border-subtle: rgba(255,255,255,0.05);
 }
 
-/* next-themes sets .light on <html> when light mode is active */
-.light {
-  --bg-base:       #EAEAEC;
-  --bg-surface:    rgba(255, 255, 255, 0.95);
-  --bg-card:       rgba(255, 255, 255, 0.98);
-  --bg-card-hover: rgba(255, 255, 255, 1);
-  --text-primary:   #111111;
-  --text-secondary: #444444;
-  --text-muted:     #777777;
-  --accent-primary:   #CDFF00;
-  --border-color:   #C8C8C8;
-  --border-subtle:  #D8D8D8;
-  --glass-border:  rgba(0, 0, 0, 0.10);
-  --glass-shine:   rgba(255, 255, 255, 0.9);
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.10);
-  --shadow-md: 0 2px 12px rgba(0,0,0,0.12);
-  --shadow-lg: 0 4px 24px rgba(0,0,0,0.16);
-}
-
-/* Note: We remove the html.light specific overrides here and use variables instead where possible.
-   However, we need to keep overrides for classes that hardcode opacity over black/white. */
-html.light .glassmorphism,
-html.light .dashboard-card,
-html.light .metric-card {
-  background: var(--bg-card) !important;
-  border-color: var(--glass-border) !important;
-  box-shadow: var(--shadow-md) !important;
-}
-
-html.light .shell-bg {
-  background: var(--bg-surface) !important;
-  border-color: var(--glass-border) !important;
-  box-shadow: var(--shadow-sm) !important;
-}
-
-/* :not(.dark *) excludes elements inside forced-dark wrappers (login, DashboardOwner).
-   Without this, bg-white/5 inside .dark became rgba(255,255,255,1) — fully white. */
-html.light [class*="bg-white/"]:not(.dark *) {
-  background: rgba(0,0,0,0.06) !important;
-  border-color: var(--glass-border) !important;
-}
-
-/* Graduated light-mode replacements for dark opacity text tokens.
-   Targets: text-white/{n} utility classes used in dark-first components.
-   Minimum #777 (4.48:1 on white) to pass WCAG AA for normal text. */
-html.light [class*="text-white/"] {
-  color: var(--text-muted) !important;      /* #777 — lowest legible muted */
-}
-html.light .text-white\/30,
-html.light .text-white\/40,
-html.light .text-white\/50,
-html.light .text-white\/60 {
-  color: var(--text-secondary) !important;  /* #444 — medium emphasis */
-}
-html.light .text-white\/70,
-html.light .text-white\/80,
-html.light .text-white\/90,
-html.light .text-white\/95 {
-  color: var(--text-primary) !important;    /* #111 — high emphasis */
-}
-
-html.light .text-white {
-  color: var(--text-primary) !important;
-}
-
-/* ── Forced-dark context restores (login, DashboardOwner, etc.) ──────────── */
-/* Elements inside class="dark" wrappers must keep their dark-mode colours     */
-/* even when html.light is active — the wrapper signals intentional dark UI.   */
-html.light .dark .text-white,
-html.light .dark [class*="text-white\/"] {
-  color: rgba(255, 255, 255, var(--tw-text-opacity, 1)) !important;
-}
-/* bg-white/* inside .dark: handled by :not(.dark *) exclusion above — no override needed */
-html.light .dark [class*="border-white\/"] {
-  border-color: rgba(255, 255, 255, var(--tw-border-opacity, 1)) !important;
-}
-/* Brand accent tokens inside dark wrappers stay vivid */
-html.light .dark .bg-\[\#CCFF00\]             { background-color: #CCFF00 !important; }
-html.light .dark .text-\[\#CCFF00\]           { color: #CCFF00 !important; }
-html.light .dark .text-\[\#FF0055\]           { color: #FF0055 !important; }
-html.light .dark [class*="border-\[\#CCFF00"] { border-color: #CCFF00 !important; }
-html.light .dark [class*="border-\[\#FF005"]  { border-color: #FF0055 !important; }
-html.light .dark [class*="bg-\[\#CCFF00"]     { background-color: rgba(204,255,0,var(--tw-bg-opacity,1)) !important; }
-html.light .dark [class*="bg-\[\#FF005"]      { background-color: rgba(255,0,85,var(--tw-bg-opacity,1)) !important; }
-
-/* ── Light-mode global overrides (outside forced-dark) ───────────────────── */
-
-/* Lime (#CCFF00) is illegible on white (1.4:1). Remap to a readable dark olive */
-html.light .text-\[\#CCFF00\] {
-  color: #3A7A00 !important;  /* 4.7:1 on white — WCAG AA */
-}
-
-/* bg-[#CCFF00] as a background: lime needs BLACK text, not white */
-html.light .bg-\[\#CCFF00\] {
-  background-color: var(--accent-primary) !important;
-  color: #000 !important;
-}
-
 /* ========== BODY ========== */
 body {
   background: var(--bg-base);
@@ -215,8 +111,6 @@ body {
 }
 
 /* ========== MATERIAL SYMBOLS — Icon font fix ========== */
-/* body's font-feature-settings disables liga (needed for icon ligatures) */
-/* Override here to restore icon rendering */
 .material-symbols-outlined,
 .material-symbols-rounded,
 .material-symbols-sharp {
@@ -258,7 +152,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* Shine top edge */
 .glassmorphism::before,
 .dashboard-card::before {
   content: '';
@@ -282,23 +175,12 @@ body {
   transition: background 0.25s ease;
 }
 
-html.light .shell-bg {
-  box-shadow: var(--shadow-sm);
-}
-
 /* ========== TYPOGRAPHY ========== */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.2;
   color: var(--text-primary);
-}
-
-html.light p,
-html.light span,
-html.light label,
-html.light li {
-  color: var(--text-secondary);
 }
 
 /* ========== STATUS BADGES ========== */
@@ -348,12 +230,6 @@ html.light li {
   font-weight: 600;
 }
 
-/* ========== ACCENT OVERRIDES ========== */
-html.light .text-\[\#CCFF00\],
-html.light .text-lime-400 {
-  color: var(--accent-primary) !important;
-}
-
 /* ========== FOCUS ========== */
 button:focus-visible,
 input:focus-visible {
@@ -382,10 +258,8 @@ input:focus-visible {
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 9999px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(184,231,74,0.4); }
-html.light .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); }
-html.light .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(127,181,24,0.4); }
 
-/* ========== GLASS-CARD (global utility used by dashboard pages) ========== */
+/* ========== GLASS-CARD ========== */
 .glass-card {
   position: relative;
   background: var(--bg-card);
@@ -394,11 +268,6 @@ html.light .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(1
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-html.light .glass-card {
-  background: rgba(255,255,255,0.92) !important;
-  border-color: var(--glass-border) !important;
-  box-shadow: var(--shadow-md) !important;
 }
 
 /* ========== NEON DISRUPTOR CTA ========== */
@@ -410,56 +279,38 @@ html.light .glass-card {
   text-transform: uppercase;
 }
 
-/* ========== LIGHT MODE: Tailwind custom color token overrides ========== */
-/* Tailwind config defines these as fixed hex — override them for light mode */
-html.light .text-on-surface            { color: var(--text-primary)   !important; }
-html.light .text-on-surface-variant    { color: var(--text-secondary)  !important; }
-html.light [class*="text-on-surface\/"] { color: var(--text-muted)     !important; }
-html.light .bg-surface,
-html.light .bg-background              { background-color: var(--bg-base) !important; }
-html.light .bg-surface-container,
-html.light .bg-surface-container-low,
-html.light .bg-surface-container-high { background-color: var(--bg-card) !important; }
-
-/* label-tracking helper */
-.label-tracking { letter-spacing: 0.15em; }
-/* tight-tracking helper */
+/* ========== HELPERS ========== */
+.label-tracking  { letter-spacing: 0.15em; }
 .tight-tracking  { letter-spacing: -0.04em; }
-/* drop-shadow-glow helper */
 .drop-shadow-glow { filter: drop-shadow(0 0 6px rgba(204,255,0,0.4)); }
-html.light .drop-shadow-glow { filter: drop-shadow(0 0 6px rgba(165,200,0,0.3)); }
 
-/* animate-in helper */
+/* ========== ANIMATIONS ========== */
 .animate-in { animation: animateIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes animateIn {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-/* animate-luxe */
+
 .animate-luxe { animation: luxeFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
-/* slide-in-right — used by toast exit + modal reveal */
 .animate-slide-in-right { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(16px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* scale-in — popovers, dropdowns, modals */
 .animate-scale-in { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(0.96); }
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* bounce-in — success confirmations, badges */
 .animate-bounce-in { animation: bounceIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 @keyframes bounceIn {
   from { opacity: 0; transform: scale(0.5); }
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* shimmer — skeleton loading */
 .animate-shimmer {
   background: linear-gradient(
     90deg,
@@ -475,51 +326,23 @@ html.light .drop-shadow-glow { filter: drop-shadow(0 0 6px rgba(165,200,0,0.3));
   100% { background-position: -200% 0; }
 }
 
-/* fade-down — for dropdown menus */
 .animate-fade-down { animation: fadeDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes fadeDown {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ========== LIGHT MODE: Legacy hardcoded dark-palette overrides ========== */
-/* These classes appear in older components that predate the CSS var system.   */
-/* Rather than rewrite every component, we override them here for light mode. */
-
-/* Near-white text (#E8EAF0, #8DA4C4) → invisible on white bg */
-html.light .text-\[\#E8EAF0\] { color: var(--text-primary)   !important; }
-html.light .text-\[\#8DA4C4\] { color: var(--text-secondary) !important; }
-
-/* Very dark backgrounds used as "dark cards" in shell — NOT the login page */
-html.light .bg-\[\#000103\]  { background-color: var(--bg-surface) !important; }
-html.light .bg-\[\#0a1622\]  { background-color: var(--bg-surface) !important; }
-html.light .bg-\[\#061422\]  { background-color: var(--bg-surface) !important; }
-/* bg-[#040f1b] intentionally excluded — used by login page which must stay dark */
-
-/* Dark-on-dark border & divider colors */
-html.light [class*="border-white\/"] { border-color: var(--border-color) !important; }
-
-/* Frosted-glass backgrounds that are almost invisible on white */
-html.light .backdrop-blur-\[40px\] { backdrop-filter: none !important; }
-
-/* Shell layout background */
-html.light .bg-black\/80 { background-color: var(--bg-surface) !important; }
-
 /* ========== BROWSER AUTOFILL OVERRIDE ========== */
-/* Chrome/Safari apply a white/yellow background to autofilled fields that
-   overrides custom bg classes. Inset box-shadow is the only override that works. */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  /* Light mode: keep field background consistent */
   -webkit-box-shadow: 0 0 0 1000px var(--bg-surface) inset !important;
   -webkit-text-fill-color: var(--text-primary) !important;
   caret-color: var(--text-primary);
   transition: background-color 9999s ease-in-out 0s;
 }
 
-/* Dark context (login page wrapper has class="dark") */
 .dark input:-webkit-autofill,
 .dark input:-webkit-autofill:hover,
 .dark input:-webkit-autofill:focus,
@@ -530,8 +353,6 @@ input:-webkit-autofill:active {
 }
 
 /* ========== INPUT BASE RESET FIX ========== */
-/* The global * { border: none } reset strips Tailwind border utilities from inputs.
-   Restore border rendering so focus rings and border classes work correctly. */
 input, textarea, select {
   border-style: solid;
   border-width: 0;

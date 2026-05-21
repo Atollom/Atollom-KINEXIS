@@ -16,7 +16,6 @@ export const metadata: Metadata = {
 };
 
 import { Providers } from "@/components/Providers";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function RootLayout({
   children,
@@ -25,7 +24,7 @@ export default async function RootLayout({
   const userData = await getAuthenticatedTenant(supabase);
 
   return (
-    <html lang="es" suppressHydrationWarning className="selection:bg-[#ccff00] selection:text-black">
+    <html lang="es" suppressHydrationWarning className="dark selection:bg-[#ccff00] selection:text-black">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -44,9 +43,6 @@ export default async function RootLayout({
       </head>
       <body className="antialiased custom-scrollbar selection:bg-[#ccff00] selection:text-black min-h-screen">
         <Providers>
-          <div className="fixed top-4 right-4 z-[100]">
-            <ThemeToggle />
-          </div>
           {children}
         </Providers>
       </body>

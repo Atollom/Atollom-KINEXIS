@@ -60,6 +60,7 @@ export interface OnboardingFormData {
 export function useOnboarding() {
   const [currentStep, setCurrentStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [formData, setFormData] = useState<OnboardingFormData>({
     company: {},
     ecommerce: { facturama_sandbox: true } as Partial<EcommerceData>,
@@ -102,14 +103,19 @@ export function useOnboarding() {
     }))
   }
 
-  async function submitOnboarding(): Promise<boolean> {
+  async function submitOnboarding(): Promise<{ ok: boolean; error?: string }> {
     setSubmitting(true)
+    setSubmitError(null)
     try {
       const payload = {
         company: formData.company,
         ecommerce: formData.ecommerce,
         messaging: formData.messaging,
-        billing: formData.billing,
+        billing: {
+          ...formData.billing,
+          // Fallback: use company RFC as billing RFC if billing RFC not filled
+          rfc: formData.billing.rfc_emisor ?? (formData.company as { rfc?: string }).rfc,
+        },
         users: formData.users,
       }
       const res = await fetch('/api/onboarding', {
@@ -117,9 +123,15 @@ export function useOnboarding() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      return res.ok
-    } catch {
-      return false
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.success) return { ok: true }
+      const msg: string = data.error ?? `Error ${res.status}`
+      setSubmitError(msg)
+      return { ok: false, error: msg }
+    } catch (e) {
+      const msg = 'Error de conexión. Verifica tu internet e intenta de nuevo.'
+      setSubmitError(msg)
+      return { ok: false, error: msg }
     } finally {
       setSubmitting(false)
     }
@@ -129,6 +141,7 @@ export function useOnboarding() {
     currentStep,
     formData,
     submitting,
+    submitError,
     nextStep,
     prevStep,
     goToStep,

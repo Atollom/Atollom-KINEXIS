@@ -8,7 +8,8 @@ const BACKEND_URL =
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { company, ecommerce, messaging, billing, users } = body
+    const { company, ecommerce, messaging, users } = body
+    let billing = body.billing
 
     // Fast client-side pre-validation
     if (!company?.name?.trim()) {
@@ -17,12 +18,18 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-    if (!billing?.rfc_emisor && !billing?.rfc) {
+
+    // Accept billing.rfc_emisor | billing.rfc | company.rfc as the RFC source
+    const resolvedRfc = billing?.rfc_emisor ?? billing?.rfc ?? company?.rfc
+    if (!resolvedRfc) {
       return NextResponse.json(
-        { success: false, error: 'RFC emisor requerido' },
+        { success: false, error: 'RFC requerido (introdúcelo en Paso 1 o en Datos Fiscales)' },
         { status: 400 }
       )
     }
+
+    // Normalise: ensure billing carries the resolved RFC before sending to backend
+    billing = { ...billing, rfc: resolvedRfc }
     if (!Array.isArray(users) || users.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Se requiere al menos un usuario' },
