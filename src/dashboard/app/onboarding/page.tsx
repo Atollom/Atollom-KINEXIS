@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { useOnboarding } from './hooks/useOnboarding'
 import { WizardProgress } from './components/WizardProgress'
 import { Step1CompanyInfo } from './components/Step1CompanyInfo'
@@ -9,12 +10,18 @@ import { Step3Messaging } from './components/Step3Messaging'
 import { Step4Billing } from './components/Step4Billing'
 import { Step5Users } from './components/Step5Users'
 
+const SamanthaOnboarding = dynamic(
+  () => import('@/components/SamanthaOnboarding'),
+  { ssr: false }
+)
+
 export default function OnboardingPage() {
   const router = useRouter()
   const {
     currentStep,
     formData,
     submitting,
+    submitError,
     nextStep,
     prevStep,
     updateCompany,
@@ -27,7 +34,7 @@ export default function OnboardingPage() {
   } = useOnboarding()
 
   async function handleSubmit() {
-    const ok = await submitOnboarding()
+    const { ok } = await submitOnboarding()
     if (ok) {
       router.push('/dashboard')
     }
@@ -104,11 +111,22 @@ export default function OnboardingPage() {
           )}
         </div>
 
+        {/* Error banner */}
+        {submitError && (
+          <div className="mt-4 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-start gap-3">
+            <span className="material-symbols-outlined !text-[16px] text-red-400 mt-0.5 flex-shrink-0">error</span>
+            <p className="text-xs text-red-400 font-medium leading-relaxed">{submitError}</p>
+          </div>
+        )}
+
         {/* Footer note */}
         <p className="text-center text-[10px] text-white/15 mt-6 uppercase tracking-widest">
           Tus credenciales se almacenan encriptadas · AES-256
         </p>
       </div>
+
+      {/* Samantha Concierge — floats bottom-right */}
+      <SamanthaOnboarding />
     </div>
   )
 }
