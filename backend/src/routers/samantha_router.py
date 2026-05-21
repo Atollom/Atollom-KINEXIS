@@ -36,6 +36,10 @@ class ChatRequest(BaseModel):
     # Backend resolves → users.id before calling memory service
     supabase_user_id: Optional[str] = None
     session_id: Optional[str] = None
+    # Optional override — when present, bypasses default system prompt and agent path.
+    # Used by onboarding concierge mode (context.page == 'onboarding').
+    system_prompt: Optional[str] = None
+    context: Optional[Dict[str, Any]] = None
 
 
 @router.post("/chat")
@@ -137,6 +141,13 @@ async def chat(fastapi_request: Request, request: ChatRequest):
     history: List[Dict[str, Any]] = [
         {"role": m.role, "content": m.content} for m in request.history
     ]
+    is_onboarding = bool(request.system_prompt)
+    logger.info(
+        "samantha_chat mode=%s context=%s tenant_id=%s",
+        "concierge" if is_onboarding else "assistant",
+        request.context,
+        request.tenant_id,
+    )
     try:
         samantha = get_samantha()
         response_text = await samantha.query(
@@ -144,6 +155,7 @@ async def chat(fastapi_request: Request, request: ChatRequest):
             tenant_id=request.tenant_id,
             context=context,
             history=history,
+            system_prompt=request.system_prompt,
         )
     except Exception as exc:
         logger.error("Samantha LLM error: %s", exc)

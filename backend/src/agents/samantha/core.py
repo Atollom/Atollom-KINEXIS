@@ -16,7 +16,7 @@ import os
 import re
 from abc import ABC, abstractmethod
 from functools import partial
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from src.services.intent_classifier import get_intent_classifier
 from src.services.agent_dispatcher import get_dispatcher
@@ -247,7 +247,18 @@ class SamanthaCore:
         tenant_id: str,
         context: Dict[str, Any],
         history: List[Dict],
+        system_prompt: Optional[str] = None,
     ) -> str:
+        # ── Custom system prompt (onboarding concierge / override) ────────────
+        # Bypasses intent classification, agent dispatch, and context analysis.
+        # Used when the caller (e.g. onboarding page) supplies its own prompt.
+        if system_prompt:
+            logger.info(
+                "SamanthaCore: custom system_prompt supplied — skipping agent path "
+                "(tenant=%s, prompt_len=%d)", tenant_id, len(system_prompt)
+            )
+            return await self._provider.generate(system_prompt, history, message)
+
         # ── 0. Start context analysis concurrently ────────────────────────────
         # Runs in thread pool while we classify intent — zero wait overhead for agent path.
         analysis_task: asyncio.Task = asyncio.create_task(
