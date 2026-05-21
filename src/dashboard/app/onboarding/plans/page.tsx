@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createBrowserClient } from '@supabase/ssr'
 
 interface Plan {
   id: string
@@ -99,30 +100,40 @@ export default function PlansPage() {
     setError(null)
 
     try {
+      // Trial: redirect directly — no API call needed, user isn't in users table yet
       if (plan.id === 'trial') {
-        const res = await fetch('/api/onboarding/select-plan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plan_type: 'trial' }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error ?? `Error ${res.status}`)
-        router.push('/dashboard')
+        router.push('/onboarding')
         return
       }
 
+      // Paid plans: get Supabase session to pass the JWT
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: { session } } = await supabase.auth.getSession()
+
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({
           plan_type: plan.id,
-          success_url: `${window.location.origin}/dashboard?plan=${plan.id}&success=true`,
-          cancel_url: `${window.location.origin}/onboarding/plans?canceled=true`,
+          email: session?.user?.email,
+          success_url: `${window.location.origin}/onboarding?plan=${plan.id}&checkout=ok`,
+          cancel_url: `${window.location.origin}/onboarding/plans`,
         }),
       })
+
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? `Error ${res.status}`)
-      if (data.url) window.location.href = data.url
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error('No se recibió URL de pago. Intenta de nuevo.')
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error inesperado. Intenta de nuevo.')
     } finally {
@@ -153,6 +164,18 @@ export default function PlansPage() {
             Cancela cuando quieras.
           </p>
         </div>
+
+        {/* Error banner — visible y prominente */}
+        {error && (
+          <div className="mb-6 px-4 py-4 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-start gap-3 max-w-2xl mx-auto">
+            <span className="text-red-400 flex-shrink-0 text-lg">⚠</span>
+            <div>
+              <p className="text-sm text-red-400 font-semibold">Error al procesar</p>
+              <p className="text-xs text-red-400/80 mt-0.5 leading-relaxed">{error}</p>
+            </div>
+            <button onClick={() => setError(null)} className="ml-auto text-red-400/50 hover:text-red-400 text-xs">✕</button>
+          </div>
+        )}
 
         {/* Plans grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -235,14 +258,6 @@ export default function PlansPage() {
             </div>
           ))}
         </div>
-
-        {/* Error banner */}
-        {error && (
-          <div className="mt-6 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-start gap-3 max-w-2xl mx-auto">
-            <span className="material-symbols-outlined !text-[16px] text-red-400 mt-0.5 flex-shrink-0">error</span>
-            <p className="text-xs text-red-400 font-medium leading-relaxed">{error}</p>
-          </div>
-        )}
 
         {/* Footer */}
         <p className="text-center text-[10px] text-white/15 mt-8 uppercase tracking-widest">

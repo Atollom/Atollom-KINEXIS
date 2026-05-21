@@ -1,102 +1,122 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase';
-import { getAuthenticatedTenant } from '@/lib/auth';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-02-24.acacia',
 });
 
-// Planes disponibles con precios en MXN (centavos = precio × 100)
 const PLANS = {
   starter: {
     name: 'KINEXIS Starter',
-    price: 650000, // $6,500.00 MXN/mes
+    priceId: process.env.STRIPE_STARTER_PRICE_ID || '',
     modules: ['ecommerce'],
-    priceId: process.env.STRIPE_STARTER_PRICE_ID || 'price_starter_monthly',
   },
   growth: {
     name: 'KINEXIS Growth',
-    price: 1050000, // $10,500.00 MXN/mes
+    priceId: process.env.STRIPE_GROWTH_PRICE_ID || '',
     modules: ['ecommerce', 'crm'],
-    priceId: process.env.STRIPE_GROWTH_PRICE_ID || 'price_growth_monthly',
   },
   pro: {
     name: 'KINEXIS Pro',
-    price: 1650000, // $16,500.00 MXN/mes
+    priceId: process.env.STRIPE_PRO_PRICE_ID || '',
     modules: ['ecommerce', 'erp', 'crm'],
-    priceId: process.env.STRIPE_PRO_PRICE_ID || 'price_pro_monthly',
   },
-};
+} as const;
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient();
-  const auth = await getAuthenticatedTenant(supabase);
-
-  if (!auth) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  }
-
   try {
-    const { plan_type, success_url, cancel_url } = await req.json();
+    const body = await req.json();
+    const { plan_type, email: bodyEmail, success_url, cancel_url } = body;
 
-    if (!plan_type || !PLANS[plan_type as keyof typeof PLANS]) {
+    if (!plan_type || !(plan_type in PLANS)) {
       return NextResponse.json({ error: 'Plan inválido' }, { status: 400 });
     }
 
     const plan = PLANS[plan_type as keyof typeof PLANS];
 
-    // Obtener o crear Customer en Stripe
-    let { data: tenant } = await supabase
-      .from('tenants')
-      .select('stripe_customer_id')
-      .eq('id', auth.tenant_id)
-      .single();
+    if (!plan.priceId) {
+      return NextResponse.json(
+        { error: `Price ID para ${plan_type} no configurado en variables de entorno` },
+        { status: 500 }
+      );
+    }
 
-    let customerId = tenant?.stripe_customer_id;
+    // Auth check: support both registered tenants and new users (pre-onboarding)
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
+    if (!user) {
+      return NextResponse.json({ error: 'No autorizado — inicia sesión primero' }, { status: 401 });
+    }
+
+    const customerEmail = bodyEmail || user.email || '';
+    let customerId: string | undefined;
+    let tenantId: string | undefined;
+
+    // Try to get existing tenant & stripe customer (optional — may not exist yet)
+    try {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('tenant_id')
+        .eq('supabase_user_id', user.id)
+        .maybeSingle();
+
+      if (profile?.tenant_id) {
+        tenantId = profile.tenant_id;
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .select('stripe_customer_id')
+          .eq('id', tenantId)
+          .maybeSingle();
+        customerId = tenant?.stripe_customer_id ?? undefined;
+      }
+    } catch {
+      // User not in users table yet (pre-onboarding) — proceed without tenant context
+    }
+
+    // Create Stripe customer if we don't have one yet
     if (!customerId) {
-      // Crear customer nuevo
       const customer = await stripe.customers.create({
-        email: auth.email,
+        email: customerEmail,
         metadata: {
-          tenant_id: auth.tenant_id,
-          kinexis_tenant_name: auth.tenant_name || 'Unknown',
+          supabase_user_id: user.id,
+          ...(tenantId ? { tenant_id: tenantId } : {}),
         },
       });
       customerId = customer.id;
 
-      // Guardar en BD
-      await supabase
-        .from('tenants')
-        .update({ stripe_customer_id: customerId })
-        .eq('id', auth.tenant_id);
+      // Save back to tenant if we have one
+      if (tenantId) {
+        await supabase
+          .from('tenants')
+          .update({ stripe_customer_id: customerId })
+          .eq('id', tenantId);
+      }
     }
 
-    // Crear Checkout Session
+    const origin = req.nextUrl.origin;
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: plan.priceId,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: plan.priceId, quantity: 1 }],
       metadata: {
-        tenant_id: auth.tenant_id,
         plan_type,
+        supabase_user_id: user.id,
+        ...(tenantId ? { tenant_id: tenantId } : {}),
       },
-      success_url: success_url || `${req.nextUrl.origin}/settings/billing?success=true`,
-      cancel_url: cancel_url || `${req.nextUrl.origin}/settings/billing?canceled=true`,
+      success_url: success_url || `${origin}/onboarding?plan=${plan_type}&checkout=ok`,
+      cancel_url: cancel_url || `${origin}/onboarding/plans`,
+      allow_promotion_codes: true,
+      billing_address_collection: 'required',
     });
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('[Stripe Checkout]', error);
     return NextResponse.json(
-      { error: 'Error al crear sesión de pago' },
+      { error: 'Error al crear sesión de pago. Verifica la configuración de Stripe.' },
       { status: 500 }
     );
   }
