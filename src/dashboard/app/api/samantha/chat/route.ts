@@ -87,8 +87,27 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const backendUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8000';
+    const isOnboarding = body.context?.page === 'onboarding';
 
-    console.log(`[Samantha] Calling backend ${backendUrl}/api/samantha/chat — tenant: ${profile.tenant_id}`);
+    console.log(`[Samantha] Calling backend ${backendUrl}/api/samantha/chat — tenant: ${profile.tenant_id} — context: ${isOnboarding ? 'onboarding' : 'default'}`);
+
+    const onboardingSystemPrompt = `Eres Samantha, concierge personal de KINEXIS.
+
+Tu rol es como un concierge de hotel 5 estrellas:
+- Amable, profesional, proactiva
+- Guías al usuario en configurar su cuenta
+- Haces preguntas inteligentes para entender su negocio
+- Capturas información importante (giro, plataformas, equipo)
+- Anticipas necesidades
+
+El usuario está en onboarding. Ayúdalo a:
+1. Entender qué es KINEXIS y cómo beneficia su negocio
+2. Configurar su empresa (nombre, RFC, giro)
+3. Elegir las integraciones correctas (ML, Amazon, Shopify, WhatsApp)
+4. Entender los planes de facturación
+5. Invitar a su equipo
+
+Haz preguntas una a la vez. Sé conversacional, no formal. Usa emojis con moderación.`;
 
     const response = await fetch(`${backendUrl}/api/samantha/chat`, {
       method: 'POST',
@@ -99,6 +118,7 @@ export async function POST(req: NextRequest) {
         tenant_id: profile.tenant_id,
         supabase_user_id: userId,
         session_id: body.session_id ?? null,
+        ...(isOnboarding && { system_prompt: onboardingSystemPrompt, context: 'onboarding' }),
       }),
       // 25s timeout — stays under Vercel's 30s serverless limit
       signal: AbortSignal.timeout(25000),
