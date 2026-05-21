@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { useOnboarding } from './hooks/useOnboarding'
@@ -9,14 +10,19 @@ import { Step2Ecommerce } from './components/Step2Ecommerce'
 import { Step3Messaging } from './components/Step3Messaging'
 import { Step4Billing } from './components/Step4Billing'
 import { Step5Users } from './components/Step5Users'
+import SamanthaIntro from './components/SamanthaIntro'
 
+// Floating helper Samantha — shown during wizard phase only
 const SamanthaOnboarding = dynamic(
   () => import('@/components/SamanthaOnboarding'),
   { ssr: false }
 )
 
+type Phase = 'intro' | 'wizard'
+
 export default function OnboardingPage() {
   const router = useRouter()
+  const [phase, setPhase] = useState<Phase>('intro')
   const {
     currentStep,
     formData,
@@ -40,6 +46,12 @@ export default function OnboardingPage() {
     }
   }
 
+  // ── Phase 1: Samantha intro ─────────────────────────────────────
+  if (phase === 'intro') {
+    return <SamanthaIntro onComplete={() => setPhase('wizard')} />
+  }
+
+  // ── Phase 2: Technical wizard ───────────────────────────────────
   return (
     <div className="min-h-screen bg-[#040f1b] flex items-start justify-center p-6 relative overflow-hidden">
       {/* Ambient glows */}
@@ -56,7 +68,7 @@ export default function OnboardingPage() {
             </span>
           </div>
           <h1 className="text-3xl font-black text-white tracking-tight">
-            Configuración Inicial
+            Configuración Técnica
           </h1>
           <p className="text-sm text-white/30 mt-1">
             Conecta tus plataformas en 5 pasos · Se puede modificar después
@@ -125,7 +137,7 @@ export default function OnboardingPage() {
         </p>
       </div>
 
-      {/* Samantha Concierge — floats bottom-right */}
+      {/* Samantha helper — floats bottom-right during wizard */}
       <SamanthaOnboarding />
     </div>
   )
