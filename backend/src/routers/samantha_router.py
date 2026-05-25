@@ -44,23 +44,24 @@ class ChatRequest(BaseModel):
 
 @router.post("/chat")
 @limiter.limit("20/minute")
-async def chat(fastapi_request: Request, request: ChatRequest):
+async def chat(request: Request, body: ChatRequest):
     """
     Main Samantha chat endpoint.
     Rate limited to 20 req/min per IP (LLM calls are expensive).
+    NOTE: `request` must be named exactly `request` for slowapi to resolve rate limiting.
     """
-    logger.info("chat() called — supabase_user_id=%s", request.supabase_user_id)
+    logger.info("chat() called — supabase_user_id=%s", body.supabase_user_id)
 
     # Onboarding concierge mode: system_prompt supplied → skip credits + DB context.
     # tenant_id may be the nil UUID (00000000-...) for pre-onboarding users.
-    is_onboarding = bool(request.system_prompt)
+    is_onboarding = bool(body.system_prompt)
     NIL_UUID = "00000000-0000-0000-0000-000000000000"
 
     # 1. Check credits (skip for onboarding or nil tenant)
-    if is_onboarding or request.tenant_id == NIL_UUID:
+    if is_onboarding or body.tenant_id == NIL_UUID:
         credits = {"ok": True, "remaining": 999, "limit": 999}
     else:
-        credits = await check_credits(request.tenant_id)
+        credits = await check_credits(body.tenant_id)
     if not credits["ok"]:
         return {
             "response": (
@@ -74,7 +75,7 @@ async def chat(fastapi_request: Request, request: ChatRequest):
         }
 
     # 2. Fetch live DB context (skip for onboarding or nil tenant)
-    if is_onboarding or request.tenant_id == NIL_UUID:
+    if is_onboarding or body.tenant_id == NIL_UUID:
         context = {
             "tenant_name": "tu empresa",
             "plan": "trial",
@@ -84,7 +85,7 @@ async def chat(fastapi_request: Request, request: ChatRequest):
         }
     else:
         try:
-            context = await get_tenant_context(request.tenant_id)
+            context = await get_tenant_context(body.tenant_id)
         except Exception as exc:
             logger.warning("DB context fetch failed: %s — using empty context", exc)
             context = {
@@ -97,18 +98,18 @@ async def chat(fastapi_request: Request, request: ChatRequest):
 
     # 3. Resolve supabase_user_id → internal users.id, then load memory context
     memory_context = ""
-    logger.warning("[SAMANTHA DEBUG] supabase_user_id received: %s", request.supabase_user_id or "NONE")
-    logger.warning("[SAMANTHA DEBUG] tenant_id: %s", request.tenant_id)
+    logger.warning("[SAMANTHA DEBUG] supabase_user_id received: %s", body.supabase_user_id or "NONE")
+    logger.warning("[SAMANTHA DEBUG] tenant_id: %s", body.tenant_id)
 
-    if request.supabase_user_id:
+    if body.supabase_user_id:
         try:
-            user_row = await get_user_by_supabase_id(request.supabase_user_id)
+            user_row = await get_user_by_supabase_id(body.supabase_user_id)
             logger.warning("[SAMANTHA DEBUG] user_row lookup result: %s", user_row)
 
             if not user_row:
                 logger.warning(
                     "[SAMANTHA DEBUG] supabase_user_id %s not found in users table — memory skipped",
-                    request.supabase_user_id,
+                    body.supabase_user_id,
                 )
             else:
                 internal_user_id = user_row["id"]  # users.id (PK), NOT supabase_user_id
@@ -119,16 +120,15 @@ async def chat(fastapi_request: Request, request: ChatRequest):
 
                 boot_memories, relevant_memories = await _load_memories(
                     memory_svc,
-                    tenant_id=request.tenant_id,
+                    tenant_id=body.tenant_id,
                     user_id=internal_user_id,
-                    query=request.query,
+                    query=body.query,
                 )
                 logger.warning("[SAMANTHA DEBUG] boot_memories count: %d", len(boot_memories))
                 logger.warning("[SAMANTHA DEBUG] relevant_memories count: %d", len(relevant_memories))
 
                 memory_context = memory_svc.format_memory_context(boot_memories, relevant_memories)
                 logger.warning("[SAMANTHA DEBUG] memory_context length: %d", len(memory_context))
-                logger.error("[MEMORY DEBUG] memory_context final:\n%s", memory_context)
         except Exception as exc:
             logger.warning("[SAMANTHA DEBUG] Memory load failed (non-fatal): %s", exc, exc_info=True)
     else:
@@ -136,7 +136,6 @@ async def chat(fastapi_request: Request, request: ChatRequest):
 
     # Inject memory into context so _build_system_prompt can include it
     context["memory_context"] = memory_context
-    logger.error("[MEMORY DEBUG] ctx memory_context set, length=%d", len(memory_context))
 
     # 4. Check API key
     provider = os.getenv("LLM_PROVIDER", "gemini").lower()
@@ -156,22 +155,22 @@ async def chat(fastapi_request: Request, request: ChatRequest):
 
     # 5. Call LLM
     history: List[Dict[str, Any]] = [
-        {"role": m.role, "content": m.content} for m in request.history
+        {"role": m.role, "content": m.content} for m in body.history
     ]
     logger.info(
         "samantha_chat mode=%s context=%s tenant_id=%s",
         "concierge" if is_onboarding else "assistant",
-        request.context,
-        request.tenant_id,
+        body.context,
+        body.tenant_id,
     )
     try:
         samantha = get_samantha()
         response_text = await samantha.query(
-            message=request.query,
-            tenant_id=request.tenant_id,
+            message=body.query,
+            tenant_id=body.tenant_id,
             context=context,
             history=history,
-            system_prompt=request.system_prompt,
+            system_prompt=body.system_prompt,
         )
     except Exception as exc:
         logger.error("Samantha LLM error: %s", exc)
@@ -181,9 +180,9 @@ async def chat(fastapi_request: Request, request: ChatRequest):
         )
 
     # 6. Decrement credits — skip for onboarding / nil tenant
-    if not is_onboarding and request.tenant_id != NIL_UUID:
+    if not is_onboarding and body.tenant_id != NIL_UUID:
         try:
-            await decrement_credits(request.tenant_id)
+            await decrement_credits(body.tenant_id)
         except Exception:
             pass
 
