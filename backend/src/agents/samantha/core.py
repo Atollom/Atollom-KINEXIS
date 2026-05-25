@@ -229,13 +229,25 @@ class SamanthaCore:
     """
 
     def __init__(self) -> None:
-        provider_name = os.getenv("LLM_PROVIDER", "anthropic").lower()
-        if provider_name == "anthropic":
-            key = os.getenv("ANTHROPIC_API_KEY", "")
-            self._provider: AbstractLLMProvider = AnthropicProvider(key)
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
+        google_key = os.getenv("GOOGLE_API_KEY", "")
+        provider_name = os.getenv("LLM_PROVIDER", "auto").lower()
+
+        def _key_valid(k: str) -> bool:
+            return bool(k) and k not in ("[PENDING]", "pending", "PENDING")
+
+        if provider_name == "anthropic" and _key_valid(anthropic_key):
+            self._provider: AbstractLLMProvider = AnthropicProvider(anthropic_key)
+            provider_name = "anthropic"
+        elif _key_valid(google_key):
+            self._provider = GeminiProvider(google_key)
+            provider_name = "gemini"
+        elif _key_valid(anthropic_key):
+            self._provider = AnthropicProvider(anthropic_key)
+            provider_name = "anthropic"
         else:
-            key = os.getenv("GOOGLE_API_KEY", "")
-            self._provider = GeminiProvider(key)
+            raise RuntimeError("No valid LLM provider key found. Set GOOGLE_API_KEY or ANTHROPIC_API_KEY.")
+
         self._classifier = get_intent_classifier()
         self._dispatcher = get_dispatcher()
         self._context_analyzer = get_context_analyzer()
