@@ -70,18 +70,18 @@ class FacturapiService:
                 org_id, tenant_id,
             )
 
-            # Also store in tenant_fiscal_config if the row exists
+            # Also store in cfdi_tenant_config for JOIN-free CFDI access
             try:
                 await db.execute(
                     """
-                    UPDATE tenant_fiscal_config
+                    UPDATE cfdi_tenant_config
                     SET facturapi_org_id=$1, updated_at=NOW()
                     WHERE tenant_id=$2::uuid
                     """,
                     org_id, tenant_id,
                 )
             except Exception:
-                pass  # column may not exist yet on older migrations
+                pass  # column may not exist yet; non-fatal
 
             logger.info(
                 "[FACTURAPI] Organization created: org_id=%s for tenant=%s rfc=%s",
