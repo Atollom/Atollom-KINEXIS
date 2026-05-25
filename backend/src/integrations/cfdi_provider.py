@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 
 from .facturama_integration import facturama_integration
 from .facturapi_integration import facturapi_integration
+from ..utils.database import db
 
 logger = logging.getLogger(__name__)
 
@@ -327,13 +328,36 @@ class CFDIProvider:
         offset: int = 0,
         status: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Lista facturas del tenant desde cfdi_invoices.
-
-        Fase 2: SELECT * FROM cfdi_invoices WHERE tenant_id=... ORDER BY created_at DESC
-        """
-        logger.warning(f"MOCK: get_invoices_by_tenant({tenant_id}) — DB not connected")
-        return []
+        """Lista facturas del tenant desde cfdi_records."""
+        try:
+            if status:
+                rows = await db.fetch_all(
+                    """SELECT id, uuid, customer_rfc, customer_name,
+                              uso_cfdi, forma_pago, metodo_pago,
+                              status, total, subtotal, iva,
+                              timbrado_at, created_at
+                       FROM cfdi_records
+                       WHERE tenant_id = $1::uuid AND status = $2
+                       ORDER BY created_at DESC
+                       LIMIT $3 OFFSET $4""",
+                    tenant_id, status, limit, offset,
+                )
+            else:
+                rows = await db.fetch_all(
+                    """SELECT id, uuid, customer_rfc, customer_name,
+                              uso_cfdi, forma_pago, metodo_pago,
+                              status, total, subtotal, iva,
+                              timbrado_at, created_at
+                       FROM cfdi_records
+                       WHERE tenant_id = $1::uuid
+                       ORDER BY created_at DESC
+                       LIMIT $2 OFFSET $3""",
+                    tenant_id, limit, offset,
+                )
+            return [dict(r) for r in rows]
+        except Exception as exc:
+            logger.warning("get_invoices_by_tenant DB error: %s", exc)
+            return []
 
     async def cancel_invoice(
         self,
@@ -432,14 +456,42 @@ class CFDIProvider:
             },
         }
 
-    # ── Internal DB helpers (Phase 2: replace mocks with real queries) ────────
+    # ── Internal DB helpers ────────────────────────────────────────────────────
 
     async def _get_tenant_fiscal_config(self, tenant_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Obtiene config fiscal del tenant.
-        Fase 2: SELECT * FROM tenant_fiscal_config WHERE tenant_id = $1
-        """
-        return _MOCK_FISCAL_CONFIGS.get(tenant_id, _MOCK_FISCAL_CONFIG_DEFAULT)
+        """Obtiene config fiscal del tenant desde cfdi_tenant_config_ext."""
+        try:
+            row = await db.fetch_one(
+                """SELECT rfc_emisor, nombre_emisor, regimen_fiscal, cp_expedicion,
+                          serie_ingreso, serie_egreso, serie_pago
+                   FROM cfdi_tenant_config_ext
+                   WHERE tenant_id = $1::uuid""",
+                tenant_id,
+            )
+            if not row:
+                return _MOCK_FISCAL_CONFIGS.get(tenant_id, _MOCK_FISCAL_CONFIG_DEFAULT)
+
+            used = await db.fetch_val(
+                """SELECT COUNT(*)
+                   FROM cfdi_records
+                   WHERE tenant_id = $1::uuid
+                     AND status = 'TIMBRADO'
+                     AND created_at >= DATE_TRUNC('month', NOW())""",
+                tenant_id,
+            ) or 0
+
+            return {
+                "rfc":           row["rfc_emisor"],
+                "razon_social":  row["nombre_emisor"],
+                "regimen_fiscal": row["regimen_fiscal"],
+                "codigo_postal":  row["cp_expedicion"],
+                "invoice_limit":  500,
+                "invoices_used":  int(used),
+                "facturama_profile_id": None,
+            }
+        except Exception as exc:
+            logger.warning("_get_tenant_fiscal_config DB error: %s — fallback mock", exc)
+            return _MOCK_FISCAL_CONFIGS.get(tenant_id, _MOCK_FISCAL_CONFIG_DEFAULT)
 
     async def _save_invoice_to_db(
         self,
@@ -452,23 +504,38 @@ class CFDIProvider:
         payment_method: str,
         cfdi_use: str,
     ) -> None:
-        """
-        Registra factura en cfdi_invoices.
-        Fase 2: INSERT INTO cfdi_invoices (...) VALUES (...)
-        """
-        logger.warning(
-            f"MOCK DB: Would INSERT cfdi_invoice uuid={result.get('uuid')} "
-            f"tenant={tenant_id} provider={result.get('provider')}"
-        )
+        """Registra factura timbrada en cfdi_records."""
+        try:
+            await db.execute(
+                """INSERT INTO cfdi_records (
+                     tenant_id, uuid, customer_rfc, customer_name,
+                     uso_cfdi, forma_pago, metodo_pago,
+                     status, total, subtotal, iva,
+                     timbrado_at, created_at
+                   ) VALUES (
+                     $1::uuid, $2, $3, $4,
+                     $5, $6, $7,
+                     'TIMBRADO', $8, $9, $10,
+                     NOW(), NOW()
+                   )""",
+                tenant_id,
+                result.get("uuid"),
+                customer_rfc,
+                customer_name,
+                cfdi_use,
+                payment_form,
+                payment_method,
+                float(result.get("total", 0)),
+                float(result.get("subtotal", 0)),
+                float(result.get("tax", 0)),
+            )
+            logger.info("cfdi_records INSERT OK uuid=%s tenant=%s", result.get("uuid"), tenant_id)
+        except Exception as exc:
+            logger.warning("cfdi_records INSERT failed: %s", exc)
 
     async def _increment_invoice_count(self, tenant_id: str) -> None:
-        """
-        Incrementa contador mensual del tenant.
-        Fase 2: UPDATE tenant_fiscal_config
-                SET invoices_used_current_month = invoices_used_current_month + 1
-                WHERE tenant_id = $1
-        """
-        logger.warning(f"MOCK DB: Would increment invoice count for tenant {tenant_id}")
+        # Count is now computed live from cfdi_records in _get_tenant_fiscal_config
+        pass
 
 
 cfdi_provider = CFDIProvider()

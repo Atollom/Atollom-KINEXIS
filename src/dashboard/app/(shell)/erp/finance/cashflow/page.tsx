@@ -1,17 +1,58 @@
 'use client'
 
-import { useState } from 'react'
-import { mockCashFlowMonths, mockCashFlowStats } from '@/lib/mockData'
+import { useState, useEffect } from 'react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
 import { useToast } from '@/components/ToastProvider'
 
-const tooltipStyle = { backgroundColor: '#0c1a2e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, color: '#fff', fontSize: 11 }
+interface CashFlowMonth {
+  month: string
+  label: string
+  inflows: number
+  outflows: number
+  net: number
+  balance: number
+  forecast?: boolean
+}
+
+interface CashFlowStats {
+  current_balance: number
+  avg_monthly_net: number
+  min_balance: number
+  months_positive: number
+}
+
+const EMPTY_STATS: CashFlowStats = {
+  current_balance: 0,
+  avg_monthly_net: 0,
+  min_balance: 0,
+  months_positive: 0,
+}
+
+const tooltipStyle = {
+  backgroundColor: '#0c1a2e',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: 12,
+  color: '#fff',
+  fontSize: 11,
+}
 
 export default function CashFlowPage() {
   const { showToast } = useToast()
   const [view, setView] = useState<'bars' | 'balance'>('bars')
+  const [months, setMonths] = useState<CashFlowMonth[]>([])
+  const [stats, setStats] = useState<CashFlowStats>(EMPTY_STATS)
+  const [loading, setLoading] = useState(true)
 
-  const balanceData = mockCashFlowMonths.map(m => ({ ...m, balance: m.balance }))
+  useEffect(() => {
+    fetch('/api/erp/cashflow')
+      .then(r => r.json())
+      .then(d => {
+        setMonths(d.months ?? [])
+        setStats(d.stats ?? EMPTY_STATS)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -44,14 +85,16 @@ export default function CashFlowPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Saldo actual',        value: `$${(mockCashFlowStats.current_balance / 1000).toFixed(0)}K`,   color: '#CCFF00' },
-          { label: 'Flujo neto prom.',    value: `$${(mockCashFlowStats.avg_monthly_net / 1000).toFixed(0)}K`,  color: mockCashFlowStats.avg_monthly_net >= 0 ? '#4ade80' : '#f87171' },
-          { label: 'Saldo mínimo (6m)',   value: `$${(mockCashFlowStats.min_balance / 1000).toFixed(0)}K`,      color: mockCashFlowStats.min_balance < 50000 ? '#f87171' : '#facc15' },
-          { label: 'Meses positivos',     value: `${mockCashFlowStats.months_positive} / ${mockCashFlowMonths.length}`, color: '#60a5fa' },
+          { label: 'Saldo actual',        value: `$${(stats.current_balance / 1000).toFixed(0)}K`,   color: '#CCFF00' },
+          { label: 'Flujo neto prom.',    value: `$${(stats.avg_monthly_net / 1000).toFixed(0)}K`,   color: stats.avg_monthly_net >= 0 ? '#4ade80' : '#f87171' },
+          { label: 'Saldo mínimo (6m)',   value: `$${(stats.min_balance / 1000).toFixed(0)}K`,       color: stats.min_balance < 50000 ? '#f87171' : '#facc15' },
+          { label: 'Meses positivos',     value: `${stats.months_positive} / ${months.length}`,       color: '#60a5fa' },
         ].map(s => (
           <div key={s.label} className="glass-card p-4 rounded-2xl">
             <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
-            <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
+            {loading
+              ? <div className="h-7 w-20 rounded bg-white/5 animate-pulse" />
+              : <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>}
           </div>
         ))}
       </div>
@@ -85,30 +128,37 @@ export default function CashFlowPage() {
             </span>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={260}>
-          {view === 'bars' ? (
-            <BarChart data={mockCashFlowMonths} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}K`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => `$${Number(v ?? 0).toLocaleString()}`} />
-              <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
-              <Bar dataKey="inflows" name="Entradas" fill="#CCFF00" radius={[4, 4, 0, 0]} opacity={0.85} />
-              <Bar dataKey="outflows" name="Salidas" fill="#f87171" radius={[4, 4, 0, 0]} opacity={0.85} />
-              <Bar dataKey="net" name="Neto" fill="#60a5fa" radius={[4, 4, 0, 0]} opacity={0.85} />
-            </BarChart>
-          ) : (
-            <LineChart data={balanceData} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}K`} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => `$${Number(v ?? 0).toLocaleString()}`} />
-              <ReferenceLine y={0} stroke="rgba(248,113,113,0.4)" strokeDasharray="4 4" />
-              <Line type="monotone" dataKey="balance" name="Saldo" stroke="#CCFF00" strokeWidth={2.5}
-                dot={(d: any) => d.payload.forecast ? null : <circle key={d.index} cx={d.cx} cy={d.cy} r={3} fill="#CCFF00" />} />
-            </LineChart>
-          )}
-        </ResponsiveContainer>
+        {loading ? (
+          <div className="h-[260px] rounded-xl bg-white/3 animate-pulse" />
+        ) : (
+          <ResponsiveContainer width="100%" height={260}>
+            {view === 'bars' ? (
+              <BarChart data={months} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}K`} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `$${Number(v ?? 0).toLocaleString()}`} />
+                <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
+                <Bar dataKey="inflows" name="Entradas" fill="#CCFF00" radius={[4, 4, 0, 0]} opacity={0.85} />
+                <Bar dataKey="outflows" name="Salidas" fill="#f87171" radius={[4, 4, 0, 0]} opacity={0.85} />
+                <Bar dataKey="net" name="Neto" fill="#60a5fa" radius={[4, 4, 0, 0]} opacity={0.85} />
+              </BarChart>
+            ) : (
+              <LineChart data={months} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}K`} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `$${Number(v ?? 0).toLocaleString()}`} />
+                <ReferenceLine y={0} stroke="rgba(248,113,113,0.4)" strokeDasharray="4 4" />
+                <Line type="monotone" dataKey="balance" name="Saldo" stroke="#CCFF00" strokeWidth={2.5}
+                  dot={(d: { payload: CashFlowMonth; index: number; cx: number; cy: number }) =>
+                    d.payload.forecast ? null : <circle key={d.index} cx={d.cx} cy={d.cy} r={3} fill="#CCFF00" />
+                  }
+                />
+              </LineChart>
+            )}
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Monthly detail table */}
@@ -126,23 +176,34 @@ export default function CashFlowPage() {
               </tr>
             </thead>
             <tbody>
-              {mockCashFlowMonths.map(m => {
-                const netColor = m.net >= 0 ? '#4ade80' : '#f87171'
-                return (
-                  <tr key={m.month} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td className="px-4 py-3 text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{m.month}</td>
-                    <td className="px-4 py-3 text-xs font-bold" style={{ color: '#4ade80' }}>${m.inflows.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-xs font-bold" style={{ color: '#f87171' }}>${m.outflows.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-xs font-black" style={{ color: netColor }}>{m.net >= 0 ? '+' : ''}${m.net.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-xs font-bold" style={{ color: '#CCFF00' }}>${m.balance.toLocaleString()}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${m.forecast ? 'bg-purple-400/10 text-[#a78bfa]' : 'bg-green-400/10 text-[#4ade80]'}`}>
-                        {m.forecast ? 'Proyección' : 'Real'}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
+              {loading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <div className="h-4 w-20 rounded bg-white/5 animate-pulse" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                : months.map(m => {
+                    const netColor = m.net >= 0 ? '#4ade80' : '#f87171'
+                    return (
+                      <tr key={m.month} className="hover:bg-white/[0.02] transition-colors" style={{ borderBottom: '1px solid var(--border-color)' }}>
+                        <td className="px-4 py-3 text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{m.month}</td>
+                        <td className="px-4 py-3 text-xs font-bold" style={{ color: '#4ade80' }}>${m.inflows.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-xs font-bold" style={{ color: '#f87171' }}>${m.outflows.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-xs font-black" style={{ color: netColor }}>{m.net >= 0 ? '+' : ''}${m.net.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-xs font-bold" style={{ color: '#CCFF00' }}>${m.balance.toLocaleString()}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${m.forecast ? 'bg-purple-400/10 text-[#a78bfa]' : 'bg-green-400/10 text-[#4ade80]'}`}>
+                            {m.forecast ? 'Proyección' : 'Real'}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })
+              }
             </tbody>
           </table>
         </div>

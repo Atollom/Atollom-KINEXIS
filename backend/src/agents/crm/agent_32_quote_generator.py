@@ -5,6 +5,7 @@ Autor: Carlos Cortés (Atollom Labs)
 """
 
 import io
+import json
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, Optional
@@ -24,11 +25,45 @@ DEFAULT_TAX_RATE = 0.16
 _QUOTE_COUNTER = 41
 
 
-def _next_quote_number() -> str:
+async def _next_quote_number(tenant_id: Optional[str]) -> str:
+    year = datetime.now(timezone.utc).year
+    if tenant_id:
+        try:
+            from ...utils.database import db
+            count = await db.fetch_val(
+                """SELECT COUNT(*) FROM quotes
+                   WHERE tenant_id = $1::uuid
+                     AND EXTRACT(YEAR FROM created_at) = $2""",
+                tenant_id, year,
+            ) or 0
+            return f"COT-{year}-{int(count) + 1:03d}"
+        except Exception as exc:
+            logger.warning("quote number DB error: %s — RAM counter", exc)
     global _QUOTE_COUNTER
     _QUOTE_COUNTER += 1
-    year = datetime.now(timezone.utc).year
     return f"COT-{year}-{_QUOTE_COUNTER:03d}"
+
+
+async def _save_quote_to_db(
+    tenant_id: str,
+    quote_number: str,
+    items: list,
+    subtotal: float,
+    iva: float,
+    total: float,
+    valid_until: str,
+) -> None:
+    try:
+        from ...utils.database import db
+        await db.execute(
+            """INSERT INTO quotes (tenant_id, quote_number, items, subtotal, iva, total, valid_until, status)
+               VALUES ($1::uuid, $2, $3::jsonb, $4, $5, $6, $7::date, 'draft')""",
+            tenant_id, quote_number, json.dumps(items),
+            subtotal, iva, total, valid_until,
+        )
+        logger.info("quotes INSERT OK quote=%s tenant=%s", quote_number, tenant_id)
+    except Exception as exc:
+        logger.warning("quotes INSERT failed: %s", exc)
 
 
 # ── PDF builder ───────────────────────────────────────────────────────────────
@@ -338,8 +373,9 @@ class Agent32QuoteGenerator:
         customer = data["customer"]
         items = data["items"]
         tax_rate = data["tax_rate"]
+        tenant_id: Optional[str] = data.get("tenant_id")
         subtotal, tax, total = self._calculate_totals(items, tax_rate)
-        quote_number = _next_quote_number()
+        quote_number = await _next_quote_number(tenant_id)
         valid_until = self._get_valid_until(data.get("valid_until"))
         payment_terms = data["payment_terms"]
         notes = data.get("notes")
@@ -356,6 +392,17 @@ class Agent32QuoteGenerator:
             valid_until=valid_until,
             notes=notes,
         )
+
+        if tenant_id:
+            await _save_quote_to_db(
+                tenant_id=tenant_id,
+                quote_number=quote_number,
+                items=items,
+                subtotal=subtotal,
+                iva=tax,
+                total=total,
+                valid_until=valid_until,
+            )
 
         return {
             "quote_number":   quote_number,
