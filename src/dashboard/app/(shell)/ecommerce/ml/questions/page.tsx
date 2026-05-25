@@ -1,17 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockMLQuestions, mockMLStats } from "@/lib/mockData";
-import type { MLQuestion } from "@/lib/mockData";
 
 type FilterKey = "all" | "unanswered" | "answered";
 
-const SAMANTHA_SUGGESTIONS: Record<string, string> = {
-  "1": "Hola! Sí, el compresor incluye manguera de 8 metros y pistola de inflado. Además tiene regulador de presión integrado. ¡Saludos!",
-  "2": "Hola! Sí generamos CFDI 4.0. Al concretar tu compra envíanos tus datos fiscales por mensaje y emitimos la factura en el día. ¡Saludos!",
-  "3": "Hola! El taladro está disponible en color negro con detalles en verde. ¡Te va a encantar! ¡Saludos!",
-};
+interface MLQuestion {
+  id: string;
+  question: string;
+  answer?: string;
+  status: "unanswered" | "answered";
+  date_created: string;
+  item_id: string;
+  item_title: string;
+  item_sku: string;
+  from_nickname: string;
+}
 
 function fmtRelative(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -26,8 +30,20 @@ export default function MLQuestionsPage() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [answered, setAnswered] = useState<Set<string>>(new Set());
+  const [allQuestions, setAllQuestions] = useState<MLQuestion[]>([]);
+  const [avgResponseHrs, setAvgResponseHrs] = useState<number>(3.2);
 
-  const questions = mockMLQuestions.map(q => ({
+  useEffect(() => {
+    fetch("/api/ml/questions")
+      .then(r => r.json())
+      .then(d => {
+        setAllQuestions(d.questions ?? []);
+        if (d.stats?.avg_response_time_hrs != null) setAvgResponseHrs(d.stats.avg_response_time_hrs);
+      })
+      .catch(() => {});
+  }, []);
+
+  const questions = allQuestions.map(q => ({
     ...q,
     status: answered.has(q.id) ? "answered" as const : q.status,
     answer: answered.has(q.id) ? (drafts[q.id] ?? q.answer) : q.answer,
@@ -42,8 +58,7 @@ export default function MLQuestionsPage() {
   };
 
   function handleSuggest(q: MLQuestion) {
-    const suggestion = SAMANTHA_SUGGESTIONS[q.id] ??
-      `Hola! Gracias por tu pregunta sobre ${q.item_title}. Con gusto te ayudamos. ¡Saludos!`;
+    const suggestion = `Hola! Gracias por tu pregunta sobre ${q.item_title}. Con gusto te ayudamos. ¡Saludos!`;
     setDrafts(prev => ({ ...prev, [q.id]: suggestion }));
     showToast({ type: "info", title: "Samantha sugiere", message: "Respuesta AI generada — revísala y envía" });
   }
@@ -61,9 +76,7 @@ export default function MLQuestionsPage() {
     const newDrafts: Record<string, string> = {};
     const newAnswered = new Set(answered);
     pending.forEach(q => {
-      const suggestion = SAMANTHA_SUGGESTIONS[q.id] ??
-        `Hola! Gracias por tu pregunta sobre ${q.item_title}. Te respondemos a la brevedad. ¡Saludos!`;
-      newDrafts[q.id] = suggestion;
+      newDrafts[q.id] = `Hola! Gracias por tu pregunta sobre ${q.item_title}. Te respondemos a la brevedad. ¡Saludos!`;
       newAnswered.add(q.id);
     });
     setDrafts(prev => ({ ...prev, ...newDrafts }));
@@ -108,7 +121,7 @@ export default function MLQuestionsPage() {
         {[
           { label: "Sin Responder",    value: counts.unanswered,                         icon: "mark_chat_unread", color: "text-red-400"    },
           { label: "Respondidas",      value: counts.answered,                            icon: "mark_chat_read",  color: "text-[#CCFF00]"  },
-          { label: "Tiempo Respuesta", value: `${mockMLStats.avg_response_time_hrs} hrs`, icon: "schedule",         color: "text-amber-400"  },
+          { label: "Tiempo Respuesta", value: `${avgResponseHrs} hrs`, icon: "schedule",         color: "text-amber-400"  },
           { label: "Total Preguntas",  value: counts.all,                                 icon: "help",             color: "text-on-surface" },
         ].map(kpi => (
           <div key={kpi.label} className="glass-card rounded-[1.5rem] border border-white/5 p-6">

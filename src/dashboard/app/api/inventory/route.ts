@@ -35,34 +35,49 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
-    // 3. Mapear status basado en reglas
-    const items = (inventory || []).map(item => {
-      let status: 'ok' | 'warning' | 'critical' | 'out' = 'ok';
+    // 3. Mapear status y campos esperados por la página de inventario
+    const items = (inventory || []).map((item, idx) => {
       const days = typeof item.days_remaining === 'number' ? item.days_remaining : 999;
-      
-      if (item.stock === 0) {
-        status = 'out';
-      } else if (days <= critical) {
-        status = 'critical';
-      } else if (days <= safety) {
-        status = 'warning';
-      }
+      const stock = item.stock ?? 0;
 
-      // Supabase join check
+      let status: 'in_stock' | 'low_stock' | 'out_of_stock' | 'overstocked' = 'in_stock';
+      if (stock === 0) status = 'out_of_stock';
+      else if (days <= critical) status = 'low_stock';
+      else if (days <= safety)   status = 'low_stock';
+
       const productsRow = item.products as unknown as { name: string }[] | { name: string } | null;
       const productName = Array.isArray(productsRow)
         ? (productsRow[0]?.name || item.sku)
         : (productsRow?.name || item.sku);
+
       return {
-        sku:           item.sku,
-        name:          productName,
-        stock:         item.stock,
-        days_remaining: days,
-        status:        status,
+        id:               item.sku,
+        sku:              item.sku,
+        name:             productName,
+        category:         'General',
+        warehouse:        'Almacén Principal',
+        available:        stock,
+        reserved:         0,
+        reorder_point:    safety * 2,
+        unit_cost:        0,
+        total_value:      0,
+        supplier:         '',
+        reorder_quantity: 50,
+        days_remaining:   days,
+        status,
       };
     });
 
-    return NextResponse.json(items);
+    const stats = {
+      total_items:  items.length,
+      total_value:  0,
+      in_stock:     items.filter(i => i.status === 'in_stock').length,
+      low_stock:    items.filter(i => i.status === 'low_stock').length,
+      out_of_stock: items.filter(i => i.status === 'out_of_stock').length,
+      overstocked:  items.filter(i => i.status === 'overstocked').length,
+    };
+
+    return NextResponse.json({ items, stats, source: 'supabase' });
 
   } catch (error: any) {
     console.error('[Inventory API] Error:', error);

@@ -1,38 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockERPInventory, mockERPInventoryStats } from "@/lib/mockData";
-import type { ERPInventoryItem } from "@/lib/mockData";
 
-type FilterKey = "all" | "in_stock" | "low_stock" | "out_of_stock" | "overstocked";
+type Status = "in_stock" | "low_stock" | "out_of_stock" | "overstocked";
+type FilterKey = "all" | Status;
 
-const STATUS_CFG: Record<ERPInventoryItem["status"], { label: string; color: string; bg: string; icon: string }> = {
-  in_stock:     { label: "En Stock",   color: "text-[#CCFF00]",     bg: "bg-[#CCFF00]/10",  icon: "check_circle" },
-  low_stock:    { label: "Bajo Stock", color: "text-amber-400",     bg: "bg-amber-400/10",  icon: "warning"      },
-  out_of_stock: { label: "Agotado",    color: "text-red-400",       bg: "bg-red-400/10",    icon: "cancel"       },
-  overstocked:  { label: "Sobrestock", color: "text-blue-400",      bg: "bg-blue-400/10",   icon: "inventory"    },
+interface InventoryItem {
+  id: string; sku: string; name: string; category: string;
+  warehouse: string; available: number; reserved: number;
+  reorder_point: number; unit_cost: number; total_value: number;
+  supplier: string; reorder_quantity: number;
+  days_remaining: number; status: Status;
+}
+interface InventoryStats {
+  total_items: number; total_value: number;
+  in_stock: number; low_stock: number; out_of_stock: number; overstocked: number;
+}
+
+const STATUS_CFG: Record<Status, { label: string; color: string; bg: string; icon: string }> = {
+  in_stock:     { label: "En Stock",   color: "text-[#CCFF00]",  bg: "bg-[#CCFF00]/10", icon: "check_circle" },
+  low_stock:    { label: "Bajo Stock", color: "text-amber-400",  bg: "bg-amber-400/10", icon: "warning"      },
+  out_of_stock: { label: "Agotado",    color: "text-red-400",    bg: "bg-red-400/10",   icon: "cancel"       },
+  overstocked:  { label: "Sobrestock", color: "text-blue-400",   bg: "bg-blue-400/10",  icon: "inventory"    },
+};
+
+const EMPTY_STATS: InventoryStats = {
+  total_items: 0, total_value: 0, in_stock: 0, low_stock: 0, out_of_stock: 0, overstocked: 0,
 };
 
 export default function ERPInventoryPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
+  const [allItems, setAllItems] = useState<InventoryItem[]>([]);
+  const [stats, setStats] = useState<InventoryStats>(EMPTY_STATS);
+  const [loading, setLoading] = useState(true);
 
-  const base = mockERPInventory.filter(i => filter === "all" ? true : i.status === filter);
+  useEffect(() => {
+    fetch("/api/inventory")
+      .then(r => r.json())
+      .then(d => {
+        setAllItems(d.items ?? []);
+        setStats(d.stats ?? EMPTY_STATS);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const base = allItems.filter(i => filter === "all" || i.status === filter);
   const items = search
     ? base.filter(i => i.name.toLowerCase().includes(search.toLowerCase()) || i.sku.toLowerCase().includes(search.toLowerCase()))
     : base;
 
   const counts: Record<FilterKey, number> = {
-    all:          mockERPInventory.length,
-    in_stock:     mockERPInventory.filter(i => i.status === "in_stock").length,
-    low_stock:    mockERPInventory.filter(i => i.status === "low_stock").length,
-    out_of_stock: mockERPInventory.filter(i => i.status === "out_of_stock").length,
-    overstocked:  mockERPInventory.filter(i => i.status === "overstocked").length,
+    all:          allItems.length,
+    in_stock:     stats.in_stock,
+    low_stock:    stats.low_stock,
+    out_of_stock: stats.out_of_stock,
+    overstocked:  stats.overstocked,
   };
 
-  const urgentCount = counts.out_of_stock + counts.low_stock;
+  const urgentCount = stats.out_of_stock + stats.low_stock;
 
   return (
     <div className="space-y-10 animate-in">
@@ -51,8 +80,7 @@ export default function ERPInventoryPage() {
             Control de Inventarios
           </h1>
           <p className="text-sm text-on-surface-variant">
-            {mockERPInventoryStats.total_items} SKUs · Valor total{" "}
-            <span className="text-primary font-bold">${(mockERPInventoryStats.total_value / 1_000_000).toFixed(2)}M MXN</span>
+            {stats.total_items} SKUs · {loading ? "Cargando..." : `${stats.in_stock} en stock · ${stats.low_stock + stats.out_of_stock} alertas`}
           </p>
         </div>
         <div className="flex gap-3 self-start md:self-auto">
@@ -76,11 +104,11 @@ export default function ERPInventoryPage() {
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: "Total SKUs",  value: mockERPInventoryStats.total_items,                          icon: "inventory_2",     color: "text-on-surface"  },
-          { label: "En Stock",    value: mockERPInventoryStats.in_stock,                             icon: "check_circle",    color: "text-[#CCFF00]"   },
-          { label: "Bajo Stock",  value: mockERPInventoryStats.low_stock,                            icon: "warning",         color: "text-amber-400"   },
-          { label: "Agotados",    value: mockERPInventoryStats.out_of_stock,                         icon: "cancel",          color: "text-red-400"     },
-          { label: "Valor Total", value: `$${(mockERPInventoryStats.total_value / 1_000_000).toFixed(1)}M`, icon: "account_balance", color: "text-blue-400" },
+          { label: "Total SKUs",  value: stats.total_items,  icon: "inventory_2",     color: "text-on-surface"  },
+          { label: "En Stock",    value: stats.in_stock,    icon: "check_circle",    color: "text-[#CCFF00]" },
+          { label: "Bajo Stock",  value: stats.low_stock,   icon: "warning",         color: "text-amber-400" },
+          { label: "Agotados",    value: stats.out_of_stock, icon: "cancel",          color: "text-red-400"   },
+          { label: "Sobrestock",  value: stats.overstocked, icon: "inventory_2",     color: "text-blue-400"  },
         ].map(kpi => (
           <div key={kpi.label} className="glass-card rounded-[1.5rem] border border-white/5 p-6">
             <div className="flex items-center gap-3 mb-3">

@@ -14,6 +14,7 @@ from . import sandbox_router
 from . import health_router
 from . import amazon_oauth_router
 from . import ml_oauth_router
+from . import whatsapp_router
 
 __all__ = [
     "onboarding_router",
@@ -28,4 +29,5 @@ __all__ = [
     "health_router",
     "amazon_oauth_router",
     "ml_oauth_router",
+    "whatsapp_router",
 ]

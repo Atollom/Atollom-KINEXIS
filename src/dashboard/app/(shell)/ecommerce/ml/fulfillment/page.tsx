@@ -1,13 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { mockMLOrders } from "@/lib/mockData";
-
-// Fulfillment only cares about orders that need a shipping action
-const QUEUE = mockMLOrders.filter(o =>
-  ["paid", "confirmed"].includes(o.status) || o.shipping_status === "ready_to_ship"
-);
+import type { MLOrder } from "@/lib/mockData";
 
 const SHIP_LABELS: Record<string, string> = {
   pending: "Sin Guía", handling: "Preparando", ready_to_ship: "Listo",
@@ -18,14 +13,25 @@ type Stage = "queue" | "scan" | "done";
 
 export default function MLFulfillmentPage() {
   const { showToast } = useToast();
+  const [allOrders, setAllOrders] = useState<MLOrder[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [stage, setStage] = useState<Stage>("queue");
   const [processing, setProcessing] = useState(false);
 
-  const readyOrders  = mockMLOrders.filter(o => o.shipping_status === "ready_to_ship");
-  const shippedToday = mockMLOrders.filter(o => o.shipping_status === "shipped").length;
-  const delivered    = mockMLOrders.filter(o => o.shipping_status === "delivered").length;
-  const noGuide      = mockMLOrders.filter(o => ["paid","confirmed"].includes(o.status) && !o.tracking_number).length;
+  useEffect(() => {
+    fetch("/api/ml/orders")
+      .then(r => r.json())
+      .then(d => setAllOrders(d.orders ?? []))
+      .catch(() => {});
+  }, []);
+
+  const QUEUE = allOrders.filter(o =>
+    ["paid", "confirmed"].includes(o.status) || o.shipping_status === "ready_to_ship"
+  );
+  const readyOrders  = allOrders.filter(o => o.shipping_status === "ready_to_ship");
+  const shippedToday = allOrders.filter(o => o.shipping_status === "shipped").length;
+  const delivered    = allOrders.filter(o => o.shipping_status === "delivered").length;
+  const noGuide      = allOrders.filter(o => ["paid","confirmed"].includes(o.status) && !o.tracking_number).length;
 
   function toggleSelect(id: string) {
     setSelected(prev => {
