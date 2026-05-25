@@ -61,7 +61,14 @@ export function useOnboarding() {
   const goToStep = (step: number) => setCurrentStep(step)
 
   function updateCompany(data: Partial<CompanyData>) {
-    setFormData(prev => ({ ...prev, company: { ...prev.company, ...data } }))
+    setFormData(prev => {
+      const updated = { ...prev, company: { ...prev.company, ...data } }
+      // Auto-populate billing RFC when company RFC is set and billing RFC is not
+      if (data.rfc && !prev.billing.rfc_emisor) {
+        updated.billing = { ...prev.billing, rfc_emisor: data.rfc }
+      }
+      return updated
+    })
   }
 
   function updateEcommerce(data: Partial<EcommerceData>) {
@@ -102,7 +109,8 @@ export function useOnboarding() {
         messaging: formData.messaging,
         billing: {
           ...formData.billing,
-          rfc: formData.billing.rfc_emisor ?? (formData.company as { rfc?: string }).rfc,
+          rfc_emisor: formData.billing.rfc_emisor ?? formData.company.rfc ?? '',
+          rfc: formData.billing.rfc_emisor ?? formData.company.rfc ?? '',
         },
         users: formData.users,
         ...(opts.stripeSession ? { stripe_session_id: opts.stripeSession } : {}),

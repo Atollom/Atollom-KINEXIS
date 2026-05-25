@@ -43,8 +43,6 @@ export function Step5Users({ users, onAddUser, onRemoveUser, onSubmit, submittin
     setErrors({})
   }
 
-  const canSubmit = users.length > 0
-
   return (
     <div className="space-y-5 animate-in slide-in-from-right-8 duration-500">
       <div className="flex items-center gap-3 mb-4">
@@ -53,7 +51,7 @@ export function Step5Users({ users, onAddUser, onRemoveUser, onSubmit, submittin
         </div>
         <div>
           <h2 className="text-xl font-bold text-white">Equipo y Roles</h2>
-          <p className="text-sm text-white/40">Agrega los usuarios que tendrán acceso a KINEXIS</p>
+          <p className="text-sm text-white/40">Opcional — puedes agregar colaboradores ahora o después</p>
         </div>
       </div>
 
@@ -157,9 +155,10 @@ export function Step5Users({ users, onAddUser, onRemoveUser, onSubmit, submittin
       )}
 
       {users.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-6 text-center">
-          <Users className="w-8 h-8 text-white/10 mb-2" />
-          <p className="text-sm text-white/20">Agrega al menos un usuario para continuar</p>
+        <div className="flex flex-col items-center justify-center py-4 text-center bg-white/2 border border-white/6 rounded-2xl">
+          <Users className="w-7 h-7 text-white/10 mb-2" />
+          <p className="text-xs text-white/30">Sin colaboradores por ahora — puedes agregarlos desde</p>
+          <p className="text-xs text-white/30 font-semibold">Configuración → Equipo</p>
         </div>
       )}
 
@@ -172,12 +171,8 @@ export function Step5Users({ users, onAddUser, onRemoveUser, onSubmit, submittin
         </button>
         <button
           onClick={onSubmit}
-          disabled={!canSubmit || submitting}
-          className={`flex-[2] flex items-center justify-center gap-2 font-bold text-sm uppercase tracking-widest py-3 rounded-full transition-all ${
-            canSubmit && !submitting
-              ? 'bg-[#CCFF00] text-black hover:bg-[#CCFF00]/90 active:scale-[0.98] shadow-[0_10px_30px_rgba(204,255,0,0.25)]'
-              : 'bg-white/5 text-white/20 cursor-not-allowed'
-          }`}
+          disabled={submitting}
+          className="flex-[2] flex items-center justify-center gap-2 bg-[#CCFF00] text-black font-bold text-sm uppercase tracking-widest py-3 rounded-full hover:bg-[#CCFF00]/90 active:scale-[0.98] shadow-[0_10px_30px_rgba(204,255,0,0.25)] disabled:opacity-60 disabled:cursor-not-allowed transition-all"
         >
           {submitting ? (
             <>

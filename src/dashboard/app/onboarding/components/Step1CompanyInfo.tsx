@@ -19,13 +19,9 @@ export function Step1CompanyInfo({ data, onChange, onNext }: Step1Props) {
   function validate(): boolean {
     const e: Partial<Record<keyof CompanyData, string>> = {}
     if (!data.name?.trim()) e.name = 'Nombre requerido'
-    if (!data.rfc?.trim()) {
-      e.rfc = 'RFC requerido'
-    } else if (!RFC_PATTERN.test(data.rfc.toUpperCase())) {
+    if (data.rfc?.trim() && !RFC_PATTERN.test(data.rfc.toUpperCase())) {
       e.rfc = 'Formato inválido (ej: KAP120101AB1 o CORC801010ABC)'
     }
-    if (!data.address?.trim()) e.address = 'Dirección requerida'
-    if (!data.phone?.trim()) e.phone = 'Teléfono requerido'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -72,7 +68,7 @@ export function Step1CompanyInfo({ data, onChange, onNext }: Step1Props) {
         {/* RFC */}
         <div>
           <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1.5 block">
-            RFC *
+            RFC (opcional)
           </label>
           <input
             type="text"
@@ -93,7 +89,7 @@ export function Step1CompanyInfo({ data, onChange, onNext }: Step1Props) {
         {/* Teléfono */}
         <div>
           <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1.5 block">
-            Teléfono *
+            Teléfono (opcional)
           </label>
           <input
             type="tel"
@@ -110,7 +106,7 @@ export function Step1CompanyInfo({ data, onChange, onNext }: Step1Props) {
         {/* Dirección */}
         <div>
           <label className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1.5 block">
-            Dirección Fiscal *
+            Dirección Fiscal (opcional)
           </label>
           <textarea
             placeholder="Calle, número, colonia, ciudad, estado, C.P."

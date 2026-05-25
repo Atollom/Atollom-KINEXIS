@@ -19,7 +19,7 @@ const SamanthaOnboarding = dynamic(
   { ssr: false }
 )
 
-type Phase = 'intro' | 'plans' | 'wizard'
+type Phase = 'intro' | 'plans' | 'wizard' | 'success'
 
 interface WizardStep {
   id: 'company' | 'ecommerce' | 'crm' | 'erp' | 'users'
@@ -127,8 +127,35 @@ function OnboardingContent() {
     if (ok) {
       sessionStorage.removeItem(STRIPE_SESSION_KEY)
       sessionStorage.removeItem(STRIPE_PLAN_KEY)
-      router.push('/dashboard')
+      setPhase('success')
+      setTimeout(() => router.push('/dashboard'), 2800)
     }
+  }
+
+  // ── Success screen ──────────────────────────────────────────────
+  if (phase === 'success') {
+    const companyName = formData.company.name ?? 'tu empresa'
+    return (
+      <div className="min-h-screen bg-[#040f1b] flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="fixed top-[-20%] right-[-10%] w-[800px] h-[800px] bg-[#CCFF00]/6 blur-[200px] -z-10 rounded-full pointer-events-none" />
+        <div className="fixed bottom-[-10%] left-[-10%] w-[700px] h-[700px] bg-blue-500/4 blur-[200px] -z-10 rounded-full pointer-events-none" />
+        <div className="text-center animate-in fade-in zoom-in-95 duration-700">
+          <div className="w-20 h-20 rounded-full bg-[#CCFF00]/15 border-2 border-[#CCFF00]/40 flex items-center justify-center mx-auto mb-6 shadow-[0_0_60px_rgba(204,255,0,0.3)] animate-pulse">
+            <svg className="w-10 h-10 text-[#CCFF00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+          </div>
+          <h1 className="text-4xl font-black text-white tracking-tight mb-2">¡Listo, {companyName.split(' ')[0]}!</h1>
+          <p className="text-white/40 text-base mb-8">KINEXIS está configurado y Samantha está lista.</p>
+          <div className="flex items-center justify-center gap-2 text-[#CCFF00]/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#CCFF00] animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+          <p className="text-white/20 text-xs mt-3 uppercase tracking-widest">Entrando a tu dashboard...</p>
+        </div>
+      </div>
+    )
   }
 
   // ── Phase 1: Samantha intro + module selection ──────────────────
@@ -186,7 +213,7 @@ function OnboardingContent() {
             <Step3Messaging data={formData.messaging} onChange={updateMessaging} onNext={nextStep} onBack={prevStep} />
           )}
           {currentStepDef.id === 'erp' && (
-            <Step4Billing data={formData.billing} onChange={updateBilling} onNext={nextStep} onBack={prevStep} />
+            <Step4Billing data={formData.billing} onChange={updateBilling} onNext={nextStep} onBack={prevStep} companyRfc={formData.company.rfc} />
           )}
           {currentStepDef.id === 'users' && (
             <Step5Users

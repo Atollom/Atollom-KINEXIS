@@ -23,14 +23,18 @@ interface Step4Props {
   onChange: (data: Partial<BillingData>) => void
   onNext: () => void
   onBack: () => void
+  companyRfc?: string
 }
 
-export function Step4Billing({ data, onChange, onNext, onBack }: Step4Props) {
+export function Step4Billing({ data, onChange, onNext, onBack, companyRfc }: Step4Props) {
+  // Auto-populate RFC from company step if not already set
+  const rfcValue = data.rfc_emisor ?? companyRfc ?? ''
+
   function field(key: keyof BillingData, value: string) {
     onChange({ ...data, [key]: value })
   }
 
-  const rfcValid = data.rfc_emisor ? RFC_PATTERN.test(data.rfc_emisor.toUpperCase()) : true
+  const rfcValid = rfcValue ? RFC_PATTERN.test(rfcValue.toUpperCase()) : true
 
   return (
     <div className="space-y-5 animate-in slide-in-from-right-8 duration-500">
@@ -64,13 +68,16 @@ export function Step4Billing({ data, onChange, onNext, onBack }: Step4Props) {
           <input
             type="text"
             placeholder="KAP120101AB1"
-            value={data.rfc_emisor ?? ''}
+            value={rfcValue}
             onChange={e => field('rfc_emisor', e.target.value.toUpperCase())}
             maxLength={13}
             className={`w-full bg-white/5 border rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none font-mono tracking-wider ${
               !rfcValid ? 'border-red-500/40' : 'border-white/10 focus:border-[#CCFF00]/40'
             }`}
           />
+          {companyRfc && !data.rfc_emisor && (
+            <p className="mt-1 text-[10px] text-[#CCFF00]/50">Usando RFC de Información de Empresa</p>
+          )}
           {!rfcValid && <p className="mt-1 text-[10px] text-red-400">RFC con formato incorrecto</p>}
         </div>
 

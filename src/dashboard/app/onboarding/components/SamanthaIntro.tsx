@@ -49,8 +49,14 @@ const WELCOME: Message = {
   id: '0',
   role: 'assistant',
   content:
-    '¡Hola! Soy Samantha, tu asistente de inteligencia artificial en KINEXIS. 🙌\n\nEstoy aquí para ayudarte a configurar tu cuenta de la manera más fácil y personalizada posible.\n\nPara empezar — ¿cuál es el nombre de tu empresa y a qué se dedican?',
+    '¡Hola! Soy Samantha, la inteligencia artificial de KINEXIS.\n\nVoy a ayudarte a configurar tu cuenta en menos de 3 minutos — personalizado para tu negocio.\n\n¿Cuál es el nombre de tu empresa y a qué se dedican?',
 }
+
+const QUICK_REPLIES = [
+  'Somos una empresa de e-commerce',
+  'Vendemos en MercadoLibre',
+  'Tenemos una tienda física y online',
+]
 
 interface Props {
   onComplete: (modules: ModuleId[]) => void
@@ -62,7 +68,7 @@ export default function SamanthaIntro({ onComplete }: Props) {
   const [loading, setLoading] = useState(false)
   const [exchanges, setExchanges] = useState(0)
   const [showPicker, setShowPicker] = useState(false)
-  const [selectedModules, setSelectedModules] = useState<ModuleId[]>([])
+  const [selectedModules, setSelectedModules] = useState<ModuleId[]>(['ecommerce', 'crm', 'erp'])
   const [pickerConfirmed, setPickerConfirmed] = useState(false)
   const sessionId = useRef(`intro_${Date.now()}`)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -73,7 +79,7 @@ export default function SamanthaIntro({ onComplete }: Props) {
   }, [messages, showPicker])
 
   useEffect(() => {
-    if (exchanges >= 2 && !showPicker) {
+    if (exchanges >= 1 && !showPicker) {
       setTimeout(() => setShowPicker(true), 600)
     }
   }, [exchanges, showPicker])
@@ -287,8 +293,7 @@ export default function SamanthaIntro({ onComplete }: Props) {
 
                   <button
                     onClick={confirmModules}
-                    disabled={selectedModules.length === 0}
-                    className="w-full flex items-center justify-center gap-2 px-5 py-3.5 mt-1 rounded-2xl bg-[#CCFF00] text-black text-sm font-black uppercase tracking-widest shadow-[0_0_20px_rgba(204,255,0,0.25)] hover:bg-[#d4ff1a] disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-2 px-5 py-3.5 mt-1 rounded-2xl bg-[#CCFF00] text-black text-sm font-black uppercase tracking-widest shadow-[0_0_20px_rgba(204,255,0,0.25)] hover:bg-[#d4ff1a] transition-all active:scale-[0.98]"
                   >
                     Comenzar mi configuración
                     <ArrowRight className="w-4 h-4" />
@@ -302,7 +307,21 @@ export default function SamanthaIntro({ onComplete }: Props) {
 
           {/* Input — hidden after picker confirmed */}
           {!pickerConfirmed && (
-            <div className="px-4 py-4 border-t border-white/6 bg-white/2 shrink-0">
+            <div className="px-4 py-3 border-t border-white/6 bg-white/2 shrink-0 space-y-2.5">
+              {/* Quick replies — only before first exchange */}
+              {exchanges === 0 && !loading && (
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_REPLIES.map(reply => (
+                    <button
+                      key={reply}
+                      onClick={() => { setInput(reply); setTimeout(() => inputRef.current?.focus(), 50) }}
+                      className="text-[10px] font-bold text-white/40 px-3 py-1.5 rounded-full bg-white/4 border border-white/8 hover:bg-white/8 hover:text-white/60 transition-all"
+                    >
+                      {reply}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <input
                   ref={inputRef}
