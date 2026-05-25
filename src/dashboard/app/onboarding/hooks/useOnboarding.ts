@@ -90,7 +90,9 @@ export function useOnboarding() {
     }))
   }
 
-  async function submitOnboarding(): Promise<{ ok: boolean; error?: string }> {
+  async function submitOnboarding(
+    opts: { stripeSession?: string; stripePlan?: string } = {}
+  ): Promise<{ ok: boolean; error?: string }> {
     setSubmitting(true)
     setSubmitError(null)
     try {
@@ -103,6 +105,8 @@ export function useOnboarding() {
           rfc: formData.billing.rfc_emisor ?? (formData.company as { rfc?: string }).rfc,
         },
         users: formData.users,
+        ...(opts.stripeSession ? { stripe_session_id: opts.stripeSession } : {}),
+        ...(opts.stripePlan ? { stripe_plan: opts.stripePlan } : {}),
       }
       const res = await fetch('/api/onboarding', {
         method: 'POST',

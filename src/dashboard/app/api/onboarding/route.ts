@@ -6,13 +6,24 @@ const BACKEND_URL =
   'http://localhost:8000'
 
 export async function POST(request: Request) {
+  let body: Record<string, unknown> = {}
   try {
-    const body = await request.json()
-    const { company, ecommerce, messaging, users } = body
-    let billing = body.billing
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ success: false, error: 'Payload inválido' }, { status: 400 })
+  }
+
+  try {
+    const { company, ecommerce, messaging, users } = body as {
+      company: Record<string, unknown>
+      ecommerce: Record<string, unknown>
+      messaging: Record<string, unknown>
+      users: unknown[]
+    }
+    let billing = body.billing as Record<string, unknown> ?? {}
 
     // Fast client-side pre-validation
-    if (!company?.name?.trim()) {
+    if (!(company?.name as string | undefined)?.trim()) {
       return NextResponse.json(
         { success: false, error: 'Nombre de empresa requerido' },
         { status: 400 }
@@ -37,11 +48,23 @@ export async function POST(request: Request) {
       )
     }
 
+    const authHeader = request.headers.get('Authorization') ?? ''
+    const { stripe_session_id, stripe_plan } = body as {
+      stripe_session_id?: string; stripe_plan?: string
+    }
+
     // Delegate to Python backend (OnboardingService)
     const backendRes = await fetch(`${BACKEND_URL}/api/onboarding`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ company, ecommerce, messaging, billing, users }),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authHeader ? { Authorization: authHeader } : {}),
+      },
+      body: JSON.stringify({
+        company, ecommerce, messaging, billing, users,
+        ...(stripe_session_id ? { stripe_session_id } : {}),
+        ...(stripe_plan ? { stripe_plan } : {}),
+      }),
       signal: AbortSignal.timeout(30_000),
     })
 
@@ -68,7 +91,6 @@ export async function POST(request: Request) {
 
     // Backend unreachable → return mock success so wizard can still proceed in dev
     if (process.env.NODE_ENV === 'development') {
-      const body = await request.json().catch(() => ({}))
       console.warn('[/api/onboarding] Backend offline — returning dev mock')
       return NextResponse.json({
         success: true,
@@ -76,7 +98,7 @@ export async function POST(request: Request) {
         slug: 'dev-tenant',
         plan: 'growth',
         integrations_created: 0,
-        users_created: (body as any)?.users?.length ?? 1,
+        users_created: (body?.users as unknown[])?.length ?? 1,
         message: '[DEV] Backend offline — datos NO guardados en BD',
         dev_mode: true,
       })

@@ -181,15 +181,18 @@ async def ml_callback(
     except Exception:
         pass
 
-    # Persist credentials
+    # Persist credentials — keyed by supabase_user_id so pre-onboarding users
+    # (who have no real tenant yet) can complete OAuth before the wizard finishes.
+    supabase_user_id = state_data.get("uid")
     try:
         await db.execute(
             """
             INSERT INTO ml_credentials
-                (tenant_id, ml_user_id, ml_nickname, access_token, refresh_token,
-                 expires_in, connected_at, updated_at)
-            VALUES ($1::uuid, $2, $3, $4, $5, $6, NOW(), NOW())
-            ON CONFLICT (tenant_id) DO UPDATE SET
+                (tenant_id, supabase_user_id, ml_user_id, ml_nickname,
+                 access_token, refresh_token, expires_in, connected_at, updated_at)
+            VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+            ON CONFLICT (supabase_user_id) DO UPDATE SET
+                tenant_id     = EXCLUDED.tenant_id,
                 ml_user_id    = EXCLUDED.ml_user_id,
                 ml_nickname   = EXCLUDED.ml_nickname,
                 access_token  = EXCLUDED.access_token,
@@ -197,7 +200,8 @@ async def ml_callback(
                 expires_in    = EXCLUDED.expires_in,
                 updated_at    = NOW()
             """,
-            tenant_id, ml_user_id, ml_nickname, access_token, refresh_token, expires_in,
+            tenant_id, supabase_user_id, ml_user_id, ml_nickname,
+            access_token, refresh_token, expires_in,
         )
         logger.info("[ML-OAUTH] Credentials stored tenant=%s user=%s nick=%s",
                     tenant_id, ml_user_id, ml_nickname)
@@ -210,12 +214,16 @@ async def ml_callback(
 
 @router.get("/status")
 async def ml_status(current_user: dict = Depends(get_current_user)) -> dict:
-    """Returns ML connection status for the authenticated tenant."""
-    tenant_id = str(current_user["tenant_id"])
+    """Returns ML connection status for the authenticated user/tenant."""
+    supabase_user_id = current_user["supabase_user_id"]
     try:
         row = await db.fetch_one(
-            "SELECT ml_user_id, ml_nickname, connected_at FROM ml_credentials WHERE tenant_id=$1::uuid",
-            tenant_id,
+            """
+            SELECT ml_user_id, ml_nickname, connected_at
+            FROM ml_credentials
+            WHERE supabase_user_id = $1
+            """,
+            supabase_user_id,
         )
     except Exception:
         return {"connected": False, "note": "Table pending migration"}
@@ -232,8 +240,8 @@ async def ml_status(current_user: dict = Depends(get_current_user)) -> dict:
 
 @router.delete("/disconnect")
 async def ml_disconnect(current_user: dict = Depends(get_current_user)) -> dict:
-    tenant_id = str(current_user["tenant_id"])
+    supabase_user_id = current_user["supabase_user_id"]
     await db.execute(
-        "DELETE FROM ml_credentials WHERE tenant_id=$1::uuid", tenant_id
+        "DELETE FROM ml_credentials WHERE supabase_user_id = $1", supabase_user_id
     )
     return {"success": True}

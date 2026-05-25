@@ -6,9 +6,10 @@ Recibe datos del proxy Next.js y delega a OnboardingService.
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, field_validator
 
+from src.auth.jwt_validator import get_current_user
 from src.services.onboarding_service import onboarding_service
 
 logger = logging.getLogger(__name__)
@@ -82,6 +83,8 @@ class OnboardingRequest(BaseModel):
     messaging: MessagingIn = MessagingIn()
     billing: BillingIn
     users: List[UserIn]
+    stripe_session_id: Optional[str] = None
+    stripe_plan: Optional[str] = None
 
     @field_validator("users")
     @classmethod
@@ -94,7 +97,10 @@ class OnboardingRequest(BaseModel):
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 @router.post("")
-async def create_onboarding(body: OnboardingRequest) -> Dict[str, Any]:
+async def create_onboarding(
+    body: OnboardingRequest,
+    current_user: dict = Depends(get_current_user),
+) -> Dict[str, Any]:
     """Procesa el onboarding wizard completo en una transacción atómica."""
     logger.info(f"Onboarding request: company={body.company.name!r}, users={len(body.users)}")
 
@@ -104,6 +110,9 @@ async def create_onboarding(body: OnboardingRequest) -> Dict[str, Any]:
         messaging=body.messaging.model_dump(),
         billing=body.billing.model_dump(),
         users=[u.model_dump() for u in body.users],
+        supabase_user_id=current_user["supabase_user_id"],
+        stripe_session_id=body.stripe_session_id,
+        stripe_plan=body.stripe_plan,
     )
 
     if not result.get("success"):

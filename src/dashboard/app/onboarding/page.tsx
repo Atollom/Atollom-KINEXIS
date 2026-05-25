@@ -37,6 +37,8 @@ function buildWizardSteps(modules: ModuleId[]): WizardStep[] {
 }
 
 const MODULES_KEY = 'kinexis_selected_modules'
+const STRIPE_SESSION_KEY = 'kinexis_stripe_session'
+const STRIPE_PLAN_KEY = 'kinexis_stripe_plan'
 
 function OnboardingContent() {
   const router = useRouter()
@@ -75,6 +77,11 @@ function OnboardingContent() {
     if (checkout === 'success') {
       setSelectedModules(restoredModules)
       setPhase('wizard')
+      // Persist Stripe session so submit can link subscription to tenant
+      const stripeSession = searchParams.get('stripe_session')
+      const stripePlan = searchParams.get('plan')
+      if (stripeSession) sessionStorage.setItem(STRIPE_SESSION_KEY, stripeSession)
+      if (stripePlan) sessionStorage.setItem(STRIPE_PLAN_KEY, stripePlan)
       return
     }
 
@@ -114,8 +121,14 @@ function OnboardingContent() {
   }
 
   async function handleSubmit() {
-    const { ok } = await submitOnboarding()
-    if (ok) router.push('/dashboard')
+    const stripeSession = sessionStorage.getItem(STRIPE_SESSION_KEY) ?? undefined
+    const stripePlan = sessionStorage.getItem(STRIPE_PLAN_KEY) ?? undefined
+    const { ok } = await submitOnboarding({ stripeSession, stripePlan })
+    if (ok) {
+      sessionStorage.removeItem(STRIPE_SESSION_KEY)
+      sessionStorage.removeItem(STRIPE_PLAN_KEY)
+      router.push('/dashboard')
+    }
   }
 
   // ── Phase 1: Samantha intro + module selection ──────────────────

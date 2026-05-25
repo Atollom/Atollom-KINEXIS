@@ -51,6 +51,9 @@ class OnboardingService:
         messaging: Dict[str, Any],
         billing: Dict[str, Any],
         users: List[Dict[str, Any]],
+        supabase_user_id: Optional[str] = None,
+        stripe_session_id: Optional[str] = None,
+        stripe_plan: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Crea tenant con toda su configuración en una transacción.
@@ -68,14 +71,31 @@ class OnboardingService:
             slug = await self._unique_slug(company["name"])
             plan = self._plan_for_limit(billing.get("invoice_limit", 200))
 
+            # If ML OAuth was done pre-onboarding, fetch real tokens before the transaction
+            ml_creds: Optional[Dict[str, Any]] = None
+            if ecommerce.get("ml_connected") and supabase_user_id:
+                ml_creds = await db.fetch_one(
+                    "SELECT ml_user_id, ml_nickname, access_token, refresh_token "
+                    "FROM ml_credentials WHERE supabase_user_id = $1",
+                    supabase_user_id,
+                )
+
             pending_users: List[Tuple[str, str, str]] = []  # (email, temp_pw, full_name)
 
             async with db.transaction() as conn:
                 tenant_id = await self._insert_tenant(conn, company, billing, slug, plan)
                 await self._insert_fiscal_config(conn, tenant_id, billing)
                 integrations = await self._insert_integrations(
-                    conn, tenant_id, ecommerce, messaging, billing
+                    conn, tenant_id, ecommerce, messaging, billing,
+                    ml_creds=ml_creds,
                 )
+                # Link ML credentials to the newly created tenant
+                if ml_creds and supabase_user_id:
+                    await conn.execute(
+                        "UPDATE ml_credentials SET tenant_id = $1::uuid "
+                        "WHERE supabase_user_id = $2",
+                        str(tenant_id), supabase_user_id,
+                    )
                 pending_users = await self._insert_users(conn, tenant_id, users)
                 await conn.execute(
                     "UPDATE tenants SET onboarding_completed=TRUE, "
@@ -86,6 +106,12 @@ class OnboardingService:
             users_created = len(pending_users)
             logger.info(f"Onboarding complete: tenant={tenant_id} slug={slug}")
 
+            # Link Stripe subscription if checkout was completed before wizard
+            if stripe_session_id:
+                asyncio.create_task(
+                    self._link_stripe_subscription(str(tenant_id), stripe_session_id, stripe_plan)
+                )
+
             # Non-blocking post-commit tasks: Supabase auth + welcome emails
             asyncio.create_task(
                 self._post_onboarding_tasks(
@@ -94,6 +120,19 @@ class OnboardingService:
             )
             # Sandbox seed
             asyncio.create_task(self._seed_sandbox(str(tenant_id)))
+
+            # Auto-create FacturAPI organization if RFC was provided
+            rfc = billing.get("rfc_emisor") or billing.get("rfc")
+            if rfc and billing.get("regimen_fiscal") and billing.get("lugar_expedicion"):
+                asyncio.create_task(
+                    self._create_facturapi_org(
+                        tenant_id=str(tenant_id),
+                        legal_name=billing.get("razon_social") or company.get("name", ""),
+                        rfc=rfc,
+                        regimen_fiscal=billing["regimen_fiscal"],
+                        codigo_postal=billing["lugar_expedicion"],
+                    )
+                )
 
             return {
                 "success": True,
@@ -194,16 +233,18 @@ class OnboardingService:
         ecommerce: Dict[str, Any],
         messaging: Dict[str, Any],
         billing: Dict[str, Any],
+        ml_creds: Optional[Dict[str, Any]] = None,
     ) -> int:
         count = 0
 
-        # E-commerce: ML (connected via OAuth), Amazon, Shopify
+        # E-commerce: ML — prefer OAuth credentials fetched from ml_credentials table
         if ecommerce.get("ml_connected"):
+            creds_source = ml_creds or ecommerce  # fall back to payload for legacy paths
             await self._upsert_integration(conn, tenant_id, "mercadolibre", {
-                "access_token":  ecommerce.get("ml_access_token", ""),
-                "refresh_token": ecommerce.get("ml_refresh_token", ""),
-                "user_id":       ecommerce.get("ml_user_id", ""),
-                "nickname":      ecommerce.get("ml_nickname", ""),
+                "access_token":  creds_source.get("access_token") or creds_source.get("ml_access_token", ""),
+                "refresh_token": creds_source.get("refresh_token") or creds_source.get("ml_refresh_token", ""),
+                "user_id":       creds_source.get("ml_user_id", ""),
+                "nickname":      creds_source.get("ml_nickname", ""),
             }, is_connected=True)
             count += 1
 
@@ -359,6 +400,91 @@ class OnboardingService:
                 await send_welcome_email(email, full_name, company_name, temp_pw)
             except Exception as exc:
                 logger.warning("[ONBOARDING] Welcome email failed for %s: %s", email, exc)
+
+    # ── FacturAPI organization ────────────────────────────────────────────────
+
+    async def _create_facturapi_org(
+        self,
+        tenant_id: str,
+        legal_name: str,
+        rfc: str,
+        regimen_fiscal: str,
+        codigo_postal: str,
+    ) -> None:
+        """Creates FacturAPI organization post-commit (non-blocking)."""
+        try:
+            from src.services.facturapi_service import facturapi_service
+            org_id = await facturapi_service.create_organization_for_tenant(
+                tenant_id=tenant_id,
+                legal_name=legal_name,
+                rfc=rfc,
+                regimen_fiscal=regimen_fiscal,
+                codigo_postal=codigo_postal,
+            )
+            if org_id:
+                logger.info("[ONBOARDING] FacturAPI org created: %s for tenant %s", org_id, tenant_id)
+            else:
+                logger.warning("[ONBOARDING] FacturAPI org creation returned None for tenant %s", tenant_id)
+        except Exception as exc:
+            logger.warning("[ONBOARDING] FacturAPI org creation error for tenant %s: %s", tenant_id, exc)
+
+    # ── Stripe subscription linking ───────────────────────────────────────────
+
+    async def _link_stripe_subscription(
+        self,
+        tenant_id: str,
+        stripe_session_id: str,
+        stripe_plan: Optional[str] = None,
+    ) -> None:
+        """
+        Retrieves the Stripe checkout session and links the subscription to the tenant.
+        Called asynchronously after tenant creation to handle the pre-onboarding payment case.
+        """
+        import os
+        import httpx
+
+        stripe_key = os.getenv("STRIPE_SECRET_KEY")
+        if not stripe_key:
+            logger.warning("[ONBOARDING] STRIPE_SECRET_KEY not set — skipping subscription link")
+            return
+
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.get(
+                    f"https://api.stripe.com/v1/checkout/sessions/{stripe_session_id}",
+                    headers={"Authorization": f"Bearer {stripe_key}"},
+                )
+            if resp.status_code != 200:
+                logger.warning("[ONBOARDING] Stripe session fetch failed %s: %s",
+                               resp.status_code, resp.text[:200])
+                return
+
+            session_data = resp.json()
+            subscription_id = session_data.get("subscription")
+            customer_id = session_data.get("customer")
+
+            updates: Dict[str, Any] = {"updated_at": "NOW()"}
+            if subscription_id:
+                updates["stripe_subscription_id"] = subscription_id
+            if customer_id:
+                updates["stripe_customer_id"] = customer_id
+            if stripe_plan:
+                updates["plan"] = stripe_plan
+
+            set_clauses = ", ".join(
+                f"{k}=${i+2}" for i, k in enumerate(updates.keys()) if k != "updated_at"
+            )
+            if subscription_id or customer_id or stripe_plan:
+                await db.execute(
+                    f"UPDATE tenants SET {set_clauses}, updated_at=NOW() WHERE id=$1::uuid",
+                    tenant_id,
+                    *[v for k, v in updates.items() if k != "updated_at"],
+                )
+                logger.info("[ONBOARDING] Linked Stripe subscription %s to tenant %s",
+                            subscription_id, tenant_id)
+
+        except Exception as exc:
+            logger.warning("[ONBOARDING] Stripe subscription link failed: %s", exc)
 
     # ── Sandbox seeding ───────────────────────────────────────────────────────
 

@@ -96,6 +96,10 @@ export async function POST(req: NextRequest) {
     }
 
     const origin = req.nextUrl.origin;
+    // Append Stripe's session ID template so we can link subscription → tenant on submit
+    const successBase = success_url || `${origin}/onboarding?checkout=success`
+    const successWithSession = `${successBase}&stripe_session={CHECKOUT_SESSION_ID}&plan=${plan_type}`
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
@@ -106,8 +110,8 @@ export async function POST(req: NextRequest) {
         supabase_user_id: user.id,
         ...(tenantId ? { tenant_id: tenantId } : {}),
       },
-      success_url: success_url || `${origin}/onboarding?plan=${plan_type}&checkout=ok`,
-      cancel_url: cancel_url || `${origin}/onboarding/plans`,
+      success_url: successWithSession,
+      cancel_url: cancel_url || `${origin}/onboarding?checkout=cancel`,
       allow_promotion_codes: true,
       billing_address_collection: 'required',
     });

@@ -62,17 +62,26 @@ async def get_current_user(
     if not supabase_user_id:
         raise HTTPException(status_code=401, detail="Token missing sub claim")
 
+    _NIL_UUID = "00000000-0000-0000-0000-000000000000"
+
     user_row = await get_user_by_supabase_id(supabase_user_id)
     if not user_row:
-        raise HTTPException(
-            status_code=401,
-            detail="Authenticated user not found in system",
-        )
+        # Pre-onboarding: user authenticated via Supabase but not yet in users table.
+        # Return a pseudo-user so OAuth and onboarding endpoints can proceed.
+        return {
+            "supabase_user_id": supabase_user_id,
+            "internal_user_id": _NIL_UUID,
+            "tenant_id": _NIL_UUID,
+            "email": payload.get("email"),
+            "role": None,
+            "is_pre_onboarding": True,
+        }
 
     return {
         "supabase_user_id": supabase_user_id,
-        "internal_user_id": user_row["id"],
-        "tenant_id": user_row["tenant_id"],
+        "internal_user_id": str(user_row["id"]),
+        "tenant_id": str(user_row["tenant_id"]),
         "email": user_row.get("email"),
         "role": user_row.get("role"),
+        "is_pre_onboarding": False,
     }
