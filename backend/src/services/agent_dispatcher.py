@@ -43,6 +43,23 @@ _AGENT_REGISTRY: Dict[str, tuple] = {
     "agent_30_purchase_orders":    ("src.agents.erp.agent_30_purchase_orders",       "Agent30PurchaseOrders"),
     "agent_31_lead_scorer":        ("src.agents.crm.agent_31_lead_scorer",           "Agent31LeadScorer"),
     "agent_37_support_tickets":    ("src.agents.crm.agent_37_support_tickets",       "Agent37SupportTickets"),
+    # New agents — batch 3
+    "agent_07_ml_analytics":      ("src.agents.ecommerce.agent_07_ml_analytics",    "Agent07MLAnalytics"),
+    "agent_08_amazon_analytics":  ("src.agents.ecommerce.agent_08_amazon_analytics","Agent08AmazonAnalytics"),
+    "agent_09_shopify_analytics": ("src.agents.ecommerce.agent_09_shopify_analytics","Agent09ShopifyAnalytics"),
+    "agent_10_inventory_sync":    ("src.agents.ecommerce.agent_10_inventory_sync",  "Agent10InventorySync"),
+    "agent_11_competitor_monitor":("src.agents.ecommerce.agent_11_competitor_monitor","Agent11CompetitorMonitor"),
+    "agent_15_invoice_reconciler":("src.agents.erp.agent_15_invoice_reconciler",    "Agent15InvoiceReconciler"),
+    "agent_17_cashflow_projector":("src.agents.erp.agent_17_cashflow_projector",    "Agent17CashflowProjector"),
+    "agent_28_warehouse_manager": ("src.agents.erp.agent_28_warehouse_manager",     "Agent28WarehouseManager"),
+    "agent_29_carrier_comparator":("src.agents.erp.agent_29_carrier_comparator",    "Agent29CarrierComparator"),
+    "agent_20_customer_segmentation": ("src.agents.crm.agent_20_customer_segmentation", "Agent20CustomerSegmentation"),
+    "agent_21_churn_predictor":   ("src.agents.crm.agent_21_churn_predictor",       "Agent21ChurnPredictor"),
+    "agent_22_upsell_recommender":("src.agents.crm.agent_22_upsell_recommender",    "Agent22UpsellRecommender"),
+    "agent_23_customer_ltv":      ("src.agents.crm.agent_23_customer_ltv",          "Agent23CustomerLTV"),
+    "agent_34_review_aggregator": ("src.agents.crm.agent_34_review_aggregator",     "Agent34ReviewAggregator"),
+    "agent_35_social_monitor":    ("src.agents.crm.agent_35_social_monitor",        "Agent35SocialMonitor"),
+    "agent_36_survey_builder":    ("src.agents.crm.agent_36_survey_builder",        "Agent36SurveyBuilder"),
     "agent_12_ads_manager":        ("src.agents.meta.agent_12_ads_manager",          "Agent12AdsManager"),
     "agent_content_publisher":     ("src.agents.meta.agent_content_publisher",       "AgentContentPublisher"),
     "agent_wa_whatsapp":           ("src.agents.meta.agent_wa_whatsapp",             "AgentWAWhatsApp"),
@@ -338,6 +355,187 @@ def _fmt_messaging(data: Dict, query: str) -> str:
     return f"✅ Mensaje **{status}** — ID: `{msg_id}`"
 
 
+def _fmt_ml_analytics(data: Dict, query: str) -> str:
+    period = data.get("period", "mes")
+    metrics = data.get("metrics", {})
+    revenue = metrics.get("revenue", 0)
+    orders = metrics.get("orders", 0)
+    return (
+        f"**Analytics ML — {period}:**\n"
+        f"- 💰 Ingresos: **${revenue:,.0f} MXN** ({orders} órdenes)\n"
+        f"- Ticket promedio: **${metrics.get('avg_order_value', 0):,.0f} MXN**\n"
+        f"- Conversión: **{metrics.get('conversion_rate_pct', 0):.1f}%**"
+    )
+
+
+def _fmt_ecommerce_analytics(data: Dict, query: str) -> str:
+    platform = data.get("platform", "Canal")
+    metrics = data.get("metrics", {})
+    revenue = metrics.get("revenue", metrics.get("total_revenue", 0))
+    return f"**Analytics {platform}:** ${revenue:,.0f} MXN | {metrics.get('orders', 0)} órdenes"
+
+
+def _fmt_inventory_sync(data: Dict, query: str) -> str:
+    synced = data.get("synced_items", 0)
+    drift = data.get("drift_found", [])
+    lines = [f"✅ **Inventario sincronizado** — {synced} SKUs actualizados"]
+    if drift:
+        lines.append(f"⚠️ {len(drift)} SKUs con diferencia entre canales — revisar")
+    return "\n".join(lines)
+
+
+def _fmt_competitor(data: Dict, query: str) -> str:
+    avg = data.get("market_avg_price", 0)
+    position = data.get("price_position", "")
+    competitors = data.get("competitors", [])
+    lines = [f"**Monitor de competencia:**\n- Precio promedio mercado: **${avg:,.0f} MXN** ({position})"]
+    for c in competitors[:3]:
+        lines.append(f"- {c.get('title', '')[:40]}: **${c.get('price', 0):,.0f}**")
+    return "\n".join(lines)
+
+
+def _fmt_invoice_reconciler(data: Dict, query: str) -> str:
+    summary = data.get("summary", {})
+    rate = summary.get("collection_rate_pct", 0)
+    pending = summary.get("total_pending", 0)
+    overdue = data.get("overdue", [])
+    return (
+        f"**Conciliación facturas:**\n"
+        f"- Tasa de cobranza: **{rate:.1f}%**\n"
+        f"- Pendiente de cobro: **${pending:,.0f} MXN**\n"
+        f"- Facturas vencidas: **{len(overdue)}**"
+    )
+
+
+def _fmt_cashflow(data: Dict, query: str) -> str:
+    proj = data.get("projection", {})
+    horizon = data.get("horizon_days", 30)
+    net = proj.get("projected_net", 0)
+    sign = "+" if net >= 0 else ""
+    return (
+        f"**Flujo de caja — {horizon} días:**\n"
+        f"- Ingresos proyectados: **${proj.get('projected_income', 0):,.0f} MXN**\n"
+        f"- Gastos proyectados: **${proj.get('projected_expenses', 0):,.0f} MXN**\n"
+        f"- Flujo neto: **{sign}${net:,.0f} MXN**"
+    )
+
+
+def _fmt_warehouse(data: Dict, query: str) -> str:
+    action = data.get("action", "")
+    if action == "get_layout":
+        zones = data.get("zones", [])
+        pct = data.get("total_capacity_pct", 0)
+        return f"**Almacén — {pct}% ocupado:**\n" + "\n".join(
+            f"- Zona {z['zone']}: {z['occupied']}/{z['locations']} loc. ({z['capacity_pct']}%)" for z in zones
+        )
+    movements = data.get("movements", [])
+    if movements:
+        return f"**Últimos movimientos ({len(movements)}):**\n" + "\n".join(
+            f"- {m['sku']}: {m.get('quantity', 0)} uds ({m.get('type', '')})" for m in movements[:5]
+        )
+    return f"**Almacén — {action}:** operación completada."
+
+
+def _fmt_carrier(data: Dict, query: str) -> str:
+    recommended = data.get("recommended", "")
+    cheapest = data.get("cheapest", "")
+    fastest = data.get("fastest", "")
+    options = data.get("options", [])
+    lines = [f"**Comparador de paqueterías:**\n- ⭐ Recomendado: **{recommended.upper()}**"]
+    if cheapest != recommended:
+        lines.append(f"- 💰 Más económico: **{cheapest.upper()}**")
+    if fastest != recommended:
+        lines.append(f"- ⚡ Más rápido: **{fastest.upper()}**")
+    for opt in options[:3]:
+        lines.append(f"- {opt['carrier'].title()}: **${opt['cost_mxn']:,.0f}** — {opt['delivery_days']} días")
+    return "\n".join(lines)
+
+
+def _fmt_segmentation(data: Dict, query: str) -> str:
+    segments = data.get("segments", [])
+    total = data.get("summary", {}).get("total_customers", 0)
+    lines = [f"**Segmentación de clientes ({total} total):**"]
+    for s in segments[:4]:
+        lines.append(f"- {s['name']}: **{s['count']}** clientes ({s['pct']}%) — ${s.get('avg_revenue', 0):,.0f} MXN promedio")
+    return "\n".join(lines)
+
+
+def _fmt_churn(data: Dict, query: str) -> str:
+    count = data.get("at_risk_count", 0)
+    rate = data.get("churn_rate_pct", 0)
+    at_risk = data.get("at_risk", [])
+    lines = [f"**Predicción de churn:** {count} clientes en riesgo ({rate}% tasa estimada)"]
+    for c in at_risk[:3]:
+        lines.append(f"- {c['customer_id']}: {c['days_inactive']} días inactivo — LTV ${c['lifetime_value']:,.0f}")
+    return "\n".join(lines)
+
+
+def _fmt_upsell(data: Dict, query: str) -> str:
+    recs = data.get("recommendations", [])
+    value = data.get("upsell_value_mxn", 0)
+    lines = [f"**Oportunidades de upsell — ${value:,.0f} MXN potencial:**"]
+    for r in recs[:4]:
+        lines.append(f"- {r.get('name', r.get('sku', ''))}: **${r.get('price_mxn', r.get('estimated_price_mxn', 0)):,.0f}** ({r.get('type', '')})")
+    return "\n".join(lines)
+
+
+def _fmt_ltv(data: Dict, query: str) -> str:
+    if "customer_id" in data:
+        hist = data.get("historical_ltv", 0)
+        proj = data.get("projected_ltv", 0)
+        segment = data.get("segment", "")
+        return (
+            f"**LTV de cliente — {segment}:**\n"
+            f"- Histórico: **${hist:,.0f} MXN**\n"
+            f"- Proyectado ({data.get('projection_months', 12)} meses): **${proj:,.0f} MXN**"
+        )
+    top = data.get("top_customers", [])
+    lines = [f"**Top clientes por LTV ({data.get('projection_months', 12)} meses):"]
+    for c in top[:5]:
+        lines.append(f"- {c['customer_id']}: hist ${c['historical_ltv']:,.0f} → proy ${c['projected_ltv']:,.0f}")
+    return "\n".join(lines)
+
+
+def _fmt_reviews(data: Dict, query: str) -> str:
+    avg = data.get("avg_rating", 0)
+    total = data.get("total_reviews", 0)
+    sentiment = data.get("sentiment", "")
+    issues = data.get("top_issues", [])
+    lines = [f"**Reseñas ({total} total) — ⭐ {avg:.1f}/5 ({sentiment})**"]
+    if issues:
+        lines.append("**Problemas frecuentes:**")
+        for issue in issues[:3]:
+            lines.append(f"- {issue}")
+    return "\n".join(lines)
+
+
+def _fmt_social(data: Dict, query: str) -> str:
+    score = data.get("sentiment_score", 0)
+    mentions = data.get("total_mentions", 0)
+    reach = data.get("reach_total", 0)
+    return (
+        f"**Monitor social — {mentions} menciones esta semana:**\n"
+        f"- Sentimiento: **{score}/100** | Alcance: **{reach:,}**\n"
+        f"- Positivas: {data.get('sentiment_breakdown', {}).get('positive', 0)} | "
+        f"Negativas: {data.get('sentiment_breakdown', {}).get('negative', 0)}"
+    )
+
+
+def _fmt_survey(data: Dict, query: str) -> str:
+    action = data.get("action", "")
+    if action == "create":
+        return (
+            f"✅ **Encuesta creada** ({data.get('survey_type', '').upper()})\n"
+            f"- ID: `{data.get('survey_id', '')}`\n"
+            f"- {len(data.get('questions', []))} preguntas | Link: {data.get('share_url', '')}"
+        )
+    if action == "send":
+        return f"✅ Encuesta **{data.get('survey_id', '')}** enviada por WhatsApp al cliente."
+    rate = data.get("response_rate_pct", 0)
+    avg = data.get("avg_score", 0)
+    return f"**Resultados encuesta:** {rate:.0f}% respuesta | Score promedio: **{avg:.1f}**"
+
+
 _FORMATTERS = {
     # Phase 1
     "agent_05_inventory_monitor": _fmt_inventory,
@@ -362,6 +560,25 @@ _FORMATTERS = {
     "agent_19_nps_collector":      _fmt_nps,
     "agent_31_lead_scorer":        _fmt_lead_score,
     "agent_37_support_tickets":    _fmt_support_ticket,
+    # Batch 3 — E-commerce analytics
+    "agent_07_ml_analytics":       _fmt_ml_analytics,
+    "agent_08_amazon_analytics":   _fmt_ecommerce_analytics,
+    "agent_09_shopify_analytics":  _fmt_ecommerce_analytics,
+    "agent_10_inventory_sync":     _fmt_inventory_sync,
+    "agent_11_competitor_monitor": _fmt_competitor,
+    # Batch 3 — ERP
+    "agent_15_invoice_reconciler": _fmt_invoice_reconciler,
+    "agent_17_cashflow_projector": _fmt_cashflow,
+    "agent_28_warehouse_manager":  _fmt_warehouse,
+    "agent_29_carrier_comparator": _fmt_carrier,
+    # Batch 3 — CRM
+    "agent_20_customer_segmentation": _fmt_segmentation,
+    "agent_21_churn_predictor":    _fmt_churn,
+    "agent_22_upsell_recommender": _fmt_upsell,
+    "agent_23_customer_ltv":       _fmt_ltv,
+    "agent_34_review_aggregator":  _fmt_reviews,
+    "agent_35_social_monitor":     _fmt_social,
+    "agent_36_survey_builder":     _fmt_survey,
     # Phase 2 — Meta
     "agent_12_ads_manager":        _fmt_ads,
     "agent_content_publisher":     _fmt_content,

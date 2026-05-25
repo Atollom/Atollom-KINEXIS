@@ -364,6 +364,180 @@ _AGENT_PATTERNS: List[tuple] = [
         ),
         lambda q, _m: {"channel": _extract_ticket_channel(q)},
     ),
+    # ── New agents batch 3 — E-commerce analytics ────────────────────────────
+    (
+        "agent_07_ml_analytics",
+        re.compile(
+            r'(analytics?\s+(de\s+)?ml|analytics?\s+(de\s+)?mercado\s*libre|'
+            r'ventas?\s+(de\s+)?ml\b|estadisticas?\s+(de\s+)?ml|'
+            r'reporte\s+(de\s+)?ml|como\s+voy\s+en\s+ml)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"period": _extract_period(q)},
+    ),
+    (
+        "agent_08_amazon_analytics",
+        re.compile(
+            r'(analytics?\s+(de\s+)?amazon|ventas?\s+(de\s+)?amazon|'
+            r'reporte\s+(de\s+)?amazon|estadisticas?\s+(de\s+)?amazon|'
+            r'como\s+voy\s+en\s+amazon|buy\s+box)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"period": _extract_period(q)},
+    ),
+    (
+        "agent_09_shopify_analytics",
+        re.compile(
+            r'(analytics?\s+(de\s+)?shopify|ventas?\s+(de\s+)?shopify|'
+            r'reporte\s+(de\s+)?shopify|estadisticas?\s+(de\s+)?shopify|'
+            r'como\s+voy\s+en\s+shopify|tienda\s+shopify)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"period": _extract_period(q)},
+    ),
+    (
+        "agent_10_inventory_sync",
+        re.compile(
+            r'(sincroniza.*inventario|inventario.*sincronizado|'
+            r'diferencia[s]?\s+de\s+stock|stock\s+(entre|diferente|canal)|'
+            r'sincronizar?\s+stock)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {"action": "sync"},
+    ),
+    (
+        "agent_11_competitor_monitor",
+        re.compile(
+            r'(competidor[es]?|precio[s]?\s+(de\s+)?competencia|'
+            r'mercado\s*(libre)?\s+(precio|competidor)|'
+            r'como\s+estoy\s+vs\s+competencia|monitor.*competencia)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"action": "check_prices", "query": q[:80]},
+    ),
+    # ── New agents batch 3 — ERP ──────────────────────────────────────────────
+    (
+        "agent_15_invoice_reconciler",
+        re.compile(
+            r'(concilia(r|cion)?\s+factura[s]?|facturas?\s+vencida[s]?|'
+            r'cartera\s+vencida|facturas?\s+sin\s+pagar|cobranza\s+pendiente|'
+            r'tasa\s+de\s+cobranza|facturas?\s+vs\s+pago[s]?)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"action": "get_summary", "period": _extract_period(q)},
+    ),
+    (
+        "agent_17_cashflow_projector",
+        re.compile(
+            r'(flujo\s+de\s+caja|proyeccion\s+(de\s+)?(flujo|efectivo|caja)|'
+            r'cashflow\s+(proyectado|proximo[s]?)|'
+            r'cuanto\s+voy\s+a\s+tener|proyectar?\s+ingresos?)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {
+            "horizon_days": 90 if "90" in q else (60 if "60" in q else 30),
+            "include_scenarios": True,
+        },
+    ),
+    (
+        "agent_28_warehouse_manager",
+        re.compile(
+            r'(almacen|bodega\b|layout\s+(de\s+)?almacen|'
+            r'movimiento[s]?\s+(de\s+)?almacen|ubicacion\s+(de\s+)?producto|'
+            r'zona[s]?\s+(de\s+)?almacen|capacidad\s+(de\s+)?almacen)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"action": "get_layout" if "layout" in _strip_accents(q).lower() else "get_movements"},
+    ),
+    (
+        "agent_29_carrier_comparator",
+        re.compile(
+            r'(compara.*paqueteria[s]?|mejor\s+paqueteria|'
+            r'cotiza.*envio|cual\s+(paqueteria|carrier)\s+(es\s+)?(mejor|mas\s+barato|mas\s+rapido)|'
+            r'tarifas?\s+(de\s+)?(envio|paqueteria)|'
+            r'cuanto\s+cuesta\s+(el\s+)?envio)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {
+            "service": "express" if re.search(r'express|urgente|rapido', _strip_accents(q).lower()) else "standard",
+            "weight_kg": 1.0,
+        },
+    ),
+    # ── New agents batch 3 — CRM ──────────────────────────────────────────────
+    (
+        "agent_20_customer_segmentation",
+        re.compile(
+            r'(segmenta(r|cion)?\s+clientes?|rfm\b|clientes?\s+(por\s+)?(valor|segmento)|'
+            r'champions?\s+clientes?|clientes?\s+leales?|'
+            r'analisis\s+(de\s+)?clientes?)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {"model": "rfm" if "rfm" in _strip_accents(q).lower() else "all"},
+    ),
+    (
+        "agent_21_churn_predictor",
+        re.compile(
+            r'(churn\b|clientes?\s+(en\s+riesgo|que\s+van\s+a\s+irse|perdiendo)|'
+            r'prediccion\s+(de\s+)?abandono|tasa\s+(de\s+)?churn|'
+            r'clientes?\s+inactivos?\s+(en\s+riesgo|perdidos?))',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {"days_threshold": 60},
+    ),
+    (
+        "agent_22_upsell_recommender",
+        re.compile(
+            r'(upsell\b|cross[\s-]?sell\b|recomienda.*producto[s]?|'
+            r'producto[s]?\s+complementarios?|que\s+mas\s+puedo\s+vender(le)?|'
+            r'oportunidad\s+(de\s+)?venta)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {},
+    ),
+    (
+        "agent_23_customer_ltv",
+        re.compile(
+            r'(ltv\b|lifetime\s+value|valor\s+(de\s+)?vida\s+(del?\s+)?cliente|'
+            r'cuanto\s+vale\s+(el\s+)?cliente|valor\s+total\s+(del?\s+)?cliente)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {
+            "projection_months": 12,
+        },
+    ),
+    (
+        "agent_34_review_aggregator",
+        re.compile(
+            r'(resenas?\b|reviews?\b|calificacion(es)?\s+(de\s+)?clientes?|'
+            r'que\s+(dicen|opinan)\s+(los?\s+)?clientes?|'
+            r'reputacion\s+(en\s+)?(ml|amazon|shopify)|estrella[s]?\s+promedio)',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {"action": "get_summary", "channel": "all"},
+    ),
+    (
+        "agent_35_social_monitor",
+        re.compile(
+            r'(menciones?\s+(de\s+)?marca|monitor(ea)?\s+(redes|social)|'
+            r'que\s+dicen\s+(en\s+)?redes|sentimiento\s+(en\s+)?redes|'
+            r'menciones?\s+(en\s+)?(instagram|facebook|twitter))',
+            re.IGNORECASE,
+        ),
+        lambda _q, _m: {"action": "get_mentions", "platform": "all"},
+    ),
+    (
+        "agent_36_survey_builder",
+        re.compile(
+            r'(crea\s+(una?\s+)?encuesta|envia\s+(una?\s+)?encuesta|'
+            r'encuesta\s+(de\s+)?(satisfaccion|nps|csat)|'
+            r'resultados?\s+(de\s+)?encuesta)',
+            re.IGNORECASE,
+        ),
+        lambda q, _m: {
+            "action": "get_results" if re.search(r'resultado|respuesta', _strip_accents(q).lower()) else "create",
+            "survey_type": "nps" if "nps" in _strip_accents(q).lower() else "csat",
+        },
+    ),
     # ── Meta / Social ─────────────────────────────────────────────────────────
     (
         "agent_12_ads_manager",
@@ -488,6 +662,12 @@ _LLM_SCHEMAS: Dict[str, Dict] = {
         "required": "action (publish/schedule/delete), content_type (post/story/reel), platforms (list: facebook/instagram)",
         "optional": "caption, media_url, scheduled_at",
         "clarification": "Para publicar contenido necesito: tipo (post/story/reel), plataformas y el texto o imagen.",
+    },
+    "agent_22_upsell_recommender": {
+        "label": "Upsell Recommender",
+        "required": "tenant_id",
+        "optional": "customer_id (string), sku (string)",
+        "clarification": "¿Para qué cliente o producto quieres recomendaciones de upsell/cross-sell?",
     },
 }
 
