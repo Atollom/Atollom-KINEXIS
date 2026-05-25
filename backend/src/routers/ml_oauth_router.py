@@ -99,7 +99,7 @@ async def connect_ml(current_user: dict = Depends(get_current_user)) -> dict:
 
     state = _build_state(
         tenant_id=str(current_user["tenant_id"]),
-        user_id=str(current_user["id"]),
+        user_id=str(current_user["supabase_user_id"]),
     )
     redirect_uri = _redirect_uri()
 
