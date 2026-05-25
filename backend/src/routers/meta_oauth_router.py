@@ -276,9 +276,25 @@ async def meta_callback(
             "[META-OAUTH] Credentials stored tenant=%s fb=%s waba=%s platforms=%s",
             tenant_id, fb_user_id, waba_id, connected_platforms,
         )
+
+        # Also populate whatsapp_credentials so the webhook can resolve tenant by phone_number_id
+        if phone_number_id:
+            await db.execute(
+                """
+                INSERT INTO whatsapp_credentials
+                    (tenant_id, phone_number_id, waba_id, display_number, access_token)
+                VALUES ($1::uuid, $2, $3, $4, $5)
+                ON CONFLICT (phone_number_id) DO UPDATE SET
+                    tenant_id      = EXCLUDED.tenant_id,
+                    waba_id        = EXCLUDED.waba_id,
+                    display_number = EXCLUDED.display_number,
+                    access_token   = EXCLUDED.access_token
+                """,
+                tenant_id, phone_number_id, waba_id, phone_number, long_token,
+            )
+
     except Exception as exc:
         logger.error("[META-OAUTH] DB upsert failed: %s", exc)
-        # Table might not exist yet — still treat as success so the UI doesn't break
         pass
 
     platforms_str = ",".join(connected_platforms)
