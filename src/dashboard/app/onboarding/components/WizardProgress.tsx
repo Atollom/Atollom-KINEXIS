@@ -1,30 +1,29 @@
 'use client'
 
-import { Building2, ShoppingCart, MessageSquare, Receipt, Users, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
+
+interface WizardStep {
+  id: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+}
 
 interface WizardProgressProps {
   currentStep: number
-  totalSteps: number
+  steps: WizardStep[]
 }
 
-const STEPS = [
-  { number: 1, name: 'Empresa', Icon: Building2 },
-  { number: 2, name: 'E-commerce', Icon: ShoppingCart },
-  { number: 3, name: 'Mensajería', Icon: MessageSquare },
-  { number: 4, name: 'Facturación', Icon: Receipt },
-  { number: 5, name: 'Usuarios', Icon: Users },
-]
-
-export function WizardProgress({ currentStep }: WizardProgressProps) {
+export function WizardProgress({ currentStep, steps }: WizardProgressProps) {
   return (
-    <div className="flex items-center justify-center gap-0 mb-10">
-      {STEPS.map((step, index) => {
-        const done = currentStep > step.number
-        const active = currentStep === step.number
-        const { Icon } = step
+    <div className="flex items-center justify-center gap-0 mb-10 overflow-x-auto pb-1">
+      {steps.map((step, index) => {
+        const stepNumber = index + 1
+        const done = currentStep > stepNumber
+        const active = currentStep === stepNumber
+        const { icon: Icon } = step
 
         return (
-          <div key={step.number} className="flex items-center">
+          <div key={step.id} className="flex items-center shrink-0">
             <div className="flex flex-col items-center">
               <div
                 className={`
@@ -44,14 +43,14 @@ export function WizardProgress({ currentStep }: WizardProgressProps) {
                   active ? 'text-[#CCFF00]' : done ? 'text-white/60' : 'text-white/20'
                 }`}
               >
-                {step.name}
+                {step.label}
               </span>
             </div>
 
-            {index < STEPS.length - 1 && (
+            {index < steps.length - 1 && (
               <div
-                className={`h-px w-12 mx-3 mb-5 transition-all duration-500 ${
-                  currentStep > step.number ? 'bg-[#CCFF00]/60' : 'bg-white/10'
+                className={`h-px w-10 mx-2 mb-5 transition-all duration-500 ${
+                  currentStep > stepNumber ? 'bg-[#CCFF00]/60' : 'bg-white/10'
                 }`}
               />
             )}

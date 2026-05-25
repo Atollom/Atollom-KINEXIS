@@ -49,6 +49,7 @@ from src.routers import (
     sandbox_router,
     health_router,
     amazon_oauth_router,
+    ml_oauth_router,
 )
 
 _startup_logger = logging.getLogger("kinexis.startup")
@@ -119,6 +120,7 @@ app.include_router(shipping_router.router)
 app.include_router(sandbox_router.router)
 app.include_router(health_router.router)
 app.include_router(amazon_oauth_router.router)
+app.include_router(ml_oauth_router.router)
 
 
 @app.get("/sentry-test", tags=["Testing"])

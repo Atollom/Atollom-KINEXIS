@@ -13,6 +13,7 @@ from . import shipping_router
 from . import sandbox_router
 from . import health_router
 from . import amazon_oauth_router
+from . import ml_oauth_router
 
 __all__ = [
     "onboarding_router",
@@ -26,4 +27,5 @@ __all__ = [
     "sandbox_router",
     "health_router",
     "amazon_oauth_router",
+    "ml_oauth_router",
 ]

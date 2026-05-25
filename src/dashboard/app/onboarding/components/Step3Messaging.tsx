@@ -1,7 +1,6 @@
 'use client'
 
-import { MessageSquare } from 'lucide-react'
-import { ConnectionTest } from './ConnectionTest'
+import { MessageSquare, Clock, Info } from 'lucide-react'
 import type { MessagingData } from '../hooks/useOnboarding'
 
 interface Step3Props {
@@ -11,101 +10,7 @@ interface Step3Props {
   onBack: () => void
 }
 
-function InputField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = 'text',
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  placeholder?: string
-  type?: string
-}) {
-  return (
-    <div>
-      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1">{label}</label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#CCFF00]/40 font-mono"
-      />
-    </div>
-  )
-}
-
 export function Step3Messaging({ data, onChange, onNext, onBack }: Step3Props) {
-  function field(key: keyof MessagingData, value: string) {
-    onChange({ ...data, [key]: value })
-  }
-
-  async function testWhatsApp() {
-    if (!data.wa_access_token || !data.wa_phone_number_id) {
-      return { success: false, message: 'Completa Phone Number ID y Access Token' }
-    }
-    const res = await fetch('/api/meta', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        agent: 'whatsapp',
-        action: 'test_connection',
-        phone_number_id: data.wa_phone_number_id,
-        access_token: data.wa_access_token,
-      }),
-    })
-    const json = await res.json()
-    return {
-      success: json.success ?? false,
-      message: json.success ? 'WhatsApp Business conectado' : (json.error ?? 'Error de conexión'),
-    }
-  }
-
-  async function testInstagram() {
-    if (!data.ig_access_token || !data.ig_account_id) {
-      return { success: false, message: 'Completa Account ID y Access Token' }
-    }
-    const res = await fetch('/api/meta', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        agent: 'instagram',
-        action: 'test_connection',
-        account_id: data.ig_account_id,
-        access_token: data.ig_access_token,
-      }),
-    })
-    const json = await res.json()
-    return {
-      success: json.success ?? false,
-      message: json.success ? 'Instagram Business conectado' : (json.error ?? 'Error de conexión'),
-    }
-  }
-
-  async function testFacebook() {
-    if (!data.fb_page_access_token || !data.fb_page_id) {
-      return { success: false, message: 'Completa Page ID y Page Access Token' }
-    }
-    const res = await fetch('/api/meta', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        agent: 'facebook',
-        action: 'test_connection',
-        page_id: data.fb_page_id,
-        access_token: data.fb_page_access_token,
-      }),
-    })
-    const json = await res.json()
-    return {
-      success: json.success ?? false,
-      message: json.success ? 'Facebook Page conectada' : (json.error ?? 'Error de conexión'),
-    }
-  }
-
   return (
     <div className="space-y-5 animate-in slide-in-from-right-8 duration-500">
       <div className="flex items-center gap-3 mb-4">
@@ -114,104 +19,50 @@ export function Step3Messaging({ data, onChange, onNext, onBack }: Step3Props) {
         </div>
         <div>
           <h2 className="text-xl font-bold text-white">Mensajería</h2>
-          <p className="text-sm text-white/40">Conecta WhatsApp, Instagram y Facebook Business</p>
+          <p className="text-sm text-white/40">WhatsApp, Instagram y Facebook Business</p>
         </div>
       </div>
 
-      {/* WhatsApp */}
-      <div className="bg-white/3 border border-white/8 rounded-3xl p-5 space-y-3">
+      {/* Meta Business Suite */}
+      <div className="bg-white/3 border border-white/8 rounded-3xl p-5 space-y-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-white">WhatsApp Business</span>
-          <span className="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] font-bold rounded-full border border-green-500/20">
-            Cloud API
+          <span className="text-sm font-bold text-white">Meta Business Suite</span>
+          <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded-full border border-blue-500/20 flex items-center gap-1">
+            <Clock className="w-2.5 h-2.5" />
+            Próximamente
           </span>
         </div>
-        <div className="grid grid-cols-1 gap-3">
-          <InputField
-            label="Phone Number ID"
-            value={data.wa_phone_number_id ?? ''}
-            onChange={v => field('wa_phone_number_id', v)}
-            placeholder="123456789012345"
-          />
-          <InputField
-            label="Business Account ID"
-            value={data.wa_business_account_id ?? ''}
-            onChange={v => field('wa_business_account_id', v)}
-            placeholder="987654321098765"
-          />
-          <InputField
-            label="Access Token"
-            type="password"
-            value={data.wa_access_token ?? ''}
-            onChange={v => field('wa_access_token', v)}
-            placeholder="EAAxxxxxxxxxx..."
-          />
+
+        <p className="text-xs text-white/40 leading-relaxed">
+          Con un solo flujo OAuth conectarás las tres plataformas de Meta:
+        </p>
+
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { name: 'WhatsApp Business', color: 'text-green-400', bg: 'bg-green-500/8 border-green-500/15' },
+            { name: 'Instagram Business', color: 'text-pink-400', bg: 'bg-pink-500/8 border-pink-500/15' },
+            { name: 'Facebook Messenger', color: 'text-blue-400', bg: 'bg-blue-500/8 border-blue-500/15' },
+          ].map(p => (
+            <div key={p.name} className={`${p.bg} border rounded-2xl p-3 text-center`}>
+              <p className={`text-[10px] font-bold ${p.color}`}>{p.name}</p>
+            </div>
+          ))}
         </div>
-        <ConnectionTest
-          provider="WhatsApp"
-          testFn={testWhatsApp}
-          disabled={!data.wa_phone_number_id || !data.wa_access_token}
-        />
+
+        <div className="flex items-start gap-2 bg-blue-500/5 border border-blue-500/15 rounded-2xl px-4 py-3">
+          <Info className="w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0" />
+          <p className="text-[11px] text-blue-300/80 leading-relaxed">
+            La integración con Meta requiere que tu aplicación sea aprobada por Meta Business (proceso de revisión de 1-4 semanas). Lo activamos contigo una vez que pases a plan Starter o superior.
+          </p>
+        </div>
       </div>
 
-      {/* Instagram */}
-      <div className="bg-white/3 border border-white/8 rounded-3xl p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-white">Instagram Business</span>
-          <span className="px-2 py-0.5 bg-pink-500/10 text-pink-400 text-[10px] font-bold rounded-full border border-pink-500/20">
-            Graph API
-          </span>
-        </div>
-        <div className="grid grid-cols-1 gap-3">
-          <InputField
-            label="Instagram Account ID"
-            value={data.ig_account_id ?? ''}
-            onChange={v => field('ig_account_id', v)}
-            placeholder="17841412345678"
-          />
-          <InputField
-            label="Access Token (puede ser el mismo que WA)"
-            type="password"
-            value={data.ig_access_token ?? ''}
-            onChange={v => field('ig_access_token', v)}
-            placeholder="EAAxxxxxxxxxx..."
-          />
-        </div>
-        <ConnectionTest
-          provider="Instagram"
-          testFn={testInstagram}
-          disabled={!data.ig_account_id || !data.ig_access_token}
-        />
-      </div>
-
-      {/* Facebook */}
-      <div className="bg-white/3 border border-white/8 rounded-3xl p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-white">Facebook Messenger</span>
-          <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded-full border border-blue-500/20">
-            Graph API
-          </span>
-        </div>
-        <div className="grid grid-cols-1 gap-3">
-          <InputField
-            label="Page ID"
-            value={data.fb_page_id ?? ''}
-            onChange={v => field('fb_page_id', v)}
-            placeholder="123456789012"
-          />
-          <InputField
-            label="Page Access Token"
-            type="password"
-            value={data.fb_page_access_token ?? ''}
-            onChange={v => field('fb_page_access_token', v)}
-            placeholder="EAAxxxxxxxxxx..."
-          />
-        </div>
-        <ConnectionTest
-          provider="Facebook"
-          testFn={testFacebook}
-          disabled={!data.fb_page_id || !data.fb_page_access_token}
-        />
+      {/* Info box */}
+      <div className="flex items-start gap-2 bg-white/3 border border-white/8 rounded-2xl px-4 py-3">
+        <Info className="w-3.5 h-3.5 text-white/30 mt-0.5 shrink-0" />
+        <p className="text-[11px] text-white/40 leading-relaxed">
+          Puedes completar el onboarding ahora y conectar mensajería después desde <strong className="text-white/60">Configuración → Integraciones</strong>.
+        </p>
       </div>
 
       <div className="flex gap-3 pt-2">

@@ -14,29 +14,16 @@ export interface EcommerceData {
   ml_connected: boolean
   ml_user_id?: string
   ml_nickname?: string
-  amazon_seller_id: string
-  amazon_marketplace_id: string
-  amazon_access_key: string
-  amazon_secret_key: string
-  shopify_store_url: string
-  shopify_access_token: string
+  amazon_connected: boolean
+  shopify_connected: boolean
+  shopify_store_url?: string
 }
 
 export interface MessagingData {
-  wa_phone_number_id: string
-  wa_business_account_id: string
-  wa_access_token: string
-  ig_account_id: string
-  ig_access_token: string
-  fb_page_id: string
-  fb_page_access_token: string
+  meta_connected: boolean
 }
 
 export interface BillingData {
-  facturama_username: string
-  facturama_password: string
-  facturama_sandbox: boolean
-  facturapi_secret_key: string
   rfc_emisor: string
   regimen_fiscal: string
   lugar_expedicion: string
@@ -63,13 +50,13 @@ export function useOnboarding() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [formData, setFormData] = useState<OnboardingFormData>({
     company: {},
-    ecommerce: { facturama_sandbox: true } as Partial<EcommerceData>,
-    messaging: {},
-    billing: { facturama_sandbox: true },
+    ecommerce: { ml_connected: false, amazon_connected: false, shopify_connected: false },
+    messaging: { meta_connected: false },
+    billing: {},
     users: [],
   })
 
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 5))
+  const nextStep = () => setCurrentStep(prev => prev + 1)
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
   const goToStep = (step: number) => setCurrentStep(step)
 
@@ -113,7 +100,6 @@ export function useOnboarding() {
         messaging: formData.messaging,
         billing: {
           ...formData.billing,
-          // Fallback: use company RFC as billing RFC if billing RFC not filled
           rfc: formData.billing.rfc_emisor ?? (formData.company as { rfc?: string }).rfc,
         },
         users: formData.users,

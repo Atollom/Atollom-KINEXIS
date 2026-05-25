@@ -74,12 +74,13 @@ def _state_key() -> bytes:
     return key.encode()
 
 
-def _build_state(tenant_id: str, user_id: str, marketplace_id: str) -> str:
+def _build_state(tenant_id: str, user_id: str, marketplace_id: str, return_to: str = "settings") -> str:
     """Returns a URL-safe, HMAC-signed state token embedding tenant/user info."""
     payload = json.dumps({
         "tid": tenant_id,
         "uid": user_id,
         "mid": marketplace_id,
+        "ret": return_to,
         "ts":  int(time.time()),
     })
     sig = hmac.new(_state_key(), payload.encode(), hashlib.sha256).hexdigest()[:24]
@@ -112,6 +113,7 @@ def _verify_state(state: str) -> Optional[dict]:
 @router.get("/connect")
 async def connect_amazon(
     marketplace_id: str = Query(default="A1AM78C64UM0Y8"),
+    return_to: str = Query(default="settings"),
     current_user: dict = Depends(get_current_user),
 ) -> dict:
     """
@@ -132,7 +134,7 @@ async def connect_amazon(
 
     tenant_id = str(current_user["tenant_id"])
     user_id   = str(current_user["id"])
-    state     = _build_state(tenant_id, user_id, marketplace_id)
+    state     = _build_state(tenant_id, user_id, marketplace_id, return_to)
 
     consent_base = CONSENT_URLS.get(marketplace_id, CONSENT_URLS["A1AM78C64UM0Y8"])
     callback_uri = f"{_backend_url()}/api/integrations/amazon/callback"
@@ -166,16 +168,22 @@ async def amazon_callback(
     Exchanges the authorization code for a refresh_token and persists it.
     """
     dash = _dashboard_url()
-    err_redirect     = f"{dash}/settings/sandbox?amazon=error"
-    success_redirect = f"{dash}/settings/sandbox?amazon=connected"
 
     state_data = _verify_state(state)
     if not state_data:
         logger.warning("[AMZ-OAUTH] Invalid or expired state — aborting callback")
         return RedirectResponse(url=f"{dash}/settings/sandbox?amazon=invalid_state")
 
+    return_to      = state_data.get("ret", "settings")
     tenant_id      = state_data.get("tid")
     marketplace_id = state_data.get("mid", os.getenv("AMAZON_MARKETPLACE_ID", "A1AM78C64UM0Y8"))
+
+    if return_to == "onboarding":
+        success_redirect = f"{dash}/onboarding?amazon=connected"
+        err_redirect     = f"{dash}/onboarding?amazon=error"
+    else:
+        success_redirect = f"{dash}/settings/sandbox?amazon=connected"
+        err_redirect     = f"{dash}/settings/sandbox?amazon=error"
 
     if not tenant_id:
         return RedirectResponse(url=err_redirect)
