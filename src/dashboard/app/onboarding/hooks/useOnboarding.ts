@@ -22,6 +22,7 @@ export interface EcommerceData {
 
 export interface MessagingData {
   meta_connected: boolean
+  connected_platforms?: string[]
 }
 
 export interface BillingData {

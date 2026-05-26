@@ -137,7 +137,7 @@ export default function CashFlowPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}K`} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `$${Number(v ?? 0).toLocaleString()}`} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v) => `$${Number(v ?? 0).toLocaleString()}`} />
                 <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
                 <Bar dataKey="inflows" name="Entradas" fill="#CCFF00" radius={[4, 4, 0, 0]} opacity={0.85} />
                 <Bar dataKey="outflows" name="Salidas" fill="#f87171" radius={[4, 4, 0, 0]} opacity={0.85} />
@@ -148,11 +148,11 @@ export default function CashFlowPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}K`} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `$${Number(v ?? 0).toLocaleString()}`} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v) => `$${Number(v ?? 0).toLocaleString()}`} />
                 <ReferenceLine y={0} stroke="rgba(248,113,113,0.4)" strokeDasharray="4 4" />
                 <Line type="monotone" dataKey="balance" name="Saldo" stroke="#CCFF00" strokeWidth={2.5}
-                  dot={(d: { payload: CashFlowMonth; index: number; cx: number; cy: number }) =>
-                    d.payload.forecast ? null : <circle key={d.index} cx={d.cx} cy={d.cy} r={3} fill="#CCFF00" />
+                  dot={(d: any) =>
+                    d.payload?.forecast ? null : <circle key={d.index} cx={d.cx ?? 0} cy={d.cy ?? 0} r={3} fill="#CCFF00" />
                   }
                 />
               </LineChart>

@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
       in_stock:     items.filter(i => i.status === 'in_stock').length,
       low_stock:    items.filter(i => i.status === 'low_stock').length,
       out_of_stock: items.filter(i => i.status === 'out_of_stock').length,
-      overstocked:  items.filter(i => i.status === 'overstocked').length,
+      overstocked:  items.filter(i => (i.status as string) === 'overstocked').length,
     };
 
     return NextResponse.json({ items, stats, source: 'supabase' });
