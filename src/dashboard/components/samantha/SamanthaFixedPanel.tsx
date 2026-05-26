@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Sparkles, Paperclip, X } from 'lucide-react'
+import { Send, Sparkles, Paperclip, X, Trash2 } from 'lucide-react'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { authenticatedFetch } from '@/lib/api-client'
+import { useSamanthaMemory } from '@/hooks/useSamanthaMemory'
 
 interface Attachment {
   id: string
@@ -11,13 +12,6 @@ interface Attachment {
   type: string
   data: string
   preview?: string
-}
-
-interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  attachments?: { name: string; preview?: string }[]
 }
 
 function renderMarkdown(text: string): React.ReactNode {
@@ -34,18 +28,12 @@ function renderMarkdown(text: string): React.ReactNode {
 
 export function SamanthaFixedPanel() {
   const [input, setInput] = useState('')
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Hola, soy Samantha — tu agente digital de KINEXIS. ¿En qué te puedo ayudar hoy?',
-    },
-  ])
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [token, setToken] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [tenantId, setTenantId] = useState<string | null>(null)
+  const { messages, addMessage, clearHistory } = useSamanthaMemory(userId)
   const sessionId = useRef(`session_${Date.now()}`)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -108,13 +96,14 @@ export function SamanthaFixedPanel() {
     if (!input.trim() && attachments.length === 0) return
 
     const currentAttachments = [...attachments]
-    const userMessage: Message = {
+    const userMessage = {
       id: Date.now().toString(),
-      role: 'user',
+      role: 'user' as const,
       content: input,
       attachments: currentAttachments.map(a => ({ name: a.name, preview: a.preview })),
+      timestamp: Date.now(),
     }
-    setMessages(prev => [...prev, userMessage])
+    addMessage(userMessage)
     setInput('')
     setAttachments([])
     setIsLoading(true)
@@ -142,27 +131,23 @@ export function SamanthaFixedPanel() {
 
       const data = await res.json()
 
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content:
-            data.response ||
-            (res.ok
-              ? 'Sin respuesta del servidor.'
-              : `Error ${res.status}: ${data.error || 'Intenta de nuevo.'}`),
-        },
-      ])
+      addMessage({
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content:
+          data.response ||
+          (res.ok
+            ? 'Sin respuesta del servidor.'
+            : `Error ${res.status}: ${data.error || 'Intenta de nuevo.'}`),
+        timestamp: Date.now(),
+      })
     } catch {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: 'Error de conexión con los servidores. Verifica que el backend esté activo.',
-        },
-      ])
+      addMessage({
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Error de conexión con los servidores. Verifica que el backend esté activo.',
+        timestamp: Date.now(),
+      })
     } finally {
       setIsLoading(false)
     }
@@ -198,15 +183,25 @@ export function SamanthaFixedPanel() {
             </p>
           </div>
         </div>
-        <div
-          className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
-          style={{
-            backgroundColor: 'rgba(204,255,0,0.08)',
-            color: 'var(--accent-primary)',
-            border: '1px solid rgba(204,255,0,0.15)',
-          }}
-        >
-          Neural v4
+        <div className="flex items-center gap-2">
+          <button
+            onClick={clearHistory}
+            title="Limpiar historial"
+            className="p-1.5 rounded-lg opacity-40 hover:opacity-80 transition-opacity"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+          <div
+            className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
+            style={{
+              backgroundColor: 'rgba(204,255,0,0.08)',
+              color: 'var(--accent-primary)',
+              border: '1px solid rgba(204,255,0,0.15)',
+            }}
+          >
+            Neural v4
+          </div>
         </div>
       </div>
 
