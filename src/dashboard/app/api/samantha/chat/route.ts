@@ -114,6 +114,7 @@ export async function POST(req: NextRequest) {
         session_id: body.session_id ?? null,
         ...(systemPrompt ? { system_prompt: systemPrompt } : {}),
         context: body.context ?? null,
+        ...(body.attachments?.length ? { attachments: body.attachments } : {}),
       }),
       signal: AbortSignal.timeout(25000),
     });

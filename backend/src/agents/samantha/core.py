@@ -16,7 +16,7 @@ import os
 import re
 from abc import ABC, abstractmethod
 from functools import partial
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from src.services.intent_classifier import get_intent_classifier
 from src.services.agent_dispatcher import get_dispatcher
@@ -35,26 +35,25 @@ _GREETING_RE = re.compile(
 
 # ── System prompt ─────────────────────────────────────────────────────────────
 
-_SYSTEM_PROMPT = """Eres Samantha, la asistente de inteligencia artificial de {tenant_name} en la plataforma KINEXIS.
+_SYSTEM_PROMPT = """Eres Samantha, la agente digital ejecutiva de {tenant_name} en la plataforma KINEXIS.
 
-DATOS EN TIEMPO REAL DE {tenant_name}:
-- Plan: {plan}
-- Productos activos: {products_count}
-- Órdenes últimos 30 días: {orders_count}
-- Revenue últimos 30 días: ${revenue_30d:,.2f} MXN
-- Clientes registrados: {customers_count}
-- Facturas CFDI válidas: {invoices_count}
-- Productos con bajo stock (top 5): {low_stock_summary}
-- Órdenes recientes: {recent_orders_summary}
+Tu estilo es el de una concierge de lujo: profesional, cálida, directa y proactiva. Nunca repitas literalmente lo que el usuario acaba de decir. Nunca uses frases vacías como "¡Entendido!", "¡Claro que sí!" o "¡Perfecto!". Ve directo al valor. Si el historial ya contiene información del usuario, úsala — nunca vuelvas a pedirla.
+
+MÉTRICAS EN TIEMPO REAL — {tenant_name}:
+• Plan: {plan}
+• Productos: {products_count} | Órdenes (30d): {orders_count} | Revenue (30d): ${revenue_30d:,.2f} MXN
+• Clientes: {customers_count} | CFDI válidos: {invoices_count}
+• Stock crítico: {low_stock_summary}
+• Órdenes recientes: {recent_orders_summary}
 {memory_block}{urgencies_block}
-INSTRUCCIONES:
-- Responde en español, de forma profesional y concisa.
-- Usa los datos anteriores para responder preguntas específicas.
-- Si la pregunta requiere datos que no tienes, indica exactamente qué necesitarías configurar.
-- Nunca inventes cifras — usa solo los datos provistos.
-- Para reportes, estructura la respuesta con bullets o tabla markdown.
-- Máximo 300 palabras salvo que pidan un reporte completo.
-- Si hay urgencias detectadas y la pregunta es genérica, mencionarlas brevemente.
+CÓMO RESPONDER:
+• Español profesional y conciso. Máximo 300 palabras salvo reporte completo.
+• Usa los datos en tiempo real para responder con precisión. Nunca inventes cifras.
+• Si detectas problemas (stock bajo, pagos pendientes, urgencias), mencionarlos aunque no te pregunten.
+• Estructura reportes con bullets o tablas markdown.
+• No repitas el enunciado del usuario. Sin muletillas. Sin redundancia.
+• Si necesitas datos no disponibles, indica exactamente qué configuración falta.
+• Cuando el usuario adjunte imágenes o documentos, analízalos y extrae información relevante para el negocio.
 """
 
 
@@ -154,7 +153,13 @@ def _build_proactive_greeting(analysis: Dict[str, Any]) -> str:
 
 class AbstractLLMProvider(ABC):
     @abstractmethod
-    async def generate(self, system: str, history: List[Dict], message: str) -> str: ...
+    async def generate(
+        self,
+        system: str,
+        history: List[Dict],
+        message: str,
+        attachments: Optional[List[Dict]] = None,
+    ) -> str: ...
 
 
 # ── Gemini provider ───────────────────────────────────────────────────────────
@@ -174,15 +179,25 @@ class GeminiProvider(AbstractLLMProvider):
             system_instruction=system,
         )
         gemini_history = []
-        for msg in history[-10:]:
+        for msg in history[-25:]:
             role = "user" if msg.get("role") == "user" else "model"
-            gemini_history.append({"role": role, "parts": [msg.get("content", "")]})
+            content = msg.get("content", "")
+            # If content is a list (multi-modal), extract text parts only
+            if isinstance(content, list):
+                content = " ".join(p.get("text", "") for p in content if p.get("type") == "text")
+            gemini_history.append({"role": role, "parts": [content]})
 
         chat = model.start_chat(history=gemini_history)
         response = chat.send_message(message)
         return response.text
 
-    async def generate(self, system: str, history: List[Dict], message: str) -> str:
+    async def generate(
+        self,
+        system: str,
+        history: List[Dict],
+        message: str,
+        attachments: Optional[List[Dict]] = None,
+    ) -> str:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
             None, partial(self._call_sync, system, history, message)
@@ -198,20 +213,48 @@ class AnthropicProvider(AbstractLLMProvider):
         import anthropic
         self._client = anthropic.Anthropic(api_key=api_key)
 
-    async def generate(self, system: str, history: List[Dict], message: str) -> str:
-        messages = [
-            {"role": m["role"], "content": m["content"]}
-            for m in history[-10:]
-            if m.get("role") in ("user", "assistant")
-        ]
-        messages.append({"role": "user", "content": message})
+    async def generate(
+        self,
+        system: str,
+        history: List[Dict],
+        message: str,
+        attachments: Optional[List[Dict]] = None,
+    ) -> str:
+        messages: List[Dict[str, Any]] = []
+        for m in history[-25:]:
+            if m.get("role") not in ("user", "assistant"):
+                continue
+            content: Union[str, List[Dict]] = m.get("content", "")
+            messages.append({"role": m["role"], "content": content})
+
+        # Build current user message — multi-modal if attachments present
+        if attachments:
+            content_blocks: List[Dict[str, Any]] = []
+            for att in attachments:
+                media_type = att.get("type", "")
+                if media_type.startswith("image/"):
+                    content_blocks.append({
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": att["data"],
+                        },
+                    })
+            if message.strip():
+                content_blocks.append({"type": "text", "text": message})
+            elif not content_blocks:
+                content_blocks.append({"type": "text", "text": "Analiza el contenido adjunto."})
+            messages.append({"role": "user", "content": content_blocks})
+        else:
+            messages.append({"role": "user", "content": message})
 
         loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(
             None,
             lambda: self._client.messages.create(
                 model=self._MODEL,
-                max_tokens=1024,
+                max_tokens=2048,
                 system=system,
                 messages=messages,
             ),
@@ -260,6 +303,7 @@ class SamanthaCore:
         context: Dict[str, Any],
         history: List[Dict],
         system_prompt: Optional[str] = None,
+        attachments: Optional[List[Dict]] = None,
     ) -> str:
         # ── Custom system prompt (onboarding concierge / override) ────────────
         # Bypasses intent classification, agent dispatch, and context analysis.
@@ -269,7 +313,7 @@ class SamanthaCore:
                 "SamanthaCore: custom system_prompt supplied — skipping agent path "
                 "(tenant=%s, prompt_len=%d)", tenant_id, len(system_prompt)
             )
-            return await self._provider.generate(system_prompt, history, message)
+            return await self._provider.generate(system_prompt, history, message, attachments)
 
         # ── 0. Start context analysis concurrently ────────────────────────────
         # Runs in thread pool while we classify intent — zero wait overhead for agent path.
@@ -325,7 +369,7 @@ class SamanthaCore:
         context = {**context, "urgencies": analysis["urgencies"]}
         system = _build_system_prompt(context)
         try:
-            return await self._provider.generate(system, history, message)
+            return await self._provider.generate(system, history, message, attachments)
         except Exception as exc:
             logger.error("LLM provider error: %s", exc)
             raise

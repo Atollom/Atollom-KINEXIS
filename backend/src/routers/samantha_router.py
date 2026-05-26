@@ -40,6 +40,9 @@ class ChatRequest(BaseModel):
     # Used by onboarding concierge mode (context.page == 'onboarding').
     system_prompt: Optional[str] = None
     context: Optional[Dict[str, Any]] = None
+    # Multimedia attachments for the current query (images, PDFs)
+    # Each item: {name: str, type: str (MIME), data: str (base64)}
+    attachments: Optional[List[Dict[str, Any]]] = None
 
 
 @router.post("/chat")
@@ -171,6 +174,7 @@ async def chat(request: Request, body: ChatRequest):
             context=context,
             history=history,
             system_prompt=body.system_prompt,
+            attachments=body.attachments,
         )
     except Exception as exc:
         logger.error("Samantha LLM error: %s", exc)
