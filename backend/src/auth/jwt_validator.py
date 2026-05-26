@@ -64,7 +64,13 @@ async def get_current_user(
 
     _NIL_UUID = "00000000-0000-0000-0000-000000000000"
 
-    user_row = await get_user_by_supabase_id(supabase_user_id)
+    try:
+        user_row = await get_user_by_supabase_id(supabase_user_id)
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning("[JWT] DB lookup failed, treating as pre-onboarding: %s", exc)
+        user_row = {}
+
     if not user_row:
         # Pre-onboarding: user authenticated via Supabase but not yet in users table.
         # Return a pseudo-user so OAuth and onboarding endpoints can proceed.

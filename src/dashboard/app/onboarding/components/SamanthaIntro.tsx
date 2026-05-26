@@ -49,7 +49,7 @@ const WELCOME: Message = {
   id: '0',
   role: 'assistant',
   content:
-    '¡Hola! Soy Samantha, la inteligencia artificial de KINEXIS.\n\nVoy a ayudarte a configurar tu cuenta en menos de 3 minutos — personalizado para tu negocio.\n\n¿Cuál es el nombre de tu empresa y a qué se dedican?',
+    '¡Hola! Soy Samantha, tu agente digital de KINEXIS.\n\nVoy a ayudarte a configurar tu cuenta en menos de 3 minutos — personalizado para tu negocio.\n\n¿Cuál es el nombre de tu empresa y a qué se dedican?',
 }
 
 const QUICK_REPLIES = [
@@ -57,6 +57,25 @@ const QUICK_REPLIES = [
   'Vendemos en MercadoLibre',
   'Tenemos una tienda física y online',
 ]
+
+function renderBold(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>
+    }
+    return part
+  })
+}
+
+function renderContent(content: string): React.ReactNode {
+  return content.split('\n').map((line, i, arr) => (
+    <span key={i}>
+      {renderBold(line)}
+      {i < arr.length - 1 && <br />}
+    </span>
+  ))
+}
 
 interface Props {
   onComplete: (modules: ModuleId[]) => void
@@ -203,12 +222,12 @@ export default function SamanthaIntro({ onComplete }: Props) {
                     <Sparkles className="w-3 h-3 text-[#CCFF00]" />
                   </div>
                 )}
-                <div className={`max-w-[82%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                <div className={`max-w-[82%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                   m.role === 'user'
                     ? 'bg-[#CCFF00] text-black font-semibold rounded-tr-sm'
                     : 'bg-white/6 border border-white/8 text-white/90 rounded-tl-sm'
                 }`}>
-                  {m.content}
+                  {renderContent(m.content)}
                 </div>
               </div>
             ))}
@@ -235,7 +254,7 @@ export default function SamanthaIntro({ onComplete }: Props) {
                     <Sparkles className="w-3 h-3 text-[#CCFF00]" />
                   </div>
                   <div className="bg-white/6 border border-white/8 px-4 py-3 rounded-2xl rounded-tl-sm text-sm text-white/90 leading-relaxed max-w-[82%]">
-                    ¿Qué módulos de KINEXIS necesitas? Puedes activar uno, dos o los tres — lo que más se adapte a tu negocio:
+                    {renderContent('¿Qué módulos de KINEXIS necesitas? Puedes activar uno, dos o los tres — lo que más se adapte a tu negocio:')}
                   </div>
                 </div>
 

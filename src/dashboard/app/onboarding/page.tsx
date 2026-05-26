@@ -3,7 +3,8 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { Building2, ShoppingCart, MessageSquare, Receipt, Users } from 'lucide-react'
+import { Building2, ShoppingCart, MessageSquare, Receipt, Users, ClipboardList, CheckCircle } from 'lucide-react'
+import { createBrowserClient } from '@supabase/ssr'
 import { useOnboarding } from './hooks/useOnboarding'
 import { WizardProgress } from './components/WizardProgress'
 import { Step1CompanyInfo } from './components/Step1CompanyInfo'
@@ -19,7 +20,7 @@ const SamanthaOnboarding = dynamic(
   { ssr: false }
 )
 
-type Phase = 'intro' | 'plans' | 'wizard' | 'success'
+type Phase = 'intro' | 'plans' | 'prep' | 'wizard' | 'success'
 
 interface WizardStep {
   id: 'company' | 'ecommerce' | 'crm' | 'erp' | 'users'
@@ -40,11 +41,34 @@ const MODULES_KEY = 'kinexis_selected_modules'
 const STRIPE_SESSION_KEY = 'kinexis_stripe_session'
 const STRIPE_PLAN_KEY = 'kinexis_stripe_plan'
 
+const PREP_ITEMS = [
+  { icon: Building2, label: 'Datos de empresa', detail: 'Nombre, RFC, dirección fiscal' },
+  { icon: ShoppingCart, label: 'Acceso e-commerce', detail: 'Cuenta MercadoLibre, Amazon o Shopify' },
+  { icon: MessageSquare, label: 'Cuenta Meta Business', detail: 'Para WhatsApp, Instagram y Facebook' },
+  { icon: Receipt, label: 'Datos fiscales', detail: 'Régimen fiscal y lugar de expedición' },
+  { icon: Users, label: 'Emails del equipo', detail: 'Colaboradores que usarán KINEXIS' },
+]
+
 function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [phase, setPhase] = useState<Phase>('intro')
   const [selectedModules, setSelectedModules] = useState<ModuleId[]>([])
+  const [ownerEmail, setOwnerEmail] = useState('')
+  const [ownerName, setOwnerName] = useState('')
+
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setOwnerEmail(user.email ?? '')
+        setOwnerName(user.user_metadata?.full_name ?? '')
+      }
+    })
+  }, [])
 
   const {
     currentStep,
@@ -76,7 +100,7 @@ function OnboardingContent() {
 
     if (checkout === 'success') {
       setSelectedModules(restoredModules)
-      setPhase('wizard')
+      setPhase('prep')
       // Persist Stripe session so submit can link subscription to tenant
       const stripeSession = searchParams.get('stripe_session')
       const stripePlan = searchParams.get('plan')
@@ -117,13 +141,13 @@ function OnboardingContent() {
   }
 
   function handleTrialSelect() {
-    setPhase('wizard')
+    setPhase('prep')
   }
 
   async function handleSubmit() {
     const stripeSession = sessionStorage.getItem(STRIPE_SESSION_KEY) ?? undefined
     const stripePlan = sessionStorage.getItem(STRIPE_PLAN_KEY) ?? undefined
-    const { ok } = await submitOnboarding({ stripeSession, stripePlan })
+    const { ok } = await submitOnboarding({ stripeSession, stripePlan, ownerEmail, ownerName })
     if (ok) {
       sessionStorage.removeItem(STRIPE_SESSION_KEY)
       sessionStorage.removeItem(STRIPE_PLAN_KEY)
@@ -173,7 +197,61 @@ function OnboardingContent() {
     )
   }
 
-  // ── Phase 3: Dynamic wizard ─────────────────────────────────────
+  // ── Phase 3: Prep checklist ─────────────────────────────────────
+  if (phase === 'prep') {
+    return (
+      <div className="min-h-screen bg-[#040f1b] flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="fixed top-[-20%] right-[-10%] w-[700px] h-[700px] bg-[#CCFF00]/4 blur-[180px] -z-10 rounded-full pointer-events-none" />
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-[#CCFF00] shadow-[0_0_10px_#CCFF00] animate-pulse" />
+              <span className="text-[10px] font-bold text-[#CCFF00] uppercase tracking-[0.4em]">KINEXIS Setup · Paso 3 de 3</span>
+            </div>
+            <div className="w-14 h-14 rounded-2xl bg-[#CCFF00]/10 border border-[#CCFF00]/20 flex items-center justify-center mx-auto mb-4">
+              <ClipboardList className="w-7 h-7 text-[#CCFF00]" />
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-tight">Antes de empezar</h1>
+            <p className="text-sm text-white/40 mt-2">Ten a la mano estos datos — el proceso toma solo 3 minutos</p>
+          </div>
+
+          <div className="bg-white/3 border border-white/8 rounded-3xl p-5 space-y-3 mb-6">
+            {PREP_ITEMS.map(({ icon: Icon, label, detail }) => (
+              <div key={label} className="flex items-center gap-4 py-2.5 px-3 bg-white/3 rounded-2xl">
+                <div className="w-8 h-8 rounded-xl bg-[#CCFF00]/10 flex items-center justify-center shrink-0">
+                  <Icon className="w-4 h-4 text-[#CCFF00]" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">{label}</p>
+                  <p className="text-[11px] text-white/35">{detail}</p>
+                </div>
+                <CheckCircle className="w-4 h-4 text-[#CCFF00]/30 ml-auto shrink-0" />
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[11px] text-white/30 text-center mb-5">
+            No te preocupes si no tienes todo — puedes configurarlo después desde tu panel.
+          </p>
+
+          <button
+            onClick={() => setPhase('wizard')}
+            className="w-full bg-[#CCFF00] text-black font-bold text-sm uppercase tracking-widest py-3.5 rounded-full hover:bg-[#CCFF00]/90 active:scale-[0.98] transition-all shadow-[0_10px_30px_rgba(204,255,0,0.2)]"
+          >
+            Tengo todo, ¡empecemos! →
+          </button>
+          <button
+            onClick={() => setPhase('wizard')}
+            className="w-full mt-2 text-white/25 hover:text-white/50 text-xs font-bold uppercase tracking-widest py-2 transition-colors"
+          >
+            Continuar sin preparar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Phase 4: Dynamic wizard ─────────────────────────────────────
   const steps = buildWizardSteps(selectedModules)
   const totalSteps = steps.length
   const currentStepDef = steps[currentStep - 1] ?? steps[0]
@@ -218,6 +296,8 @@ function OnboardingContent() {
           {currentStepDef.id === 'users' && (
             <Step5Users
               users={formData.users}
+              ownerEmail={ownerEmail}
+              ownerName={ownerName}
               onAddUser={addUser}
               onRemoveUser={removeUser}
               onSubmit={handleSubmit}

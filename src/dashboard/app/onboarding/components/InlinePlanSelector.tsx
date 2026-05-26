@@ -19,6 +19,17 @@ interface Plan {
 
 const PLANS: Plan[] = [
   {
+    id: 'starter',
+    name: 'Starter',
+    price: 6500,
+    period: 'mes',
+    badge: 'Más popular',
+    description: 'Para negocios en 1 plataforma de venta.',
+    features: ['1 módulo principal', 'Samantha — 500 consultas/mes', 'Hasta 5 usuarios', 'CFDI 4.0'],
+    highlighted: true,
+    cta: 'Elegir Starter',
+  },
+  {
     id: 'trial',
     name: 'Prueba Gratuita',
     price: null,
@@ -28,23 +39,12 @@ const PLANS: Plan[] = [
     cta: 'Comenzar prueba',
   },
   {
-    id: 'starter',
-    name: 'Starter',
-    price: 6500,
-    period: 'mes',
-    description: 'Para negocios en 1 plataforma de venta.',
-    features: ['1 módulo principal', 'Samantha — 500 consultas/mes', 'Hasta 5 usuarios', 'CFDI 4.0'],
-    cta: 'Elegir Starter',
-  },
-  {
     id: 'growth',
     name: 'Growth',
     price: 10500,
     period: 'mes',
-    badge: 'Más popular',
     description: 'E-commerce + CRM para escalar.',
     features: ['2 módulos', 'Samantha — 2,000 consultas/mes', 'Hasta 15 usuarios', 'Pipeline de ventas'],
-    highlighted: true,
     cta: 'Elegir Growth',
   },
   {

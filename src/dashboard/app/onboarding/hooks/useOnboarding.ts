@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createBrowserClient } from '@supabase/ssr'
 
 export interface CompanyData {
   name: string
@@ -98,11 +99,21 @@ export function useOnboarding() {
   }
 
   async function submitOnboarding(
-    opts: { stripeSession?: string; stripePlan?: string } = {}
+    opts: { stripeSession?: string; stripePlan?: string; ownerEmail?: string; ownerName?: string } = {}
   ): Promise<{ ok: boolean; error?: string }> {
     setSubmitting(true)
     setSubmitError(null)
     try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: { session } } = await supabase.auth.getSession()
+
+      const ownerUser = opts.ownerEmail
+        ? { id: 'owner', full_name: opts.ownerName || opts.ownerEmail, email: opts.ownerEmail, role: 'owner' as const }
+        : null
+
       const payload = {
         company: formData.company,
         ecommerce: formData.ecommerce,
@@ -112,13 +123,19 @@ export function useOnboarding() {
           rfc_emisor: formData.billing.rfc_emisor ?? formData.company.rfc ?? '',
           rfc: formData.billing.rfc_emisor ?? formData.company.rfc ?? '',
         },
-        users: formData.users,
+        users: [
+          ...(ownerUser ? [ownerUser] : []),
+          ...formData.users.filter(u => u.email !== opts.ownerEmail),
+        ],
         ...(opts.stripeSession ? { stripe_session_id: opts.stripeSession } : {}),
         ...(opts.stripePlan ? { stripe_plan: opts.stripePlan } : {}),
       }
       const res = await fetch('/api/onboarding', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify(payload),
       })
       const data = await res.json().catch(() => ({}))

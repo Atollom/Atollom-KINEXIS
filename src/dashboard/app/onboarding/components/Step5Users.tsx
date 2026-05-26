@@ -14,6 +14,8 @@ const ROLES: { value: UserEntry['role']; label: string; description: string; Ico
 
 interface Step5Props {
   users: UserEntry[]
+  ownerEmail: string
+  ownerName?: string
   onAddUser: (user: Omit<UserEntry, 'id'>) => void
   onRemoveUser: (id: string) => void
   onSubmit: () => void
@@ -23,7 +25,7 @@ interface Step5Props {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export function Step5Users({ users, onAddUser, onRemoveUser, onSubmit, submitting, onBack }: Step5Props) {
+export function Step5Users({ users, ownerEmail, ownerName, onAddUser, onRemoveUser, onSubmit, submitting, onBack }: Step5Props) {
   const [form, setForm] = useState({ full_name: '', email: '', role: 'agente' as UserEntry['role'] })
   const [errors, setErrors] = useState<{ full_name?: string; email?: string }>({})
 
@@ -31,6 +33,7 @@ export function Step5Users({ users, onAddUser, onRemoveUser, onSubmit, submittin
     const e: typeof errors = {}
     if (!form.full_name.trim()) e.full_name = 'Nombre requerido'
     if (!EMAIL_RE.test(form.email)) e.email = 'Email inválido'
+    if (form.email === ownerEmail) e.email = 'Este es el email del owner'
     if (users.some(u => u.email === form.email)) e.email = 'Email ya agregado'
     setErrors(e)
     return Object.keys(e).length === 0
@@ -54,6 +57,30 @@ export function Step5Users({ users, onAddUser, onRemoveUser, onSubmit, submittin
           <p className="text-sm text-white/40">Opcional — puedes agregar colaboradores ahora o después</p>
         </div>
       </div>
+
+      {/* Owner (locked) */}
+      {ownerEmail && (
+        <div className="bg-[#CCFF00]/5 border border-[#CCFF00]/20 rounded-3xl p-4">
+          <p className="text-[10px] font-bold text-[#CCFF00]/60 uppercase tracking-widest mb-3">Tu cuenta (Owner)</p>
+          <div className="flex items-center justify-between py-2.5 px-3 bg-white/3 rounded-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-[#CCFF00]/15 border border-[#CCFF00]/30 flex items-center justify-center">
+                <Crown className="w-3.5 h-3.5 text-[#CCFF00]" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white">{ownerName || ownerEmail}</p>
+                <p className="text-[10px] text-white/30">{ownerEmail}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-[#CCFF00]/10 text-[#CCFF00] text-[9px] font-bold rounded-full uppercase tracking-widest border border-[#CCFF00]/20">
+                owner
+              </span>
+              <Crown className="w-3.5 h-3.5 text-[#CCFF00]/40" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add user form */}
       <div className="bg-white/3 border border-white/8 rounded-3xl p-5 space-y-3">

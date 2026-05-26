@@ -10,12 +10,17 @@ interface Message {
   content: string
 }
 
+const INTRO_SEEN_KEY = 'kinexis_samantha_intro_seen'
+
 export default function SamanthaOnboarding() {
+  const alreadySeen = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(INTRO_SEEN_KEY) === '1'
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '0',
       role: 'assistant',
-      content: '¡Bienvenido a KINEXIS! 👋\n\nSoy Samantha, tu asistente personal. Estoy aquí para ayudarte a configurar tu cuenta de la manera más fácil y rápida.\n\n¿Prefieres que te guíe paso a paso, o tienes alguna pregunta antes de empezar?',
+      content: alreadySeen
+        ? '¡Hola de nuevo! ¿En qué te ayudo?'
+        : '¡Bienvenido a KINEXIS! 👋\n\nSoy Samantha, tu agente digital. Estoy aquí para ayudarte a configurar tu cuenta de la manera más fácil y rápida.\n\n¿Prefieres que te guíe paso a paso, o tienes alguna pregunta antes de empezar?',
     },
   ])
   const [input, setInput] = useState('')
@@ -23,6 +28,10 @@ export default function SamanthaOnboarding() {
   const [minimized, setMinimized] = useState(false)
   const sessionId = useRef(`onboarding_${Date.now()}`)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    sessionStorage.setItem(INTRO_SEEN_KEY, '1')
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

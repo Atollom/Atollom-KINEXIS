@@ -112,17 +112,20 @@ def _fetch_user_sync(supabase_user_id: str) -> Dict[str, Any]:
     db_url = os.getenv("DATABASE_URL")
     if not db_url:
         return {}
-    conn = psycopg2.connect(db_url, cursor_factory=RealDictCursor)
     try:
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT id, tenant_id, email, role FROM users WHERE supabase_user_id = %s LIMIT 1",
-            (supabase_user_id,),
-        )
-        row = cur.fetchone()
-        return dict(row) if row else {}
-    finally:
-        conn.close()
+        conn = psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT id, tenant_id, email, role FROM users WHERE supabase_user_id = %s LIMIT 1",
+                (supabase_user_id,),
+            )
+            row = cur.fetchone()
+            return dict(row) if row else {}
+        finally:
+            conn.close()
+    except Exception:
+        return {}
 
 
 async def get_user_by_supabase_id(supabase_user_id: str) -> Dict[str, Any]:

@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24.acacia',
-});
-
 const PLANS = {
   starter: {
     name: 'KINEXIS Starter',
@@ -26,6 +22,15 @@ const PLANS = {
 
 export async function POST(req: NextRequest) {
   try {
+    const secretKey = process.env.STRIPE_SECRET_KEY
+    if (!secretKey) {
+      return NextResponse.json(
+        { error: 'Stripe no configurado — agrega STRIPE_SECRET_KEY en Vercel' },
+        { status: 503 }
+      )
+    }
+    const stripe = new Stripe(secretKey, { apiVersion: '2025-02-24.acacia' })
+
     const body = await req.json();
     const { plan_type, email: bodyEmail, success_url, cancel_url } = body;
 
