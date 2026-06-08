@@ -13,23 +13,29 @@ export async function GET() {
   const supabase = createRouteHandlerClient({ cookies })
   const tenant = await getAuthenticatedTenant(supabase)
   if (!tenant) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  if (tenant.role !== 'owner') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  // Owners can only see their own tenant; future super-admin would bypass this
-  const { data: tenantData } = await supabase
-    .from('tenants')
-    .select('id, name, plan, status, created_at, settings')
-    .eq('id', tenant.tenantId)
-    .single()
-
-  const { data: users } = await supabase
-    .from('tenant_users')
-    .select('id, user_id, role, created_at')
+  const { data: responses } = await supabase
+    .from('nps_responses')
+    .select('id, score, comment, created_at, category')
     .eq('tenant_id', tenant.tenantId)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  const rows = responses ?? []
+  const promoters = rows.filter(r => r.score >= 9).length
+  const passives = rows.filter(r => r.score >= 7 && r.score < 9).length
+  const detractors = rows.filter(r => r.score < 7).length
+  const total = rows.length
+  const nps_score = total > 0
+    ? Math.round(((promoters - detractors) / total) * 100)
+    : 0
 
   return NextResponse.json({
-    tenant: tenantData ?? null,
-    users: users ?? [],
-    user_count: users?.length ?? 0,
+    responses: rows,
+    nps_score,
+    promoters,
+    passives,
+    detractors,
+    total,
   })
 }

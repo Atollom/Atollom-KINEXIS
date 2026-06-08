@@ -1,54 +1,36 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
+import { CheckCircle } from 'lucide-react'
+import Link from 'next/link'
+
+function SuccessContent() {
+  const params = useSearchParams()
+  const plan = params.get('plan') ?? 'Growth'
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
+      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+        <CheckCircle className="w-10 h-10 text-green-600" />
+      </div>
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">¡Bienvenido a KINEXIS {plan}!</h1>
+      <p className="text-gray-500 mb-8 max-w-md">Tu suscripción ha sido activada correctamente. Ya puedes disfrutar de todas las funciones de tu plan.</p>
+      <div className="flex gap-3">
+        <Link href="/dashboard" className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors">
+          Ir al dashboard
+        </Link>
+        <Link href="/settings/integrations" className="px-6 py-3 border-2 border-gray-200 hover:border-green-500 text-gray-700 font-semibold rounded-xl transition-colors">
+          Configurar integraciones
+        </Link>
+      </div>
+    </div>
+  )
+}
 
 export default function BillingSuccessPage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [countdown, setCountdown] = useState(5)
-  const sessionId = searchParams.get('session_id')
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown(c => {
-        if (c <= 1) {
-          clearInterval(timer)
-          router.push('/settings/billing')
-          return 0
-        }
-        return c - 1
-      })
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [router])
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
-      <div className="w-20 h-20 rounded-full flex items-center justify-center"
-        style={{ backgroundColor: 'rgba(74,222,128,0.1)', border: '2px solid rgba(74,222,128,0.3)' }}>
-        <span className="material-symbols-outlined !text-[40px] text-[#4ade80]">check_circle</span>
-      </div>
-
-      <div className="space-y-2">
-        <h1 className="text-2xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>¡Suscripción activada!</h1>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Tu plan KINEXIS está activo. Bienvenido.</p>
-        {sessionId && (
-          <p className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Session: {sessionId.slice(-12)}</p>
-        )}
-      </div>
-
-      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-        Redirigiendo en <span className="font-bold text-[#CCFF00]">{countdown}s</span>...
-      </p>
-
-      <button
-        onClick={() => router.push('/settings/billing')}
-        className="px-6 py-2.5 rounded-xl text-xs font-bold transition-all hover:opacity-90"
-        style={{ backgroundColor: 'var(--accent-primary)', color: '#000' }}
-      >
-        Ver mi plan
-      </button>
-    </div>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="animate-spin w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full" /></div>}>
+      <SuccessContent />
+    </Suspense>
   )
 }

@@ -1,130 +1,106 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { mockCustomerSegments, mockCustomerSegmentStats, type CustomerSegment } from '@/lib/mockData'
-import { authenticatedFetch } from '@/lib/api-client'
+import { useEffect, useState } from 'react'
+import { Users, Zap, Target, TrendingDown } from 'lucide-react'
 
-const CHURN_CONFIG = {
-  low:    { label: 'Bajo',  color: '#4ade80', bg: 'bg-green-400/10' },
-  medium: { label: 'Medio', color: '#facc15', bg: 'bg-yellow-400/10' },
-  high:   { label: 'Alto',  color: '#f87171', bg: 'bg-red-400/10' },
+interface Segment { label: string; count: number; value: number; description: string; icon: 'hot' | 'warm' | 'cold' | 'won' | 'lost' }
+
+function fmt(n: number) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
 }
 
-interface SegmentStats {
-  total_segments: number; total_customers: number; avg_ltv: number; high_risk_count: number
-}
-
-export default function CustomerSegmentsPage() {
-  const [segments, setSegments] = useState<CustomerSegment[]>(mockCustomerSegments)
-  const [stats, setStats] = useState<SegmentStats>(mockCustomerSegmentStats)
-  const [source, setSource] = useState<'live' | 'mock'>('mock')
+export default function SegmentsPage() {
+  const [segments, setSegments] = useState<Segment[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    authenticatedFetch('/api/crm/segments')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data && Array.isArray(data.segments) && data.segments.length > 0) {
-          setSegments(data.segments)
-          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
-          setSource('live')
-        }
+    fetch('/api/crm/leads')
+      .then(r => r.json())
+      .then(d => {
+        const leads = d.leads ?? []
+        setSegments([
+          {
+            label: 'Hot Leads',
+            count: leads.filter((l: { score: number }) => l.score >= 70).length,
+            value: leads.filter((l: { score: number }) => l.score >= 70).reduce((s: number, l: { estimated_value: number }) => s + l.estimated_value, 0),
+            description: 'Score ≥ 70 — Prioridad alta, contactar hoy',
+            icon: 'hot',
+          },
+          {
+            label: 'Warm Leads',
+            count: leads.filter((l: { score: number }) => l.score >= 40 && l.score < 70).length,
+            value: leads.filter((l: { score: number }) => l.score >= 40 && l.score < 70).reduce((s: number, l: { estimated_value: number }) => s + l.estimated_value, 0),
+            description: 'Score 40-69 — Seguimiento esta semana',
+            icon: 'warm',
+          },
+          {
+            label: 'Cold Leads',
+            count: leads.filter((l: { score: number }) => l.score < 40).length,
+            value: leads.filter((l: { score: number }) => l.score < 40).reduce((s: number, l: { estimated_value: number }) => s + l.estimated_value, 0),
+            description: 'Score < 40 — Nurturing o descarte',
+            icon: 'cold',
+          },
+          {
+            label: 'Cerrados (Ganados)',
+            count: leads.filter((l: { stage: string }) => l.stage === 'won').length,
+            value: leads.filter((l: { stage: string }) => l.stage === 'won').reduce((s: number, l: { estimated_value: number }) => s + l.estimated_value, 0),
+            description: 'Deals ganados — base de clientes activa',
+            icon: 'won',
+          },
+          {
+            label: 'Perdidos',
+            count: leads.filter((l: { stage: string }) => l.stage === 'lost').length,
+            value: leads.filter((l: { stage: string }) => l.stage === 'lost').reduce((s: number, l: { estimated_value: number }) => s + l.estimated_value, 0),
+            description: 'Oportunidades perdidas — potencial de reactivación',
+            icon: 'lost',
+          },
+        ])
       })
-      .catch(() => {})
+      .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
 
+  const iconMap = {
+    hot: <Zap className="w-6 h-6 text-green-600" />,
+    warm: <Target className="w-6 h-6 text-yellow-600" />,
+    cold: <Users className="w-6 h-6 text-gray-400" />,
+    won: <Users className="w-6 h-6 text-blue-600" />,
+    lost: <TrendingDown className="w-6 h-6 text-red-500" />,
+  }
+  const colorMap = {
+    hot: 'border-green-200 bg-green-50',
+    warm: 'border-yellow-200 bg-yellow-50',
+    cold: 'border-gray-200 bg-gray-50',
+    won: 'border-blue-200 bg-blue-50',
+    lost: 'border-red-100 bg-red-50',
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>
-              Segmentos
-            </h1>
-            <span className="px-2 py-1 rounded-full bg-purple-400/10 border border-purple-400/20 text-[9px] font-black label-tracking text-purple-400">
-              AGENTE #20
-            </span>
-            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
-              loading ? 'border-white/10 text-white/30' :
-              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
-              'border-amber-500/30 bg-amber-500/10 text-amber-400'
-            }`}>
-              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
-            </span>
-          </div>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Grupos de clientes por comportamiento, valor y ciclo de vida
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Segmentos de Leads</h1>
+          <p className="text-sm text-gray-500 mt-1">Agrupación automática por score y etapa de ciclo</p>
         </div>
-        <button
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90 active:scale-[0.97]"
-          style={{ backgroundColor: 'var(--accent-primary)', color: '#000' }}
-        >
-          <span className="material-symbols-outlined !text-[14px]">add</span>
-          Nuevo segmento
-        </button>
+        <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">CRM · Analytics</span>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: 'Segmentos',       value: stats.total_segments,               color: 'var(--text-primary)' },
-          { label: 'Clientes totales', value: stats.total_customers.toLocaleString(), color: '#a78bfa' },
-          { label: 'LTV promedio',    value: `$${stats.avg_ltv.toLocaleString()}`, color: '#CCFF00' },
-          { label: 'En riesgo',       value: stats.high_risk_count.toLocaleString(), color: '#f87171' },
-        ].map(s => (
-          <div key={s.label} className="glass-card p-4 rounded-2xl">
-            <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
-            <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {loading ? Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-xl p-6 animate-pulse h-32 border border-gray-100" />
+        )) : segments.map(seg => (
+          <div key={seg.label} className={`rounded-xl border-2 p-5 ${colorMap[seg.icon]}`}>
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-white bg-opacity-70 rounded-xl">
+                {iconMap[seg.icon]}
+              </div>
+              <p className="text-3xl font-bold text-gray-900">{seg.count}</p>
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-1">{seg.label}</h3>
+            <p className="text-xs text-gray-500 mb-2">{seg.description}</p>
+            {seg.value > 0 && <p className="text-sm font-semibold text-gray-700">{fmt(seg.value)}</p>}
           </div>
         ))}
-      </div>
-
-      {/* Segment cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {segments.map(seg => {
-          const cc = CHURN_CONFIG[seg.churn_risk]
-          return (
-            <div key={seg.id} className="glass-card rounded-2xl p-5 space-y-4 hover:border-purple-400/20 transition-colors cursor-pointer" style={{ border: '1px solid var(--border-color)' }}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: seg.color }} />
-                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{seg.name}</p>
-                  </div>
-                  <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{seg.description}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-2xl font-black" style={{ color: seg.color }}>{seg.customers_count.toLocaleString()}</p>
-                  <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>clientes</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                <div>
-                  <p className="text-[10px] label-tracking mb-0.5" style={{ color: 'var(--text-muted)' }}>LTV prom.</p>
-                  <p className="text-xs font-bold" style={{ color: '#CCFF00' }}>${seg.avg_ltv.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] label-tracking mb-0.5" style={{ color: 'var(--text-muted)' }}>Órd. prom.</p>
-                  <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{seg.avg_orders}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] label-tracking mb-0.5" style={{ color: 'var(--text-muted)' }}>Churn riesgo</p>
-                  <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${cc.bg}`} style={{ color: cc.color }}>
-                    {cc.label}
-                  </span>
-                </div>
-              </div>
-              <button
-                className="w-full py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90 active:scale-[0.97]"
-                style={{ backgroundColor: 'rgba(167,139,250,0.1)', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.2)' }}
-              >
-                Ver segmento →
-              </button>
-            </div>
-          )
-        })}
       </div>
     </div>
   )

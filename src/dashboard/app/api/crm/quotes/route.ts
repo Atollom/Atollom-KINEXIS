@@ -13,23 +13,29 @@ export async function GET() {
   const supabase = createRouteHandlerClient({ cookies })
   const tenant = await getAuthenticatedTenant(supabase)
   if (!tenant) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  if (tenant.role !== 'owner') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  // Owners can only see their own tenant; future super-admin would bypass this
-  const { data: tenantData } = await supabase
-    .from('tenants')
-    .select('id, name, plan, status, created_at, settings')
-    .eq('id', tenant.tenantId)
-    .single()
-
-  const { data: users } = await supabase
-    .from('tenant_users')
-    .select('id, user_id, role, created_at')
+  const { data: quotes } = await supabase
+    .from('quotes')
+    .select('id, lead_id, total_amount, status, items, created_at, updated_at')
     .eq('tenant_id', tenant.tenantId)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  const rows = quotes ?? []
+  const total_sent = rows.filter(q => q.status === 'sent').reduce((s, q) => s + (q.total_amount ?? 0), 0)
+  const total_accepted = rows.filter(q => q.status === 'accepted').reduce((s, q) => s + (q.total_amount ?? 0), 0)
+  const acceptance_rate = rows.length > 0
+    ? Math.round((rows.filter(q => q.status === 'accepted').length / rows.length) * 100)
+    : 0
 
   return NextResponse.json({
-    tenant: tenantData ?? null,
-    users: users ?? [],
-    user_count: users?.length ?? 0,
+    quotes: rows,
+    stats: {
+      total: rows.length,
+      pending: rows.filter(q => q.status === 'draft' || q.status === 'sent').length,
+      total_sent,
+      total_accepted,
+      acceptance_rate,
+    },
   })
 }

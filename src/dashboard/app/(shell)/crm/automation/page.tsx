@@ -1,148 +1,116 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { mockDealAutomations, mockAutomationStats, type DealAutomation } from '@/lib/mockData'
-import { useToast } from '@/components/ToastProvider'
-import { authenticatedFetch } from '@/lib/api-client'
+import { Zap, MessageSquare, Star, Clock, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
 
-const TRIGGER_ICONS: Record<string, string> = {
-  stage_change: 'swap_horiz', time_based: 'schedule', value_threshold: 'attach_money', activity: 'event',
-}
-const ACTION_COLORS: Record<string, string> = {
-  email: 'text-blue-400 bg-blue-400/10', task: 'text-[#CCFF00] bg-[#CCFF00]/10',
-  notification: 'text-orange-400 bg-orange-400/10', webhook: 'text-purple-400 bg-purple-400/10',
-  field_update: 'text-pink-400 bg-pink-400/10',
-}
+const automations = [
+  {
+    id: 'hot_lead_alert',
+    title: 'Alerta Lead Caliente',
+    description: 'Notifica a Samantha cuando un lead alcanza score ≥ 70 para contacto inmediato',
+    trigger: 'Score ≥ 70',
+    action: 'Notificación + Samantha proactiva',
+    status: 'active',
+    icon: Star,
+    color: 'text-yellow-600',
+    bg: 'bg-yellow-50',
+  },
+  {
+    id: 'stale_lead',
+    title: 'Lead Sin Actividad',
+    description: 'Marca leads como "en riesgo" cuando pasan 14 días sin actualización',
+    trigger: '14 días sin actividad',
+    action: 'Marcar at_risk = true',
+    status: 'active',
+    icon: Clock,
+    color: 'text-orange-600',
+    bg: 'bg-orange-50',
+  },
+  {
+    id: 'new_ticket_notify',
+    title: 'Nuevo Ticket de Soporte',
+    description: 'Avisa al equipo cuando llega un ticket de prioridad alta o crítica',
+    trigger: 'Ticket priority: high/critical',
+    action: 'Notificación interna',
+    status: 'active',
+    icon: MessageSquare,
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+  },
+  {
+    id: 'quote_followup',
+    title: 'Seguimiento de Cotización',
+    description: 'Recordatorio automático 3 días después de enviar cotización sin respuesta',
+    trigger: '3 días post quote_sent',
+    action: 'Tarea de seguimiento + alerta',
+    status: 'pending',
+    icon: Zap,
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
+  },
+]
 
-interface AutoStats {
-  total: number; active: number; paused: number; total_deals_affected: number; avg_success_rate: number
-}
-
-export default function DealAutomationPage() {
-  const [automations, setAutomations] = useState<DealAutomation[]>(mockDealAutomations)
-  const [stats, setStats] = useState<AutoStats>(mockAutomationStats)
-  const [source, setSource] = useState<'live' | 'mock'>('mock')
-  const [loading, setLoading] = useState(true)
-  const { showToast } = useToast()
-
-  useEffect(() => {
-    authenticatedFetch('/api/crm/automation')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data && Array.isArray(data.automations) && data.automations.length > 0) {
-          setAutomations(data.automations)
-          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
-          setSource('live')
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
-
-  const handleToggle = (id: string) => {
-    setAutomations(prev => prev.map(a => a.id === id ? { ...a, status: a.status === 'active' ? 'paused' as const : 'active' as const } : a))
-    showToast({ type: 'success', title: 'Estado actualizado', message: 'Automatización modificada.' })
-  }
-
+export default function AutomationPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>
-              Deal Automation
-            </h1>
-            <span className="px-2 py-1 rounded-full bg-purple-400/10 border border-purple-400/20 text-[9px] font-black label-tracking text-purple-400">
-              AGENTE #34
-            </span>
-            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
-              loading ? 'border-white/10 text-white/30' :
-              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
-              'border-amber-500/30 bg-amber-500/10 text-amber-400'
-            }`}>
-              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
-            </span>
-          </div>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Reglas automáticas disparadas por eventos en el pipeline
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Automatización CRM</h1>
+          <p className="text-sm text-gray-500 mt-1">Flujos automáticos controlados por Samantha</p>
         </div>
-        <button
-          onClick={() => showToast({ type: 'info', title: 'Builder próximamente', message: 'Editor visual de automatizaciones en Fase 3.' })}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90 active:scale-[0.97]"
-          style={{ backgroundColor: 'var(--accent-primary)', color: '#000' }}
-        >
-          <span className="material-symbols-outlined !text-[14px]">add</span>
-          Nueva automatización
-        </button>
+        <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">CRM · Agentes</span>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {[
-          { label: 'Total',           value: stats.total,               color: 'var(--text-primary)' },
-          { label: 'Activas',         value: stats.active,              color: '#4ade80' },
-          { label: 'Pausadas',        value: stats.paused,              color: '#facc15' },
-          { label: 'Deals afectados', value: stats.total_deals_affected, color: '#a78bfa' },
-          { label: 'Éxito prom.',     value: `${stats.avg_success_rate}%`, color: '#CCFF00' },
-        ].map(s => (
-          <div key={s.label} className="glass-card p-4 rounded-2xl">
-            <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
-            <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
-          </div>
-        ))}
+      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700 flex items-start gap-3">
+        <Zap className="w-5 h-5 shrink-0 mt-0.5" />
+        <div>
+          <p className="font-semibold">Samantha gestiona la automatización</p>
+          <p className="text-xs mt-1 text-blue-600">Los flujos se ejecutan via el Guardian Agent (#0) que despacha agentes especializados según reglas del pipeline. La configuración avanzada de triggers se hará desde el panel de agentes.</p>
+        </div>
       </div>
 
-      {/* Automation cards */}
-      <div className="space-y-4">
-        {automations.map(auto => (
-          <div key={auto.id} className="glass-card rounded-2xl p-5 space-y-4" style={{ border: `1px solid ${auto.status === 'active' ? 'rgba(167,139,250,0.15)' : 'var(--border-color)'}` }}>
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(167,139,250,0.1)' }}>
-                <span className="material-symbols-outlined !text-[18px] text-purple-400">{TRIGGER_ICONS[auto.trigger.type] ?? 'bolt'}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{auto.name}</p>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${auto.status === 'active' ? 'bg-green-400/10 text-green-400' : 'bg-white/5 text-white/30'}`}>
-                    {auto.status === 'active' ? 'Activa' : 'Pausada'}
-                  </span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {automations.map(auto => {
+          const Icon = auto.icon
+          return (
+            <div key={auto.id} className={`bg-white rounded-xl shadow-sm border p-5 ${auto.status === 'pending' ? 'border-gray-100 opacity-70' : 'border-gray-100'}`}>
+              <div className="flex items-start gap-3 mb-3">
+                <div className={`p-2.5 rounded-xl ${auto.bg} shrink-0`}>
+                  <Icon className={`w-5 h-5 ${auto.color}`} />
                 </div>
-                <div className="flex items-center gap-1.5 mb-3">
-                  <span className="text-[10px] label-tracking" style={{ color: 'var(--text-muted)' }}>TRIGGER:</span>
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-purple-400/10 text-purple-300">{auto.trigger.condition}</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {auto.actions.map((action, i) => (
-                    <span key={i} className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${ACTION_COLORS[action.type] ?? 'bg-white/5 text-white/30'}`}>
-                      {action.label}
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-gray-900">{auto.title}</h3>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${auto.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      {auto.status === 'active' ? 'Activo' : 'Próximamente'}
                     </span>
-                  ))}
+                  </div>
+                  <p className="text-sm text-gray-500">{auto.description}</p>
                 </div>
               </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-2xl font-black" style={{ color: '#CCFF00' }}>{auto.success_rate}%</p>
-                <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>tasa éxito</p>
-                <p className="text-xs font-bold mt-1" style={{ color: '#a78bfa' }}>{auto.deals_affected} deals</p>
+              <div className="bg-gray-50 rounded-lg p-3 text-xs space-y-1.5">
+                <div className="flex gap-2"><span className="text-gray-400 w-16 shrink-0">Trigger:</span><span className="text-gray-700 font-medium">{auto.trigger}</span></div>
+                <div className="flex gap-2"><span className="text-gray-400 w-16 shrink-0">Acción:</span><span className="text-gray-700">{auto.action}</span></div>
               </div>
             </div>
-            <div className="flex items-center gap-2 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
-              <button
-                onClick={() => handleToggle(auto.id)}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80"
-                style={{ backgroundColor: auto.status === 'active' ? 'rgba(251,146,60,0.1)' : 'rgba(74,222,128,0.1)', color: auto.status === 'active' ? '#fb923c' : '#4ade80', border: `1px solid ${auto.status === 'active' ? 'rgba(251,146,60,0.2)' : 'rgba(74,222,128,0.2)'}` }}
-              >
-                {auto.status === 'active' ? 'Pausar' : 'Activar'}
-              </button>
-              <button className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80" style={{ backgroundColor: 'rgba(96,165,250,0.1)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)' }}>
-                Editar
-              </button>
-              <p className="ml-auto text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                Creada {new Date(auto.created_at).toLocaleDateString('es-MX')}
-              </p>
-            </div>
-          </div>
-        ))}
+          )
+        })}
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h2 className="font-semibold text-gray-900 mb-4">Módulos relacionados</h2>
+        <div className="space-y-2">
+          {[
+            { label: 'Lead Scorer — Priorización automática', href: '/crm/pipeline/scorer' },
+            { label: 'Pipeline Kanban — Vista de etapas', href: '/crm/pipeline' },
+            { label: 'Oportunidades — Pipeline ponderado', href: '/crm/sales/opportunities' },
+          ].map(link => (
+            <Link key={link.href} href={link.href} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+              <span className="text-sm text-gray-700 group-hover:text-green-700">{link.label}</span>
+              <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-green-500" />
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   )

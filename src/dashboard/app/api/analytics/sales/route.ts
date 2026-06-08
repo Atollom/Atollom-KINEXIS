@@ -1,53 +1,65 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase'
 import { getAuthenticatedTenant } from '@/lib/auth'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = createClient()
   const auth = await getAuthenticatedTenant(supabase)
   if (!auth) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const since = new Date()
-  since.setDate(since.getDate() - 30)
+  try {
+    const { tenant_id } = auth
+    const { searchParams } = new URL(req.url)
+    const days = parseInt(searchParams.get('days') ?? '30')
 
-  const { data: orders, error } = await supabase
-    .from('orders')
-    .select('id, platform, total, status, created_at')
-    .eq('tenant_id', auth.tenant_id)
-    .neq('status', 'CANCELLED')
-    .gte('created_at', since.toISOString())
-    .order('created_at', { ascending: true })
+    const since = new Date(Date.now() - days * 86400000).toISOString()
 
-  if (error) return NextResponse.json({ error: 'Error consultando órdenes' }, { status: 500 })
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('id, total, status, channel, created_at')
+      .eq('tenant_id', tenant_id)
+      .gte('created_at', since)
+      .order('created_at', { ascending: true })
 
-  const rows = orders ?? []
+    if (error) throw error
 
-  const totalRevenue = rows.reduce((s, o) => s + (o.total ?? 0), 0)
-  const totalOrders = rows.length
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
+    const valid = (orders ?? []).filter(o => o.status !== 'cancelled')
+    const total_revenue = valid.reduce((s, o) => s + Number(o.total ?? 0), 0)
+    const total_orders = valid.length
+    const avg_order = total_orders > 0 ? Math.round(total_revenue / total_orders) : 0
+    const cancelled = (orders ?? []).filter(o => o.status === 'cancelled').length
 
-  const byPlatform: Record<string, { orders: number; revenue: number }> = {}
-  for (const o of rows) {
-    if (!byPlatform[o.platform]) byPlatform[o.platform] = { orders: 0, revenue: 0 }
-    byPlatform[o.platform].orders++
-    byPlatform[o.platform].revenue += o.total ?? 0
+    // Group by day
+    const byDay: Record<string, { revenue: number; orders: number }> = {}
+    for (const o of valid) {
+      const day = o.created_at.slice(0, 10)
+      if (!byDay[day]) byDay[day] = { revenue: 0, orders: 0 }
+      byDay[day].revenue += Number(o.total ?? 0)
+      byDay[day].orders += 1
+    }
+    const daily = Object.entries(byDay).map(([date, v]) => ({ date, ...v }))
+
+    // By channel
+    const byChannel: Record<string, number> = {}
+    for (const o of valid) {
+      const ch = o.channel ?? 'web'
+      byChannel[ch] = (byChannel[ch] ?? 0) + Number(o.total ?? 0)
+    }
+
+    // By status
+    const byStatus: Record<string, number> = {}
+    for (const o of orders ?? []) {
+      byStatus[o.status ?? 'unknown'] = (byStatus[o.status ?? 'unknown'] ?? 0) + 1
+    }
+
+    return NextResponse.json({
+      stats: { total_revenue, total_orders, avg_order, cancelled, period_days: days },
+      daily,
+      by_channel: byChannel,
+      by_status: byStatus,
+    })
+  } catch (err: unknown) {
+    console.error('[Analytics Sales]', err)
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
-
-  const byDay: Record<string, { date: string; revenue: number; orders: number }> = {}
-  for (const o of rows) {
-    const day = o.created_at.slice(0, 10)
-    if (!byDay[day]) byDay[day] = { date: day, revenue: 0, orders: 0 }
-    byDay[day].revenue += o.total ?? 0
-    byDay[day].orders++
-  }
-
-  return NextResponse.json({
-    kpis: {
-      total_revenue: totalRevenue,
-      total_orders: totalOrders,
-      avg_order_value: avgOrderValue,
-    },
-    by_platform: Object.entries(byPlatform).map(([platform, v]) => ({ platform, ...v })),
-    daily_trend: Object.values(byDay),
-  })
 }

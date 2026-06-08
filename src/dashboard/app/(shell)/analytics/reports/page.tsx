@@ -1,130 +1,110 @@
 'use client'
 
 import { useState } from 'react'
-import { mockCustomReports, mockCustomReportStats } from '@/lib/mockData'
-import { useToast } from '@/components/ToastProvider'
+import { FileText, Download, BarChart3 } from 'lucide-react'
 
-const TYPE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  sales: { label: 'Ventas', color: '#CCFF00', bg: 'bg-[#CCFF00]/10' },
-  inventory: { label: 'Inventario', color: '#fb923c', bg: 'bg-orange-400/10' },
-  customers: { label: 'Clientes', color: '#a78bfa', bg: 'bg-purple-400/10' },
-  marketing: { label: 'Marketing', color: '#f472b6', bg: 'bg-pink-400/10' },
-  financial: { label: 'Financiero', color: '#60a5fa', bg: 'bg-blue-400/10' },
+const reports = [
+  { id: 'sales_monthly', title: 'Reporte de Ventas Mensual', description: 'Revenue, pedidos y canales del mes', category: 'ventas', api: '/api/analytics/sales?days=30' },
+  { id: 'sales_quarterly', title: 'Reporte de Ventas Trimestral', description: 'Análisis de 90 días con tendencias', category: 'ventas', api: '/api/analytics/sales?days=90' },
+  { id: 'crm_pipeline', title: 'Pipeline CRM', description: 'Estado actual del pipeline de ventas', category: 'crm', api: '/api/crm/stats' },
+  { id: 'crm_deals', title: 'Deals Cerrados', description: 'Revenue y deals ganados del periodo', category: 'crm', api: '/api/crm/deals' },
+  { id: 'inventory_status', title: 'Valuación de Inventario', description: 'Costo, valor y margen por SKU', category: 'inventario', api: '/api/erp/inventory/valuation' },
+  { id: 'inventory_movements', title: 'Movimientos de Inventario', description: 'Entradas, salidas y ajustes (30d)', category: 'inventario', api: '/api/erp/inventory/movements' },
+  { id: 'finance_receivables', title: 'Cuentas por Cobrar', description: 'Facturas pendientes y vencidas', category: 'finanzas', api: '/api/erp/finance/receivables' },
+  { id: 'finance_payables', title: 'Cuentas por Pagar', description: 'OC pendientes con proveedores', category: 'finanzas', api: '/api/erp/finance/payables' },
+  { id: 'cfdi_billing', title: 'Historial CFDI', description: 'Todos los comprobantes fiscales', category: 'fiscal', api: '/api/erp/cfdi/billing' },
+  { id: 'cfdi_compliance', title: 'Reporte de Cumplimiento SAT', description: 'Verificación de requisitos CFDI 4.0', category: 'fiscal', api: '/api/erp/cfdi/compliance' },
+  { id: 'suppliers', title: 'Evaluación de Proveedores', description: 'Score y desempeño por proveedor', category: 'compras', api: '/api/erp/purchases/suppliers' },
+  { id: 'shipping', title: 'Envíos y Guías', description: 'Historial de etiquetas Skydropx', category: 'logística', api: '/api/erp/logistics/shipping' },
+]
+
+const categories = ['todos', 'ventas', 'crm', 'inventario', 'finanzas', 'fiscal', 'compras', 'logística']
+
+const categoryColors: Record<string, string> = {
+  ventas: 'bg-green-100 text-green-700',
+  crm: 'bg-blue-100 text-blue-700',
+  inventario: 'bg-orange-100 text-orange-700',
+  finanzas: 'bg-purple-100 text-purple-700',
+  fiscal: 'bg-indigo-100 text-indigo-700',
+  compras: 'bg-yellow-100 text-yellow-700',
+  'logística': 'bg-cyan-100 text-cyan-700',
 }
-const FREQ_LABELS: Record<string, string> = { daily: 'Diario', weekly: 'Semanal', monthly: 'Mensual' }
 
-export default function CustomReportsPage() {
-  const { showToast } = useToast()
-  const [running, setRunning] = useState<string | null>(null)
+export default function ReportsPage() {
+  const [filter, setFilter] = useState('todos')
+  const [downloading, setDownloading] = useState<string | null>(null)
 
-  const handleRun = (id: string, name: string) => {
-    setRunning(id)
-    setTimeout(() => {
-      setRunning(null)
-      showToast({ type: 'success', title: 'Reporte ejecutado', message: `"${name}" generado con éxito.` })
-    }, 2000)
+  const filtered = filter === 'todos' ? reports : reports.filter(r => r.category === filter)
+
+  async function downloadJSON(report: typeof reports[0]) {
+    setDownloading(report.id)
+    try {
+      const res = await fetch(report.api)
+      const data = await res.json()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `kinexis_${report.id}_${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setDownloading(null)
+    }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>Custom Reports</h1>
-            <span className="px-2 py-1 rounded-full bg-[#CCFF00]/10 border border-[#CCFF00]/20 text-[9px] font-black label-tracking text-[#CCFF00]">ANALYTICS</span>
-          </div>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Reportes personalizados con filtros, columnas y programación automática</p>
+          <h1 className="text-2xl font-bold text-gray-900">Reportes</h1>
+          <p className="text-sm text-gray-500 mt-1">Exporta datos en tiempo real de todos los módulos</p>
         </div>
-        <button
-          onClick={() => showToast({ type: 'info', title: 'Builder próximamente', message: 'Editor visual de reportes en Fase 3.' })}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90 active:scale-[0.97]"
-          style={{ backgroundColor: 'var(--accent-primary)', color: '#000' }}
-        >
-          <span className="material-symbols-outlined !text-[14px]">add</span>
-          Nuevo reporte
-        </button>
+        <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">Analytics</span>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: 'Reportes', value: mockCustomReportStats.total, color: 'var(--text-primary)' },
-          { label: 'Programados', value: mockCustomReportStats.scheduled, color: '#CCFF00' },
-          { label: 'Manuales', value: mockCustomReportStats.manual, color: '#60a5fa' },
-          { label: 'Registros prom.', value: mockCustomReportStats.avg_records.toLocaleString(), color: '#a78bfa' },
-        ].map(s => (
-          <div key={s.label} className="glass-card p-4 rounded-2xl">
-            <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
-            <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
+      {/* Category filters */}
+      <div className="flex gap-2 flex-wrap">
+        {categories.map(c => (
+          <button key={c} onClick={() => setFilter(c)} className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition-colors ${filter === c ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            {c}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {filtered.map(report => (
+          <div key={report.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col">
+            <div className="flex items-start justify-between mb-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <BarChart3 className="w-4 h-4 text-gray-500" />
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${categoryColors[report.category] ?? 'bg-gray-100 text-gray-500'}`}>
+                {report.category}
+              </span>
+            </div>
+            <h3 className="font-semibold text-gray-900 mb-1">{report.title}</h3>
+            <p className="text-sm text-gray-500 flex-1">{report.description}</p>
+            <button
+              onClick={() => downloadJSON(report)}
+              disabled={downloading === report.id}
+              className="mt-4 flex items-center justify-center gap-2 w-full py-2 border border-green-200 text-green-700 hover:bg-green-50 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              {downloading === report.id ? 'Descargando...' : 'Exportar JSON'}
+            </button>
           </div>
         ))}
       </div>
 
-      {/* Report list */}
-      <div className="space-y-3">
-        {mockCustomReports.map(rep => {
-          const tc = TYPE_CONFIG[rep.type]
-          const isRunning = running === rep.id
-          return (
-            <div key={rep.id} className="glass-card rounded-2xl p-5 space-y-3" style={{ border: '1px solid var(--border-color)' }}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{rep.name}</p>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${tc.bg}`} style={{ color: tc.color }}>{tc.label}</span>
-                    {rep.schedule && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#CCFF00]/10 text-[#CCFF00]">
-                        {FREQ_LABELS[rep.schedule.frequency]}
-                      </span>
-                    )}
-                  </div>
-                  {/* Filters */}
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {rep.filters.map((f, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded-md text-[10px] font-mono" style={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}>
-                        {f.field} {f.operator} {f.value || ''}
-                      </span>
-                    ))}
-                  </div>
-                  {/* Columns */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] label-tracking" style={{ color: 'var(--text-muted)' }}>COLUMNAS:</span>
-                    {rep.columns.slice(0, 4).map(col => (
-                      <span key={col} className="px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>{col}</span>
-                    ))}
-                    {rep.columns.length > 4 && <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>+{rep.columns.length - 4}</span>}
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  {rep.records_last_run && <p className="text-xs font-bold mb-1" style={{ color: '#CCFF00' }}>{rep.records_last_run.toLocaleString()} registros</p>}
-                  {rep.last_run && <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Último: {new Date(rep.last_run).toLocaleDateString('es-MX')}</p>}
-                  {rep.schedule && <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>→ {rep.schedule.recipients.length} destinatarios</p>}
-                </div>
-              </div>
-              {/* Actions */}
-              <div className="flex items-center gap-2 pt-2 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                <button
-                  onClick={() => handleRun(rep.id, rep.name)}
-                  disabled={isRunning}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80 disabled:opacity-50"
-                  style={{ backgroundColor: 'var(--accent-primary)', color: '#000' }}
-                >
-                  <span className={`material-symbols-outlined !text-[13px] ${isRunning ? 'animate-spin' : ''}`}>{isRunning ? 'progress_activity' : 'play_arrow'}</span>
-                  {isRunning ? 'Ejecutando...' : 'Ejecutar ahora'}
-                </button>
-                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80" style={{ backgroundColor: 'rgba(96,165,250,0.1)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)' }}>
-                  <span className="material-symbols-outlined !text-[13px]">edit</span>
-                  Editar
-                </button>
-                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80" style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}>
-                  <span className="material-symbols-outlined !text-[13px]">download</span>
-                  Descargar
-                </button>
-                <p className="ml-auto text-[10px]" style={{ color: 'var(--text-muted)' }}>Por {rep.created_by}</p>
-              </div>
-            </div>
-          )
-        })}
+      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
+        <div className="flex items-center gap-2 font-semibold mb-1">
+          <FileText className="w-4 h-4" />
+          Próximamente: Exportación en Excel y PDF
+        </div>
+        <p className="text-xs text-blue-600">Los reportes se exportan actualmente en formato JSON. La integración con Excel/CSV estará disponible en la siguiente actualización.</p>
       </div>
     </div>
   )

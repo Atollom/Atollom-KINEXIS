@@ -1,150 +1,162 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { authenticatedFetch } from '@/lib/api-client'
+import { Building2, Users, Shield, Calendar, Settings } from 'lucide-react'
 
-interface TenantRow {
+interface TenantData {
   id: string
   name: string
-  business_name: string
   plan: string
-  active: boolean
-  onboarding_complete: boolean
-  user_count: number
-  has_stripe: boolean
+  status: string
+  created_at: string
+  settings: Record<string, unknown> | null
+}
+
+interface TenantUser {
+  id: string
+  user_id: string
+  role: string
   created_at: string
 }
 
-const PLAN_CFG: Record<string, { color: string; bg: string; border: string }> = {
-  Starter:    { color: 'text-amber-400',    bg: 'bg-amber-400/10',    border: 'border-amber-400/20'    },
-  Growth:     { color: 'text-blue-400',     bg: 'bg-blue-400/10',     border: 'border-blue-400/20'     },
-  Pro:        { color: 'text-primary',      bg: 'bg-primary/10',      border: 'border-primary/20'      },
-}
-
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: '2-digit' })
+const ROLE_COLORS: Record<string, string> = {
+  owner: 'bg-green-100 text-green-700',
+  admin: 'bg-blue-100 text-blue-700',
+  agente: 'bg-purple-100 text-purple-700',
+  almacenista: 'bg-orange-100 text-orange-700',
+  contador: 'bg-gray-100 text-gray-700',
 }
 
 export default function AdminTenantsPage() {
-  const [tenants, setTenants] = useState<TenantRow[]>([])
+  const [tenant, setTenant] = useState<TenantData | null>(null)
+  const [users, setUsers] = useState<TenantUser[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [search, setSearch] = useState('')
 
   useEffect(() => {
-    let mounted = true
-    authenticatedFetch('/api/admin/tenants')
-      .then(r => {
-        if (r.status === 403) throw new Error('forbidden')
-        return r.ok ? r.json() : null
+    fetch('/api/admin/tenants')
+      .then(r => r.json())
+      .then(data => {
+        setTenant(data.tenant)
+        setUsers(data.users ?? [])
       })
-      .then(d => { if (mounted && d?.tenants) setTenants(d.tenants) })
-      .catch(e => { if (mounted) setError(e.message === 'forbidden' ? 'Acceso restringido a Super Admin' : 'Error cargando datos') })
-      .finally(() => { if (mounted) setLoading(false) })
-    return () => { mounted = false }
+      .finally(() => setLoading(false))
   }, [])
 
-  const filtered = tenants.filter(t =>
-    !search ||
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.business_name.toLowerCase().includes(search.toLowerCase())
-  )
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <span className="material-symbols-outlined !text-[48px] text-red-400/30">lock</span>
-        <p className="text-sm font-black text-red-400">{error}</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-10 animate-in">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <span className="text-[0.75rem] font-bold label-tracking text-red-400">
-            Admin / Tenants
-          </span>
-          <div className="flex items-center gap-3">
-            <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">Tenants</h1>
-            <span className="px-2 py-1 rounded-full text-[9px] font-black label-tracking border border-red-400/30 bg-red-400/10 text-red-400">
-              SUPER ADMIN
-            </span>
-          </div>
-          <p className="text-sm text-on-surface-variant">
-            {loading ? '…' : `${tenants.length} tenant${tenants.length !== 1 ? 's' : ''} registrados`}
-          </p>
-        </div>
-      </header>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total', value: tenants.length, color: 'text-on-surface' },
-          { label: 'Activos', value: tenants.filter(t => t.active).length, color: 'text-green-400' },
-          { label: 'Con Stripe', value: tenants.filter(t => t.has_stripe).length, color: 'text-purple-400' },
-          { label: 'Onboarding OK', value: tenants.filter(t => t.onboarding_complete).length, color: 'text-primary' },
-        ].map(k => (
-          <div key={k.label} className="glass-card rounded-[1.5rem] border border-white/5 p-5">
-            <p className="text-[9px] font-black label-tracking text-on-surface/40 uppercase mb-2">{k.label}</p>
-            <p className={`text-2xl font-black ${k.color}`}>{loading ? '—' : k.value}</p>
-          </div>
+  if (loading) return (
+    <div className="p-6 space-y-4">
+      <div className="h-8 w-64 bg-gray-100 rounded animate-pulse" />
+      <div className="grid grid-cols-3 gap-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-32 bg-gray-100 rounded-xl animate-pulse" />
         ))}
       </div>
+    </div>
+  )
 
-      {/* Search */}
-      <div className="relative w-72">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/30 !text-[16px]">search</span>
-        <input
-          type="text"
-          placeholder="Buscar tenant…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-[11px] font-medium text-on-surface placeholder:text-on-surface/30 focus:border-primary/50 outline-none w-full"
-        />
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Configuración del Tenant</h1>
+        <p className="text-sm text-gray-500 mt-1">Información de la cuenta y usuarios</p>
       </div>
 
-      {/* Table */}
-      <div className="glass-card rounded-[2rem] border border-white/5 overflow-hidden">
-        <div className="divide-y divide-white/5">
-          {loading ? (
-            <div className="p-12 text-center text-sm text-on-surface/40">Cargando…</div>
-          ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-sm text-on-surface/40">Sin resultados</div>
-          ) : filtered.map(t => {
-            const planCfg = PLAN_CFG[t.plan] ?? PLAN_CFG.Starter
-            return (
-              <div key={t.id} className="flex items-center gap-4 px-8 py-5 hover:bg-white/[0.02] transition-colors">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-black flex-shrink-0 ${planCfg.bg} ${planCfg.color} border ${planCfg.border}`}>
-                  {(t.name || '??').slice(0, 2).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-on-surface truncate">{t.name}</p>
-                  <p className="text-[9px] text-on-surface/40 truncate">{t.business_name || '—'}</p>
-                </div>
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-xl text-[9px] font-black border ${planCfg.color} ${planCfg.bg} ${planCfg.border}`}>
-                  {t.plan.toUpperCase()}
-                </span>
-                <div className="flex items-center gap-1 text-[9px] text-on-surface/40">
-                  <span className="material-symbols-outlined !text-[12px]">group</span>
-                  {t.user_count}
-                </div>
-                {t.has_stripe && (
-                  <span className="material-symbols-outlined !text-[14px] text-purple-400">credit_card</span>
-                )}
-                {t.onboarding_complete
-                  ? <span className="material-symbols-outlined !text-[14px] text-green-400">check_circle</span>
-                  : <span className="material-symbols-outlined !text-[14px] text-on-surface/20">radio_button_unchecked</span>
-                }
-                <p className="text-[9px] text-on-surface/30 w-20 text-right">{fmtDate(t.created_at)}</p>
+      {/* Tenant card */}
+      {tenant && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-700 rounded-2xl flex items-center justify-center text-white font-bold text-xl">
+                {tenant.name?.[0]?.toUpperCase() ?? 'K'}
               </div>
-            )
-          })}
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{tenant.name}</h2>
+                <p className="text-sm text-gray-400 font-mono">{tenant.id.slice(0, 16)}…</p>
+              </div>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${tenant.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              {tenant.status}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-400">Plan</p>
+                <p className="font-semibold text-gray-900 capitalize">{tenant.plan ?? 'Growth'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-400">Usuarios</p>
+                <p className="font-semibold text-gray-900">{users.length}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-400">Creado</p>
+                <p className="font-semibold text-gray-900">
+                  {new Date(tenant.created_at).toLocaleDateString('es-MX')}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Users table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Users className="w-4 h-4 text-gray-400" />
+            Usuarios del tenant ({users.length})
+          </h2>
+        </div>
+
+        {users.length === 0 ? (
+          <div className="py-12 text-center text-gray-400">
+            <Building2 className="w-10 h-10 mx-auto mb-3 text-gray-200" />
+            <p>No hay usuarios registrados</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="text-left font-semibold text-gray-500 px-6 py-3">Usuario ID</th>
+                  <th className="text-left font-semibold text-gray-500 px-6 py-3">Rol</th>
+                  <th className="text-left font-semibold text-gray-500 px-6 py-3">Unido</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map(u => (
+                  <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-mono text-xs text-gray-500">{u.user_id.slice(0, 20)}…</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${ROLE_COLORS[u.role] ?? 'bg-gray-100 text-gray-700'}`}>
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-400">
+                      {new Date(u.created_at).toLocaleDateString('es-MX')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      <div className="h-10" />
+      {/* Quick settings link */}
+      <div className="flex gap-3">
+        <a href="/settings/users" className="flex items-center gap-2 px-4 py-2 border border-gray-200 hover:border-green-400 text-gray-600 text-sm font-medium rounded-lg transition-colors">
+          <Settings className="w-4 h-4" />
+          Gestionar usuarios
+        </a>
+      </div>
     </div>
   )
 }

@@ -1,202 +1,117 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useToast } from '@/components/ToastProvider'
-import { authenticatedFetch } from '@/lib/api-client'
-import {
-  mockCRMDeals,
-  mockCRMStats,
-  type CRMDeal,
-} from '@/lib/mockData'
+import { useEffect, useState } from 'react'
+import { Users, Plus } from 'lucide-react'
+import Link from 'next/link'
 
-const STAGES: Array<{ key: CRMDeal['stage']; label: string; color: string; bg: string; border: string; icon: string }> = [
-  { key: 'lead',        label: 'Lead',        color: 'text-on-surface/50', bg: 'bg-white/5',        border: 'border-white/10',      icon: 'person_add'   },
-  { key: 'qualified',   label: 'Calificado',  color: 'text-blue-400',      bg: 'bg-blue-400/10',    border: 'border-blue-400/20',   icon: 'verified'     },
-  { key: 'proposal',    label: 'Propuesta',   color: 'text-purple-400',    bg: 'bg-purple-400/10',  border: 'border-purple-400/20', icon: 'description'  },
-  { key: 'negotiation', label: 'Negociación', color: 'text-amber-400',     bg: 'bg-amber-400/10',   border: 'border-amber-400/20',  icon: 'handshake'    },
-  { key: 'closed_won',  label: 'Ganado ✓',    color: 'text-[#CCFF00]',    bg: 'bg-[#CCFF00]/10',  border: 'border-[#CCFF00]/20',  icon: 'celebration'  },
-  { key: 'closed_lost', label: 'Perdido',     color: 'text-red-400',       bg: 'bg-red-400/10',     border: 'border-red-400/20',    icon: 'cancel'       },
+interface Lead {
+  id: string; name: string; company: string; source: string
+  score: number; stage: string; estimated_value: number; updated_at: string
+}
+
+const stages = [
+  { key: 'new', label: 'Nuevos', color: 'border-gray-300', header: 'bg-gray-100' },
+  { key: 'contacted', label: 'Contactados', color: 'border-blue-300', header: 'bg-blue-50' },
+  { key: 'quote_sent', label: 'Cotización', color: 'border-yellow-300', header: 'bg-yellow-50' },
+  { key: 'negotiating', label: 'Negociando', color: 'border-purple-300', header: 'bg-purple-50' },
+  { key: 'won', label: 'Ganados', color: 'border-green-300', header: 'bg-green-50' },
 ]
 
-const SOURCE_LABELS: Record<CRMDeal['source'], string> = {
-  website: 'Web', referral: 'Referido', cold_call: 'Llamada', trade_show: 'Expo', linkedin: 'LinkedIn',
+function fmt(n: number) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
 }
 
-function probColor(p: number) {
-  if (p >= 70) return 'text-[#CCFF00]'
-  if (p >= 40) return 'text-amber-400'
-  return 'text-red-400'
+const sourceColors: Record<string, string> = {
+  whatsapp: 'text-green-600', instagram: 'text-pink-600', facebook: 'text-blue-600',
+  web: 'text-gray-500', email: 'text-yellow-600',
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })
-}
-
-interface PipelineStats {
-  total_deals: number
-  total_pipeline_value: number
-  won_value_month: number
-  conversion_rate: number
-}
-
-export default function CRMPipelinePage() {
-  const { showToast } = useToast()
-  const [deals, setDeals] = useState<CRMDeal[]>(mockCRMDeals)
-  const [stats, setStats] = useState<PipelineStats>(mockCRMStats)
-  const [source, setSource] = useState<'live' | 'mock'>('mock')
+export default function PipelinePage() {
+  const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    authenticatedFetch('/api/crm/pipeline')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data && Array.isArray(data.deals) && data.deals.length > 0) {
-          setDeals(data.deals)
-          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
-          setSource('live')
-        }
-      })
-      .catch(() => {})
+    fetch('/api/crm/leads')
+      .then(r => r.json())
+      .then(d => setLeads(d.leads ?? []))
+      .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
 
-  const dealsByStage = (stage: CRMDeal['stage']) => deals.filter(d => d.stage === stage)
-  const stageValue   = (stage: CRMDeal['stage']) => dealsByStage(stage).reduce((s, d) => s + d.value, 0)
+  const byStage = (stage: string) => leads.filter(l => l.stage === stage)
+  const stageValue = (stage: string) => byStage(stage).reduce((s, l) => s + l.estimated_value, 0)
 
   return (
-    <div className="space-y-10 animate-in">
-      {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <span className="text-[0.75rem] font-bold label-tracking text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.3)]">
-            CRM / Pipeline de Ventas B2B
-          </span>
-          <div className="flex items-center gap-3">
-            <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">
-              Pipeline B2B
-            </h1>
-            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
-              loading ? 'border-white/10 text-white/30' :
-              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
-              'border-amber-500/30 bg-amber-500/10 text-amber-400'
-            }`}>
-              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
-            </span>
-          </div>
-          <p className="text-sm text-on-surface-variant">
-            {stats.total_deals} deals activos ·{' '}
-            <span className="text-purple-400 font-bold">${stats.total_pipeline_value.toLocaleString()} USD</span> en pipeline
-          </p>
+    <div className="flex flex-col gap-4 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Pipeline Kanban</h1>
+          <p className="text-sm text-gray-500 mt-1">Visualiza y gestiona el flujo de ventas</p>
         </div>
-        <button
-          onClick={() => showToast({ type: 'success', title: 'Deal creado', message: 'Nuevo prospecto agregado al pipeline' })}
-          className="px-8 py-4 rounded-2xl bg-purple-500 text-white text-[10px] font-black label-tracking hover:bg-purple-500/90 transition-all flex items-center gap-2 self-start md:self-auto"
-        >
-          <span className="material-symbols-outlined !text-[16px]">add_circle</span>
-          NUEVO DEAL
-        </button>
-      </header>
-
-      {/* KPI strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Pipeline Total',  value: `$${(stats.total_pipeline_value / 1000).toFixed(0)}k`, icon: 'account_balance_wallet', color: 'text-purple-400' },
-          { label: 'Deals Activos',   value: stats.total_deals,                                      icon: 'work',                   color: 'text-blue-400'   },
-          { label: 'Ganados (mes)',   value: `$${(stats.won_value_month / 1000).toFixed(0)}k`,       icon: 'emoji_events',           color: 'text-[#CCFF00]'  },
-          { label: 'Conversión',      value: `${stats.conversion_rate}%`,                            icon: 'trending_up',            color: 'text-amber-400'  },
-        ].map(kpi => (
-          <div key={kpi.label} className="glass-card rounded-[1.5rem] border border-white/5 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <span className={`material-symbols-outlined !text-[18px] ${kpi.color}`}>{kpi.icon}</span>
-              <span className="text-[9px] font-black label-tracking text-on-surface/40 uppercase">{kpi.label}</span>
-            </div>
-            <p className="text-2xl font-black tight-tracking text-on-surface">{kpi.value}</p>
-          </div>
-        ))}
+        <div className="flex gap-2">
+          <Link href="/crm/pipeline/scorer" className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
+            Lead Scorer
+          </Link>
+          <Link href="/crm/leads" className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center gap-1">
+            <Users className="w-4 h-4" />
+            Ver todos
+          </Link>
+        </div>
       </div>
 
       {/* Kanban board */}
-      <div className="overflow-x-auto pb-4 -mx-4 px-4">
-        <div className="flex gap-4 min-w-max">
-          {STAGES.map(stage => {
-            const stageDeals = dealsByStage(stage.key)
-            const total = stageValue(stage.key)
-            return (
-              <div key={stage.key} className="w-64 flex-shrink-0">
-                <div className={`flex items-center justify-between px-4 py-3 rounded-2xl mb-3 border ${stage.bg} ${stage.border}`}>
-                  <div className="flex items-center gap-2">
-                    <span className={`material-symbols-outlined !text-[14px] ${stage.color}`}>{stage.icon}</span>
-                    <span className={`text-[9px] font-black label-tracking ${stage.color}`}>{stage.label.toUpperCase()}</span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[9px] font-black text-on-surface/50">{stageDeals.length}</p>
-                    {total > 0 && <p className={`text-[8px] font-black ${stage.color}`}>${(total / 1000).toFixed(0)}k</p>}
-                  </div>
+      <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: '60vh' }}>
+        {stages.map(stage => {
+          const stageleads = loading ? [] : byStage(stage.key)
+          return (
+            <div key={stage.key} className={`flex flex-col min-w-[260px] bg-white rounded-xl border-2 ${stage.color} shadow-sm`}>
+              {/* Column header */}
+              <div className={`px-4 py-3 rounded-t-xl ${stage.header} flex items-center justify-between`}>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-sm">{stage.label}</h3>
+                  {!loading && <p className="text-xs text-gray-500">{stageleads.length} leads · {fmt(stageValue(stage.key))}</p>}
                 </div>
-
-                <div className="space-y-3">
-                  {stageDeals.map(deal => (
-                    <div
-                      key={deal.id}
-                      className="glass-card rounded-[1.5rem] border border-white/5 p-4 hover:border-purple-400/20 transition-colors group cursor-pointer"
-                      onClick={() => showToast({ type: 'info', title: deal.company, message: deal.notes ?? 'Ver detalle del deal' })}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div className="min-w-0">
-                          <p className="text-[10px] font-black text-on-surface leading-tight line-clamp-2">{deal.title}</p>
-                          <p className="text-[9px] text-on-surface/40 mt-0.5 truncate">{deal.company}</p>
-                        </div>
-                        <p className="text-sm font-black text-[#CCFF00] flex-shrink-0">${(deal.value / 1000).toFixed(0)}k</p>
-                      </div>
-
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-5 h-5 rounded-full bg-purple-400/20 flex items-center justify-center flex-shrink-0">
-                          <span className="material-symbols-outlined !text-[10px] text-purple-400">person</span>
-                        </div>
-                        <p className="text-[9px] text-on-surface/50 truncate">{deal.contact.name}</p>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-white/5 text-on-surface/40">
-                            {SOURCE_LABELS[deal.source]}
-                          </span>
-                          <span className={`text-[9px] font-black ${probColor(deal.probability)}`}>{deal.probability}%</span>
-                        </div>
-                        <span className="text-[8px] text-on-surface/30">{fmtDate(deal.expected_close_date)}</span>
-                      </div>
-
-                      <div className="mt-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={e => { e.stopPropagation(); showToast({ type: 'info', title: 'Avanzar deal', message: `${deal.title} → próxima etapa` }) }}
-                          className="flex-1 px-2 py-1 rounded-lg bg-purple-400/10 border border-purple-400/20 text-purple-400 text-[8px] font-black hover:bg-purple-400/20 transition-colors text-center"
-                        >
-                          AVANZAR
-                        </button>
-                        <button
-                          onClick={e => { e.stopPropagation(); showToast({ type: 'success', title: 'Seguimiento agendado', message: `Tarea para ${deal.contact.name}` }) }}
-                          className="flex-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-on-surface/50 text-[8px] font-black hover:bg-white/10 transition-colors text-center"
-                        >
-                          SEGUIR
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {stageDeals.length === 0 && (
-                    <div className="text-center py-10 text-on-surface/20">
-                      <span className="material-symbols-outlined !text-[24px]">inbox</span>
-                      <p className="text-[8px] font-black label-tracking mt-2">VACÍO</p>
-                    </div>
-                  )}
-                </div>
+                <span className="w-6 h-6 bg-white bg-opacity-70 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
+                  {loading ? '—' : stageleads.length}
+                </span>
               </div>
-            )
-          })}
-        </div>
-      </div>
 
-      <div className="h-10" />
+              {/* Cards */}
+              <div className="flex-1 p-2 space-y-2 overflow-y-auto" style={{ maxHeight: '65vh' }}>
+                {loading ? (
+                  Array.from({ length: 2 }).map((_, i) => (
+                    <div key={i} className="bg-gray-100 rounded-lg h-20 animate-pulse" />
+                  ))
+                ) : stageleads.length === 0 ? (
+                  <div className="text-center py-6 text-gray-300 text-sm">Sin leads</div>
+                ) : (
+                  stageleads.map(lead => (
+                    <div key={lead.id} className="bg-white border border-gray-100 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                      <div className="flex items-start justify-between mb-1.5">
+                        <p className="font-medium text-gray-900 text-sm leading-tight">{lead.name}</p>
+                        <span className={`text-xs font-bold ${lead.score >= 70 ? 'text-green-600' : lead.score >= 40 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                          {lead.score}
+                        </span>
+                      </div>
+                      {lead.company !== 'Individual' && (
+                        <p className="text-xs text-gray-400 mb-1.5">{lead.company}</p>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs capitalize font-medium ${sourceColors[lead.source] ?? 'text-gray-400'}`}>
+                          {lead.source}
+                        </span>
+                        {lead.estimated_value > 0 && (
+                          <span className="text-xs text-gray-500 font-medium">{fmt(lead.estimated_value)}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

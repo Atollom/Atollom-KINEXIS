@@ -1,125 +1,133 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { authenticatedFetch } from '@/lib/api-client'
+import { Activity, Filter, RefreshCw } from 'lucide-react'
 
-interface LogEntry {
+interface AuditLog {
   id: string
-  tenant_id: string
-  tenant_name: string
-  field: string
-  previous_value: string
-  new_value: string
+  user_id: string
+  action: string
+  module: string
+  resource_id: string | null
+  metadata: Record<string, unknown> | null
   created_at: string
 }
 
-function getActionMeta(field: string) {
-  if (field.startsWith('vault.'))     return { label: 'API Key',      color: 'text-amber-400',  icon: 'key' }
-  if (field.startsWith('profile.'))   return { label: 'Perfil',        color: 'text-blue-400',   icon: 'manage_accounts' }
-  if (field.startsWith('user_role.')) return { label: 'Rol',           color: 'text-purple-400', icon: 'shield' }
-  return                                     { label: field,            color: 'text-on-surface/60', icon: 'history' }
+const MODULE_COLORS: Record<string, string> = {
+  crm: 'bg-blue-100 text-blue-700',
+  erp: 'bg-purple-100 text-purple-700',
+  ecommerce: 'bg-orange-100 text-orange-700',
+  auth: 'bg-gray-100 text-gray-700',
+  billing: 'bg-green-100 text-green-700',
 }
 
 export default function AdminLogsPage() {
-  const [logs, setLogs] = useState<LogEntry[]>([])
+  const [logs, setLogs] = useState<AuditLog[]>([])
+  const [modules, setModules] = useState<string[]>([])
+  const [module, setModule] = useState<string>('all')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [search, setSearch] = useState('')
 
-  useEffect(() => {
-    let mounted = true
-    authenticatedFetch('/api/admin/logs')
-      .then(r => {
-        if (r.status === 403) throw new Error('forbidden')
-        return r.ok ? r.json() : null
-      })
-      .then(d => { if (mounted && d?.logs) setLogs(d.logs) })
-      .catch(e => { if (mounted) setError(e.message === 'forbidden' ? 'Acceso restringido a Super Admin' : 'Error cargando logs') })
-      .finally(() => { if (mounted) setLoading(false) })
-    return () => { mounted = false }
-  }, [])
+  async function load(mod: string) {
+    setLoading(true)
+    try {
+      const url = mod === 'all' ? '/api/admin/logs' : `/api/admin/logs?module=${mod}`
+      const res = await fetch(url)
+      const data = await res.json()
+      setLogs(data.logs ?? [])
+      if (data.modules?.length) setModules(data.modules)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const filtered = logs.filter(l =>
-    !search ||
-    l.tenant_name?.toLowerCase().includes(search.toLowerCase()) ||
-    l.field?.toLowerCase().includes(search.toLowerCase())
-  )
+  useEffect(() => { load('all') }, [])
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <span className="material-symbols-outlined !text-[48px] text-red-400/30">lock</span>
-        <p className="text-sm font-black text-red-400">{error}</p>
-      </div>
-    )
+  function handleModuleChange(mod: string) {
+    setModule(mod)
+    load(mod)
   }
 
   return (
-    <div className="space-y-10 animate-in">
-      <header className="space-y-2">
-        <span className="text-[0.75rem] font-bold label-tracking text-red-400">
-          Admin / Audit Log Global
-        </span>
-        <div className="flex items-center gap-3">
-          <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">Audit Log</h1>
-          <span className="px-2 py-1 rounded-full text-[9px] font-black label-tracking border border-red-400/30 bg-red-400/10 text-red-400">
-            SUPER ADMIN
-          </span>
-          <span className="px-2 py-1 rounded-full text-[9px] font-black label-tracking border border-blue-400/30 bg-blue-400/10 text-blue-400">
-            {loading ? '…' : `${logs.length} eventos`}
-          </span>
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Logs de Auditoría</h1>
+          <p className="text-sm text-gray-500 mt-1">Historial de acciones del sistema</p>
         </div>
-        <p className="text-sm text-on-surface-variant">Registro de cambios cross-tenant (últimos 200 eventos)</p>
-      </header>
-
-      {/* Search */}
-      <div className="relative w-72">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/30 !text-[16px]">search</span>
-        <input
-          type="text"
-          placeholder="Filtrar por tenant o campo…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-[11px] font-medium text-on-surface placeholder:text-on-surface/30 focus:border-primary/50 outline-none w-full"
-        />
+        <button
+          onClick={() => load(module)}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-200 hover:border-green-400 text-gray-600 text-sm font-medium rounded-lg transition-colors"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Actualizar
+        </button>
       </div>
 
-      <div className="glass-card rounded-[2rem] border border-white/5 overflow-hidden">
-        <div className="divide-y divide-white/5">
-          {loading ? (
-            <div className="p-12 text-center text-sm text-on-surface/40">Cargando…</div>
-          ) : filtered.length === 0 ? (
-            <div className="p-12 text-center">
-              <span className="material-symbols-outlined !text-[32px] text-on-surface/20">history</span>
-              <p className="text-sm text-on-surface/40 mt-2">Sin eventos registrados</p>
-            </div>
-          ) : filtered.map(log => {
-            const action = getActionMeta(log.field)
-            return (
-              <div key={log.id} className="flex items-center gap-4 px-8 py-4 hover:bg-white/[0.02] transition-colors">
-                <span className={`material-symbols-outlined !text-[16px] ${action.color}`}>{action.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className={`text-xs font-bold ${action.color}`}>{action.label}</p>
-                    <span className="text-[9px] text-on-surface/30 font-mono">{log.field}</span>
-                  </div>
-                  <p className="text-[9px] text-on-surface/40">
-                    <span className="font-bold text-on-surface/60">{log.tenant_name}</span>
-                    {log.previous_value && log.new_value && (
-                      <span> · {log.previous_value} → {log.new_value}</span>
-                    )}
-                  </p>
-                </div>
-                <p className="text-[9px] text-on-surface/30 flex-shrink-0">
-                  {new Date(log.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
-            )
-          })}
-        </div>
+      {/* Module filter */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Filter className="w-4 h-4 text-gray-400" />
+        {['all', ...modules].map(mod => (
+          <button
+            key={mod}
+            onClick={() => handleModuleChange(mod)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${module === mod ? 'bg-green-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+          >
+            {mod === 'all' ? 'Todos' : mod}
+          </button>
+        ))}
       </div>
 
-      <div className="h-10" />
+      {/* Logs table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {loading ? (
+          <div className="p-8 space-y-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : logs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <Activity className="w-12 h-12 text-gray-200 mb-4" />
+            <p className="font-medium text-gray-500">Sin registros de auditoría</p>
+            <p className="text-sm text-gray-400 mt-1">Las acciones del sistema aparecerán aquí</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="text-left font-semibold text-gray-500 px-4 py-3">Fecha</th>
+                  <th className="text-left font-semibold text-gray-500 px-4 py-3">Módulo</th>
+                  <th className="text-left font-semibold text-gray-500 px-4 py-3">Acción</th>
+                  <th className="text-left font-semibold text-gray-500 px-4 py-3">Recurso</th>
+                  <th className="text-left font-semibold text-gray-500 px-4 py-3">Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map(log => (
+                  <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
+                      {new Date(log.created_at).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${MODULE_COLORS[log.module] ?? 'bg-gray-100 text-gray-700'}`}>
+                        {log.module}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{log.action}</td>
+                    <td className="px-4 py-3 text-gray-500 font-mono text-xs">{log.resource_id ?? '—'}</td>
+                    <td className="px-4 py-3 text-gray-400 font-mono text-xs truncate max-w-[120px]">
+                      {log.user_id.slice(0, 8)}…
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <p className="text-xs text-gray-400">Mostrando últimos {logs.length} registros</p>
     </div>
   )
 }
