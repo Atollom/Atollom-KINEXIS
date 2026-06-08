@@ -1,127 +1,120 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { mockSalesReports, mockSalesReportStats, type SalesReport } from '@/lib/mockData'
-import { authenticatedFetch } from '@/lib/api-client'
+import Link from 'next/link'
+import { BarChart2, Users, TrendingUp, Star, Bell, FileText } from 'lucide-react'
 
-const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-  pipeline:    { label: 'Pipeline',    icon: 'bar_chart',   color: '#a78bfa' },
-  forecast:    { label: 'Forecast',    icon: 'trending_up', color: '#CCFF00' },
-  performance: { label: 'Performance', icon: 'speed',       color: '#fb923c' },
-  activity:    { label: 'Actividad',   icon: 'event_note',  color: '#60a5fa' },
-}
+const REPORTS = [
+  {
+    title: 'Reporte de pipeline',
+    desc: 'Leads por etapa, tasa de cierre y valor del pipeline',
+    href: '/crm/page',
+    icon: TrendingUp,
+    category: 'Ventas',
+    bg: 'bg-green-50',
+    color: 'text-green-600',
+  },
+  {
+    title: 'Análisis de clientes',
+    desc: 'Segmentación, fuente de leads y comportamiento de compra',
+    href: '/analytics/customers',
+    icon: Users,
+    category: 'Clientes',
+    bg: 'bg-blue-50',
+    color: 'text-blue-600',
+  },
+  {
+    title: 'Deals y oportunidades',
+    desc: 'Negocios ganados, valor y velocidad de cierre',
+    href: '/crm/sales/deals',
+    icon: BarChart2,
+    category: 'Ventas',
+    bg: 'bg-purple-50',
+    color: 'text-purple-600',
+  },
+  {
+    title: 'NPS y satisfacción',
+    desc: 'Score de promotores, detractores y tendencia temporal',
+    href: '/crm/support/nps',
+    icon: Star,
+    category: 'Soporte',
+    bg: 'bg-yellow-50',
+    color: 'text-yellow-600',
+  },
+  {
+    title: 'Follow-ups pendientes',
+    desc: 'Leads sin contacto, tiempo de respuesta promedio',
+    href: '/crm/sales/follow-ups',
+    icon: Bell,
+    category: 'Ventas',
+    bg: 'bg-orange-50',
+    color: 'text-orange-600',
+  },
+  {
+    title: 'Cotizaciones enviadas',
+    desc: 'Tasa de aceptación, valor promedio y tiempos',
+    href: '/crm/sales/quotes',
+    icon: FileText,
+    category: 'Ventas',
+    bg: 'bg-pink-50',
+    color: 'text-pink-600',
+  },
+  {
+    title: 'Reporte consolidado',
+    desc: 'Vista unificada de todas las métricas del negocio',
+    href: '/analytics/consolidated',
+    icon: BarChart2,
+    category: 'General',
+    bg: 'bg-gray-50',
+    color: 'text-gray-600',
+  },
+  {
+    title: 'Exportar datos CRM',
+    desc: 'Descarga leads, cotizaciones y tickets en CSV/JSON',
+    href: '/analytics/export',
+    icon: FileText,
+    category: 'Exportar',
+    bg: 'bg-teal-50',
+    color: 'text-teal-600',
+  },
+]
 
-interface ReportStats {
-  reports: number; total_pipeline_value: number; avg_conversion: number; avg_deal_size: number
-}
+const CATEGORIES = ['Todos', 'Ventas', 'Clientes', 'Soporte', 'General', 'Exportar']
 
-export default function SalesReportsPage() {
-  const [reports, setReports] = useState<SalesReport[]>(mockSalesReports)
-  const [stats, setStats] = useState<ReportStats>(mockSalesReportStats)
-  const [source, setSource] = useState<'live' | 'mock'>('mock')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    authenticatedFetch('/api/crm/reports')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data && Array.isArray(data.reports) && data.reports.length > 0) {
-          setReports(data.reports)
-          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
-          setSource('live')
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
-
+export default function CrmReportsPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>
-              Sales Reports
-            </h1>
-            <span className="px-2 py-1 rounded-full bg-purple-400/10 border border-purple-400/20 text-[9px] font-black label-tracking text-purple-400">
-              CRM
-            </span>
-            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
-              loading ? 'border-white/10 text-white/30' :
-              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
-              'border-amber-500/30 bg-amber-500/10 text-amber-400'
-            }`}>
-              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
-            </span>
-          </div>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Pipeline, forecast y métricas de rendimiento del equipo
-          </p>
-        </div>
-        <button
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90 active:scale-[0.97]"
-          style={{ backgroundColor: 'var(--accent-primary)', color: '#000' }}
-        >
-          <span className="material-symbols-outlined !text-[14px]">add_chart</span>
-          Generar reporte
-        </button>
+    <div className="flex flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Reportes CRM</h1>
+        <p className="text-sm text-gray-500 mt-1">Análisis y métricas de ventas, clientes y soporte</p>
       </div>
 
-      {/* KPI summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: 'Pipeline activo',  value: `$${stats.total_pipeline_value.toLocaleString()}`, color: '#a78bfa' },
-          { label: 'Conversión prom.', value: `${stats.avg_conversion}%`,                        color: '#CCFF00' },
-          { label: 'Deal size prom.',  value: `$${stats.avg_deal_size.toLocaleString()}`,         color: '#4ade80' },
-          { label: 'Reportes',         value: stats.reports,                                      color: 'var(--text-primary)' },
-        ].map(s => (
-          <div key={s.label} className="glass-card p-4 rounded-2xl">
-            <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
-            <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
-          </div>
+      {/* Category chips */}
+      <div className="flex gap-2 flex-wrap">
+        {CATEGORIES.map(cat => (
+          <span key={cat} className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg">
+            {cat}
+          </span>
         ))}
       </div>
 
       {/* Report cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {reports.map(rep => {
-          const tc = TYPE_CONFIG[rep.type] ?? TYPE_CONFIG['activity']
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {REPORTS.map(report => {
+          const Icon = report.icon
           return (
-            <div key={rep.id} className="glass-card rounded-2xl p-5 space-y-4 hover:border-purple-400/20 transition-colors cursor-pointer" style={{ border: '1px solid var(--border-color)' }}>
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${tc.color}15` }}>
-                  <span className="material-symbols-outlined !text-[18px]" style={{ color: tc.color }}>{tc.icon}</span>
+            <Link key={report.href} href={report.href} className="group bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:border-green-200 hover:shadow-md transition-all">
+              <div className="flex items-start gap-3 mb-3">
+                <div className={`p-2.5 rounded-xl ${report.bg}`}>
+                  <Icon className={`w-5 h-5 ${report.color}`} />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-sm mb-0.5" style={{ color: 'var(--text-primary)' }}>{rep.name}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ backgroundColor: `${tc.color}15`, color: tc.color }}>{tc.label}</span>
-                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{rep.period}</span>
-                  </div>
-                </div>
-                <button className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-colors hover:bg-white/5" style={{ border: '1px solid var(--border-color)' }}>
-                  <span className="material-symbols-outlined !text-[16px]" style={{ color: 'var(--text-muted)' }}>download</span>
-                </button>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                <div>
-                  <p className="text-[10px] label-tracking mb-0.5" style={{ color: 'var(--text-muted)' }}>Deals</p>
-                  <p className="text-sm font-black" style={{ color: 'var(--text-primary)' }}>{rep.data.total_deals}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] label-tracking mb-0.5" style={{ color: 'var(--text-muted)' }}>Ganados</p>
-                  <p className="text-sm font-black text-green-400">{rep.data.won_deals}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] label-tracking mb-0.5" style={{ color: 'var(--text-muted)' }}>Conversión</p>
-                  <p className="text-sm font-black" style={{ color: '#CCFF00' }}>{rep.data.conversion_rate}%</p>
-                </div>
-                <div>
-                  <p className="text-[10px] label-tracking mb-0.5" style={{ color: 'var(--text-muted)' }}>Valor ganado</p>
-                  <p className="text-sm font-black" style={{ color: '#a78bfa' }}>${rep.data.won_value.toLocaleString()}</p>
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">{report.category}</span>
+                  <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors leading-tight mt-0.5">{report.title}</h3>
                 </div>
               </div>
-            </div>
+              <p className="text-sm text-gray-500 ml-[52px]">{report.desc}</p>
+              <p className="text-xs text-green-600 font-medium ml-[52px] mt-2">Ver reporte →</p>
+            </Link>
           )
         })}
       </div>

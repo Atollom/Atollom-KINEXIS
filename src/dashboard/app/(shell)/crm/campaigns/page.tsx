@@ -1,139 +1,110 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { mockEmailCampaigns, mockEmailCampaignStats, type EmailCampaign } from '@/lib/mockData'
-import { authenticatedFetch } from '@/lib/api-client'
+import { Megaphone, Mail, Bell, Users, Clock } from 'lucide-react'
+import Link from 'next/link'
 
-const STATUS_CONFIG = {
-  sent:      { label: 'Enviada',     color: '#4ade80', bg: 'bg-green-400/10' },
-  sending:   { label: 'Enviando',    color: '#CCFF00', bg: 'bg-[#CCFF00]/10' },
-  scheduled: { label: 'Programada',  color: '#60a5fa', bg: 'bg-blue-400/10'  },
-  draft:     { label: 'Borrador',    color: '#94a3b8', bg: 'bg-white/5'      },
-}
+const CAMPAIGN_TYPES = [
+  {
+    name: 'Email Marketing',
+    icon: Mail,
+    bg: 'bg-blue-50',
+    color: 'text-blue-600',
+    desc: 'Campañas automáticas por email post-compra, re-engagement y nurturing',
+    status: 'pending',
+  },
+  {
+    name: 'WhatsApp Masivo',
+    icon: Bell,
+    bg: 'bg-green-50',
+    color: 'text-green-600',
+    desc: 'Mensajes masivos a segmentos de clientes via WhatsApp Business API',
+    status: 'pending_cert',
+  },
+  {
+    name: 'Segmentación avanzada',
+    icon: Users,
+    bg: 'bg-purple-50',
+    color: 'text-purple-600',
+    desc: 'Agrupa clientes por comportamiento, valor y etapa del ciclo de vida',
+    href: '/crm/segments',
+    status: 'active',
+  },
+  {
+    name: 'Automatizaciones CRM',
+    icon: Clock,
+    bg: 'bg-orange-50',
+    color: 'text-orange-600',
+    desc: 'Flujos automáticos de seguimiento, alertas y notificaciones',
+    href: '/crm/automation',
+    status: 'active',
+  },
+]
 
-interface CampaignStats {
-  total: number; sent: number; draft: number; scheduled: number
-  avg_open_rate: number; avg_click_rate: number; total_revenue: number
-}
-
-export default function EmailCampaignsPage() {
-  const [campaigns, setCampaigns] = useState<EmailCampaign[]>(mockEmailCampaigns)
-  const [stats, setStats] = useState<CampaignStats>(mockEmailCampaignStats)
-  const [source, setSource] = useState<'live' | 'mock'>('mock')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    authenticatedFetch('/api/crm/campaigns')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data && Array.isArray(data.campaigns) && data.campaigns.length > 0) {
-          setCampaigns(data.campaigns)
-          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
-          setSource('live')
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
-
+export default function CampaignsPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>
-              Campañas Email
-            </h1>
-            <span className="px-2 py-1 rounded-full bg-purple-400/10 border border-purple-400/20 text-[9px] font-black label-tracking text-purple-400">
-              AGENTE #22
-            </span>
-            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
-              loading ? 'border-white/10 text-white/30' :
-              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
-              'border-amber-500/30 bg-amber-500/10 text-amber-400'
-            }`}>
-              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
-            </span>
-          </div>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Email marketing con segmentación y análisis de rendimiento
-          </p>
-        </div>
-        <button
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90 active:scale-[0.97]"
-          style={{ backgroundColor: 'var(--accent-primary)', color: '#000' }}
-        >
-          <span className="material-symbols-outlined !text-[14px]">add</span>
-          Nueva campaña
-        </button>
+    <div className="flex flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Campañas</h1>
+        <p className="text-sm text-gray-500 mt-1">Marketing automatizado y comunicación masiva</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        {[
-          { label: 'Total',            value: stats.total,                                        color: 'var(--text-primary)' },
-          { label: 'Enviadas',         value: stats.sent,                                         color: '#4ade80' },
-          { label: 'Borrador',         value: stats.draft,                                        color: 'var(--text-muted)' },
-          { label: 'Programadas',      value: stats.scheduled,                                    color: '#60a5fa' },
-          { label: 'Open Rate prom.',  value: `${stats.avg_open_rate}%`,                          color: '#a78bfa' },
-          { label: 'Click Rate prom.', value: `${stats.avg_click_rate}%`,                         color: '#CCFF00' },
-          { label: 'Revenue total',    value: `$${stats.total_revenue.toLocaleString()}`,          color: '#4ade80' },
-        ].map(s => (
-          <div key={s.label} className="glass-card p-4 rounded-2xl">
-            <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
-            <p className="text-lg font-black" style={{ color: s.color }}>{s.value}</p>
-          </div>
-        ))}
+      <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-sm text-yellow-800">
+        <p className="font-semibold">Módulo en desarrollo</p>
+        <p className="text-yellow-700 mt-0.5">Las campañas de email y WhatsApp masivo se activarán en la siguiente fase. Las herramientas de segmentación y automatización ya están disponibles.</p>
       </div>
 
-      {/* Campaign list */}
-      <div className="glass-card rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
-          <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Historial de campañas</h2>
-        </div>
-        <div className="divide-y" style={{ borderColor: 'var(--border-color)' }}>
-          {campaigns.map(c => {
-            const sc = STATUS_CONFIG[c.status] ?? STATUS_CONFIG['draft']
-            return (
-              <div key={c.id} className="px-5 py-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-white/[0.02] transition-colors cursor-pointer">
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm truncate mb-0.5" style={{ color: 'var(--text-primary)' }}>{c.subject}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{c.segment}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${sc.bg}`} style={{ color: sc.color }}>
-                      {sc.label}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {CAMPAIGN_TYPES.map(campaign => {
+          const Icon = campaign.icon
+          const card = (
+            <div className={`bg-white rounded-xl shadow-sm border p-5 ${campaign.status === 'active' ? 'border-gray-100 hover:border-green-200 hover:shadow-md transition-all cursor-pointer' : 'border-gray-100 opacity-70'}`}>
+              <div className="flex items-start gap-3 mb-3">
+                <div className={`p-2.5 rounded-xl ${campaign.bg}`}>
+                  <Icon className={`w-5 h-5 ${campaign.color}`} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900">{campaign.name}</h3>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      campaign.status === 'active' ? 'bg-green-100 text-green-700' :
+                      campaign.status === 'pending_cert' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-gray-100 text-gray-500'
+                    }`}>
+                      {campaign.status === 'active' ? 'Disponible' : campaign.status === 'pending_cert' ? 'Cert. pendiente' : 'Próximamente'}
                     </span>
                   </div>
+                  <p className="text-sm text-gray-500 mt-1">{campaign.desc}</p>
                 </div>
-                {c.status === 'sent' ? (
-                  <div className="flex items-center gap-6 flex-shrink-0">
-                    <div className="text-center">
-                      <p className="text-[10px] label-tracking" style={{ color: 'var(--text-muted)' }}>Enviados</p>
-                      <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{c.sent_count.toLocaleString()}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[10px] label-tracking" style={{ color: 'var(--text-muted)' }}>Open Rate</p>
-                      <p className="text-sm font-bold text-purple-400">{c.open_rate}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[10px] label-tracking" style={{ color: 'var(--text-muted)' }}>Click Rate</p>
-                      <p className="text-sm font-bold" style={{ color: '#CCFF00' }}>{c.click_rate}%</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[10px] label-tracking" style={{ color: 'var(--text-muted)' }}>Revenue</p>
-                      <p className="text-sm font-bold text-green-400">${c.revenue.toLocaleString()}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {c.sent_at ? `Programada: ${new Date(c.sent_at).toLocaleDateString('es-MX')}` : 'Sin fecha'}
-                    </p>
-                  </div>
-                )}
               </div>
-            )
-          })}
+              {campaign.status === 'active' && campaign.href && (
+                <p className="text-xs text-green-600 font-medium ml-[52px]">Ir al módulo →</p>
+              )}
+            </div>
+          )
+          return campaign.href && campaign.status === 'active' ? (
+            <Link key={campaign.name} href={campaign.href}>{card}</Link>
+          ) : (
+            <div key={campaign.name}>{card}</div>
+          )
+        })}
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div className="flex items-center gap-3 mb-3">
+          <Megaphone className="w-5 h-5 text-gray-400" />
+          <h2 className="font-semibold text-gray-900">Módulos relacionados activos</h2>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { label: 'Segmentos de clientes', href: '/crm/segments' },
+            { label: 'Automatizaciones', href: '/crm/automation' },
+            { label: 'Follow-ups', href: '/crm/sales/follow-ups' },
+            { label: 'NPS', href: '/crm/support/nps' },
+          ].map(link => (
+            <Link key={link.href} href={link.href} className="px-3 py-2 border border-gray-200 hover:border-green-400 hover:text-green-700 text-gray-600 text-sm font-medium rounded-lg transition-colors">
+              {link.label} →
+            </Link>
+          ))}
         </div>
       </div>
     </div>

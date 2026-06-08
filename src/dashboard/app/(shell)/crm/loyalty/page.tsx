@@ -1,166 +1,128 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { mockLoyaltyPrograms, mockLoyaltyStats, type LoyaltyProgram } from '@/lib/mockData'
-import { authenticatedFetch } from '@/lib/api-client'
+import { Star, Trophy, TrendingUp, Users } from 'lucide-react'
 
-interface LoyaltyStats {
-  total_programs: number; total_members: number; total_points_outstanding: number; redemption_rate: number
+interface LoyaltySegment {
+  label: string
+  count: number
+  value: number
+  color: string
+  icon: React.ElementType
+  range: string
 }
 
-export default function LoyaltyProgramsPage() {
-  const [programs, setPrograms] = useState<LoyaltyProgram[]>(mockLoyaltyPrograms)
-  const [stats, setStats] = useState<LoyaltyStats>(mockLoyaltyStats)
-  const [source, setSource] = useState<'live' | 'mock'>('mock')
+interface AnalyticsData {
+  leads?: { stage: string; pipeline_value: number; score: number }[]
+  b2b_accounts?: unknown[]
+  total_leads?: number
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+}
+
+export default function LoyaltyPage() {
+  const [segments, setSegments] = useState<LoyaltySegment[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    authenticatedFetch('/api/crm/loyalty')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data && Array.isArray(data.programs) && data.programs.length > 0) {
-          setPrograms(data.programs)
-          if (data.stats && Object.keys(data.stats).length > 0) setStats(data.stats)
-          setSource('live')
-        }
+    fetch('/api/analytics/customers')
+      .then(r => r.json())
+      .then((data: AnalyticsData) => {
+        const leads = data.leads ?? []
+
+        const won = leads.filter(l => l.stage === 'won')
+        const highValue = won.filter(l => (l.pipeline_value ?? 0) >= 50000)
+        const midValue = won.filter(l => (l.pipeline_value ?? 0) >= 10000 && (l.pipeline_value ?? 0) < 50000)
+        const newWon = won.filter(l => (l.pipeline_value ?? 0) < 10000)
+
+        setSegments([
+          {
+            label: 'Clientes Premium',
+            count: highValue.length,
+            value: highValue.reduce((s, l) => s + (l.pipeline_value ?? 0), 0),
+            color: 'text-yellow-600',
+            icon: Trophy,
+            range: '+$50,000',
+          },
+          {
+            label: 'Clientes Frecuentes',
+            count: midValue.length,
+            value: midValue.reduce((s, l) => s + (l.pipeline_value ?? 0), 0),
+            color: 'text-blue-600',
+            icon: Star,
+            range: '$10,000–$50,000',
+          },
+          {
+            label: 'Clientes Nuevos',
+            count: newWon.length,
+            value: newWon.reduce((s, l) => s + (l.pipeline_value ?? 0), 0),
+            color: 'text-green-600',
+            icon: TrendingUp,
+            range: 'Hasta $10,000',
+          },
+        ])
       })
-      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>
-              Loyalty Programs
-            </h1>
-            <span className="px-2 py-1 rounded-full bg-purple-400/10 border border-purple-400/20 text-[9px] font-black label-tracking text-purple-400">
-              CRM
-            </span>
-            <span className={`px-2 py-1 rounded-full text-[9px] font-black label-tracking border ${
-              loading ? 'border-white/10 text-white/30' :
-              source === 'live' ? 'border-green-500/30 bg-green-500/10 text-green-400' :
-              'border-amber-500/30 bg-amber-500/10 text-amber-400'
-            }`}>
-              {loading ? 'CARGANDO' : source === 'live' ? 'LIVE' : 'SANDBOX'}
-            </span>
-          </div>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Programas de fidelización con puntos, niveles y recompensas
-          </p>
-        </div>
-        <button
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90 active:scale-[0.97]"
-          style={{ backgroundColor: 'var(--accent-primary)', color: '#000' }}
-        >
-          <span className="material-symbols-outlined !text-[14px]">add</span>
-          Nuevo programa
-        </button>
+    <div className="flex flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Lealtad de Clientes</h1>
+        <p className="text-sm text-gray-500 mt-1">Agente #20 · Segmentación — clasificación por valor y frecuencia</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: 'Programas',       value: stats.total_programs,                        color: 'var(--text-primary)' },
-          { label: 'Miembros totales', value: stats.total_members.toLocaleString(),        color: '#a78bfa' },
-          { label: 'Puntos vigentes', value: stats.total_points_outstanding.toLocaleString(), color: '#CCFF00' },
-          { label: 'Redención',       value: `${stats.redemption_rate}%`,                 color: '#4ade80' },
-        ].map(s => (
-          <div key={s.label} className="glass-card p-4 rounded-2xl">
-            <p className="text-[10px] label-tracking mb-1" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
-            <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Programs */}
-      {programs.map(prog => (
-        <div key={prog.id} className="glass-card rounded-2xl p-5 space-y-5" style={{ border: '1px solid var(--border-color)' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(204,255,0,0.1)' }}>
-                <span className="material-symbols-outlined !text-[18px] text-[#CCFF00]">
-                  {prog.type === 'tiers' ? 'workspace_premium' : prog.type === 'cashback' ? 'payments' : 'stars'}
-                </span>
-              </div>
-              <div>
-                <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{prog.name}</p>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#CCFF00]/10 text-[#CCFF00]">
-                    {prog.type === 'tiers' ? 'Niveles' : prog.type === 'cashback' ? 'Cashback' : 'Puntos'}
-                  </span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${prog.status === 'active' ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'}`}>
-                    {prog.status === 'active' ? 'Activo' : 'Pausado'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-black" style={{ color: '#a78bfa' }}>{prog.members.toLocaleString()}</p>
-              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>miembros</p>
-            </div>
-          </div>
-
-          {/* Points bar */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-[10px]" style={{ color: 'var(--text-muted)' }}>
-              <span>Puntos emitidos</span>
-              <span>{prog.points_issued.toLocaleString()} pts</span>
-            </div>
-            <div className="h-2 rounded-full" style={{ backgroundColor: 'var(--border-color)' }}>
-              <div className="h-full rounded-full bg-[#CCFF00]" style={{ width: `${Math.min(100, (prog.points_redeemed / prog.points_issued) * 100).toFixed(1)}%` }} />
-            </div>
-            <div className="flex justify-between text-[10px]">
-              <span style={{ color: '#4ade80' }}>{prog.points_redeemed.toLocaleString()} pts canjeados</span>
-              <span style={{ color: 'var(--text-muted)' }}>{((prog.points_redeemed / prog.points_issued) * 100).toFixed(1)}%</span>
-            </div>
-          </div>
-
-          {/* Tiers */}
-          {prog.tiers && (
-            <div>
-              <p className="text-[10px] label-tracking mb-2" style={{ color: 'var(--text-muted)' }}>NIVELES</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {prog.tiers.map(tier => (
-                  <div key={tier.name} className="rounded-xl p-3 space-y-2" style={{ backgroundColor: 'var(--bg-card)', border: `1px solid ${tier.color}30` }}>
-                    <div className="flex items-center justify-between">
-                      <p className="font-black text-sm" style={{ color: tier.color }}>{tier.name}</p>
-                      <p className="text-xs font-bold" style={{ color: 'var(--text-muted)' }}>{tier.members} miembros</p>
-                    </div>
-                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Desde ${tier.min_spent.toLocaleString()}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {tier.benefits.map(b => (
-                        <span key={b} className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${tier.color}15`, color: tier.color }}>{b}</span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Rewards */}
-          <div>
-            <p className="text-[10px] label-tracking mb-2" style={{ color: 'var(--text-muted)' }}>RECOMPENSAS</p>
-            <div className="space-y-2">
-              {prog.rewards.map(r => (
-                <div key={r.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined !text-[14px] text-[#CCFF00]">redeem</span>
-                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{r.name}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {r.points_cost > 0 && <span className="text-[10px] font-bold text-[#CCFF00]">{r.points_cost.toLocaleString()} pts</span>}
-                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{r.claimed} canjeados</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Tier cards */}
+      {loading ? (
+        <div className="grid grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-36 bg-gray-100 rounded-xl animate-pulse" />
+          ))}
         </div>
-      ))}
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {segments.map(seg => {
+            const Icon = seg.icon
+            return (
+              <div key={seg.label} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <Icon className={`w-6 h-6 ${seg.color}`} />
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{seg.label}</h3>
+                    <p className="text-xs text-gray-400">{seg.range}</p>
+                  </div>
+                </div>
+                <p className={`text-3xl font-black ${seg.color} mb-1`}>{seg.count}</p>
+                <p className="text-sm text-gray-500">Valor total: <span className="font-semibold text-gray-700">{fmt(seg.value)}</span></p>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Info card */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <Users className="w-4 h-4 text-gray-400" />
+          Programa de lealtad
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          El módulo de programa de puntos y beneficios está planificado para la siguiente fase. Actualmente puedes ver la segmentación automática por valor de compra.
+        </p>
+        <div className="flex gap-3 flex-wrap">
+          {[
+            { label: 'Ver segmentos completos', href: '/crm/segments' },
+            { label: 'Análisis de clientes', href: '/analytics/customers' },
+            { label: 'NPS y satisfacción', href: '/crm/support/nps' },
+          ].map(link => (
+            <a key={link.href} href={link.href} className="px-3 py-2 border border-gray-200 hover:border-green-400 hover:text-green-700 text-gray-600 text-sm font-medium rounded-lg transition-colors">
+              {link.label} →
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
