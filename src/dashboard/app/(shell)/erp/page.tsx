@@ -1,193 +1,196 @@
-"use client";
+'use client'
 
-import { useKPIs } from "@/hooks/useKPIs";
-import { useInventory } from "@/hooks/useInventory";
+import { useEffect, useState } from 'react'
+import { DollarSign, Package, ShoppingCart, Truck, TrendingUp, AlertTriangle, FileText, Warehouse } from 'lucide-react'
+import Link from 'next/link'
 
-function ERPCard({
-  title,
-  icon,
-  label,
-  value,
-  actionLabel,
-}: {
-  title: string;
-  icon: string;
-  label: string;
-  value: string | number;
-  actionLabel?: string;
-}) {
-  return (
-    <div className="glass-card p-8 rounded-[2.5rem] flex flex-col justify-between min-h-[300px] group relative overflow-hidden transition-all duration-500">
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-4">
-           <div
-             className="w-12 h-12 rounded-2xl flex items-center justify-center group-hover:border-[#ccff00]/30 transition-all"
-             style={{ backgroundColor: 'var(--bg-base)', border: '1px solid var(--border-color)' }}
-           >
-              <span className="material-symbols-outlined group-hover:text-[#ccff00] transition-colors" style={{ color: 'var(--text-muted)' }}>{icon}</span>
-           </div>
-           <div>
-              <h3 className="text-sm font-black uppercase tracking-widest italic" style={{ color: 'var(--text-primary)' }}>{title}</h3>
-              <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{label}</p>
-           </div>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <h2 className="text-5xl font-black group-hover:text-[#ccff00] transition-all tracking-tighter italic" style={{ color: 'var(--text-primary)' }}>
-          {value}
-        </h2>
-      </div>
-
-      <div className="mt-auto">
-        <button className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ccff00] hover:opacity-70 transition-opacity flex items-center gap-2">
-           {actionLabel || "Acceder al Módulo"}
-           <span className="material-symbols-outlined text-sm">arrow_forward</span>
-        </button>
-      </div>
-
-      <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[#ccff00]/5 rounded-full blur-3xl" />
-    </div>
-  );
+interface ERPSnapshot {
+  finance: { receivables: number; payables: number; overdue: number }
+  inventory: { skus: number; low_stock: number; total_value: number }
+  purchases: { pending: number; in_transit: number }
+  logistics: { active_shipments: number }
+  cfdi: { this_month: number; total_invoiced: number }
 }
 
-export default function ERPPage() {
-  const { kpis, isLoading: kpisLoading } = useKPIs();
-  const { inventory, isLoading: invLoading } = useInventory();
+function fmt(n: number) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+}
 
-  const criticalCount = inventory.filter(i => i.status === "critical").length;
+const modules = [
+  {
+    title: 'Finanzas',
+    icon: DollarSign,
+    color: 'text-green-600',
+    bg: 'bg-green-50',
+    links: [
+      { label: 'Cuentas por Cobrar', href: '/erp/finance/receivables' },
+      { label: 'Cuentas por Pagar', href: '/erp/finance/payables' },
+      { label: 'Flujo de Caja', href: '/erp/finance/cashflow' },
+      { label: 'Banca', href: '/erp/finance/banking' },
+    ],
+  },
+  {
+    title: 'Contabilidad',
+    icon: FileText,
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+    links: [
+      { label: 'Catálogo de Cuentas', href: '/erp/accounting/chart' },
+      { label: 'Libro Diario', href: '/erp/accounting/journal' },
+      { label: 'Reportes', href: '/erp/accounting/reports' },
+    ],
+  },
+  {
+    title: 'CFDI',
+    icon: FileText,
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
+    links: [
+      { label: 'Facturas', href: '/erp/cfdi/invoices' },
+      { label: 'Facturación', href: '/erp/cfdi/billing' },
+      { label: 'Cumplimiento', href: '/erp/cfdi/compliance' },
+    ],
+  },
+  {
+    title: 'Inventario',
+    icon: Package,
+    color: 'text-orange-600',
+    bg: 'bg-orange-50',
+    links: [
+      { label: 'Productos', href: '/erp/inventory/products' },
+      { label: 'Almacenes', href: '/erp/inventory/warehouses' },
+      { label: 'Movimientos', href: '/erp/inventory/movements' },
+      { label: 'Valuación', href: '/erp/inventory/valuation' },
+    ],
+  },
+  {
+    title: 'Compras',
+    icon: ShoppingCart,
+    color: 'text-yellow-600',
+    bg: 'bg-yellow-50',
+    links: [
+      { label: 'Órdenes', href: '/erp/purchases/orders' },
+      { label: 'Proveedores', href: '/erp/purchases/suppliers' },
+      { label: 'Recepción', href: '/erp/purchases/receiving' },
+    ],
+  },
+  {
+    title: 'Logística',
+    icon: Truck,
+    color: 'text-cyan-600',
+    bg: 'bg-cyan-50',
+    links: [
+      { label: 'Envíos', href: '/erp/logistics/shipping' },
+      { label: 'Rastreo', href: '/erp/logistics/tracking' },
+      { label: 'Carriers', href: '/erp/logistics/carriers' },
+    ],
+  },
+]
+
+export default function ERPPage() {
+  const [snapshot, setSnapshot] = useState<ERPSnapshot | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.allSettled([
+      fetch('/api/erp/finance/receivables').then(r => r.json()),
+      fetch('/api/erp/finance/payables').then(r => r.json()),
+      fetch('/api/erp/inventory/valuation').then(r => r.json()),
+      fetch('/api/erp/purchases/receiving').then(r => r.json()),
+      fetch('/api/erp/logistics/shipping').then(r => r.json()),
+    ]).then(([recv, pay, inv, purch, ship]) => {
+      const r = recv.status === 'fulfilled' ? recv.value : {}
+      const p = pay.status === 'fulfilled' ? pay.value : {}
+      const i = inv.status === 'fulfilled' ? inv.value : {}
+      const pu = purch.status === 'fulfilled' ? purch.value : {}
+      const s = ship.status === 'fulfilled' ? ship.value : {}
+
+      setSnapshot({
+        finance: {
+          receivables: r.stats?.total_receivables ?? 0,
+          payables: p.stats?.total_payables ?? 0,
+          overdue: (r.stats?.overdue_amount ?? 0) + (p.stats?.overdue_amount ?? 0),
+        },
+        inventory: {
+          skus: i.stats?.sku_count ?? 0,
+          low_stock: 0,
+          total_value: i.stats?.total_value ?? 0,
+        },
+        purchases: {
+          pending: pu.stats?.pending ?? 0,
+          in_transit: pu.stats?.pending ?? 0,
+        },
+        logistics: { active_shipments: s.stats?.active ?? 0 },
+        cfdi: { this_month: 0, total_invoiced: r.stats?.total_receivables ?? 0 },
+      })
+    }).finally(() => setLoading(false))
+  }, [])
 
   return (
-    <div className="space-y-16 animate-luxe">
-      {/* Module Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-             <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse" />
-             <p className="text-[#ccff00] text-[10px] uppercase tracking-[0.3em] font-black opacity-80">
-               OPS CENTRAL / ADMINISTRACIÓN ERP
-             </p>
+    <div className="flex flex-col gap-6 p-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">ERP — Recursos Empresariales</h1>
+        <p className="text-sm text-gray-500 mt-1">Finanzas, inventario, compras y logística en un solo lugar</p>
+      </div>
+
+      {/* KPI strip */}
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-5 animate-pulse h-24 border border-gray-100" />
+          ))}
+        </div>
+      ) : snapshot && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><TrendingUp className="w-4 h-4 text-green-500" /><span className="text-xs text-gray-500">Por cobrar</span></div>
+            <p className="text-xl font-bold text-green-700">{fmt(snapshot.finance.receivables)}</p>
           </div>
-          <h1 className="text-5xl md:text-6xl font-black tracking-[-0.05em] leading-none" style={{ color: 'var(--text-primary)' }}>
-            Logística <span className="text-[#ccff00]">&</span> Almacén
-          </h1>
-          <p className="max-w-xl text-sm font-medium leading-relaxed italic" style={{ color: 'var(--text-muted)' }}>
-             Administración centralizada de nodos de inventario, facturación CFDI 4.0 y cadena de suministro Atollom.
-          </p>
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><Warehouse className="w-4 h-4 text-orange-500" /><span className="text-xs text-gray-500">Valor inventario</span></div>
+            <p className="text-xl font-bold text-orange-700">{fmt(snapshot.inventory.total_value)}</p>
+            <p className="text-xs text-gray-400">{snapshot.inventory.skus} SKUs</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><Truck className="w-4 h-4 text-cyan-500" /><span className="text-xs text-gray-500">Envíos activos</span></div>
+            <p className="text-2xl font-bold text-cyan-700">{snapshot.logistics.active_shipments}</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><AlertTriangle className="w-4 h-4 text-red-500" /><span className="text-xs text-gray-500">Vencido total</span></div>
+            <p className="text-xl font-bold text-red-600">{fmt(snapshot.finance.overdue)}</p>
+          </div>
         </div>
+      )}
 
-        <div className="flex items-center gap-6">
-           <div className="text-right">
-              <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>SKUs Activos</p>
-              <p className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>{inventory?.length || 0}</p>
-           </div>
-           <div className="w-px h-10" style={{ backgroundColor: 'var(--border-color)' }} />
-           <div className="text-right">
-              <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Estado Global</p>
-              <p className="text-2xl font-black text-[#ccff00]">Óptimo</p>
-           </div>
-        </div>
-      </header>
-
-      {/* Grid: Primary ERP Functions */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <ERPCard
-          title="Control Almacén"
-          icon="warehouse"
-          label="Stock Crítico"
-          value={invLoading ? "..." : (criticalCount).toString().padStart(2, "0")}
-          actionLabel="Escanear Inventario"
-        />
-        <ERPCard
-          title="Centro de Facturación"
-          icon="receipt_long"
-          label="CFDI Semanales"
-          value="142"
-          actionLabel="Abrir Nodo SAT"
-        />
-        <ERPCard
-          title="Cadena de Suministro"
-          icon="local_shipping"
-          label="Compras Pendientes"
-          value="07"
-          actionLabel="Portal Proveedores"
-        />
-      </section>
-
-      {/* Advanced Inventory Scanner Section */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-         <div className="lg:col-span-8 glass-card rounded-[2.5rem] p-12 flex flex-col md:flex-row gap-12 relative overflow-hidden group">
-            <div className="flex-1 space-y-6 relative z-10">
-               <h3 className="text-2xl font-black italic tracking-tighter" style={{ color: 'var(--text-primary)' }}>Sincronización Neural de Inventario</h3>
-               <p className="text-[13px] leading-relaxed max-w-sm" style={{ color: 'var(--text-muted)' }}>
-                  Arrastra tu archivo maestro de inventario para sincronizar los niveles a través de todos los nodos de venta. El sistema detectará automáticamente cambios de SKU y stock residual.
-               </p>
-               <div className="flex gap-4">
-                  <button className="px-6 py-3 rounded-xl bg-[#ccff00] text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
-                     Subir CSV Maestro
-                  </button>
-                  <button
-                    className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-70 transition-all"
-                    style={{ border: '1px solid var(--border-color)', color: 'var(--text-muted)' }}
+      {/* Module grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {modules.map(mod => {
+          const Icon = mod.icon
+          return (
+            <div key={mod.title} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className={`px-5 py-4 border-b border-gray-100 flex items-center gap-3`}>
+                <div className={`p-2 rounded-lg ${mod.bg}`}>
+                  <Icon className={`w-5 h-5 ${mod.color}`} />
+                </div>
+                <h2 className="font-semibold text-gray-900">{mod.title}</h2>
+              </div>
+              <div className="p-3">
+                {mod.links.map(link => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors group"
                   >
-                     Descargar Plantilla
-                  </button>
-               </div>
+                    <span className="text-sm text-gray-700 group-hover:text-green-700 transition-colors">{link.label}</span>
+                    <span className="text-gray-300 group-hover:text-green-500 transition-colors text-xs">→</span>
+                  </Link>
+                ))}
+              </div>
             </div>
-
-            <div
-              className="w-full md:w-64 aspect-square glass-card rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-4 group-hover:border-[#ccff00]/30 transition-all relative z-10"
-              style={{ borderColor: 'var(--border-color)' }}
-            >
-               <span className="material-symbols-outlined text-4xl group-hover:text-[#ccff00] transition-colors" style={{ color: 'var(--text-muted)' }}>upload_file</span>
-               <p className="text-[9px] font-black uppercase tracking-widest text-center px-8" style={{ color: 'var(--text-muted)' }}>Soltar Archivo Aquí</p>
-            </div>
-
-            <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[#ccff00]/5 to-transparent pointer-events-none" />
-         </div>
-
-         <div className="lg:col-span-4 glass-card rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group">
-            <div className="space-y-1">
-               <h3 className="text-sm font-black uppercase tracking-widest italic text-[#ccff00]">Nodo Fiscal</h3>
-               <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--text-muted)' }}>SAT v4.0 Activo</p>
-            </div>
-
-            <div className="py-8">
-               <div className="flex items-center gap-4 mb-4">
-                  <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-base)' }}>
-                     <div className="h-full bg-[#ccff00] w-[88%]" />
-                  </div>
-                  <span className="text-[10px] font-black" style={{ color: 'var(--text-primary)' }}>88%</span>
-               </div>
-               <p className="text-[11px] font-medium leading-relaxed italic" style={{ color: 'var(--text-muted)' }}>
-                  Cuota de timbrado mensual utilizada. 1,200 folios restantes en el nodo actual.
-               </p>
-            </div>
-
-            <button
-              className="w-full py-4 rounded-xl text-[9px] font-black uppercase tracking-widest hover:text-[#ccff00] transition-all"
-              style={{ border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-base)', color: 'var(--text-muted)' }}
-            >
-               Renovar Folios
-            </button>
-         </div>
-      </section>
-
-      {/* Footer / Stats Row */}
-      <section className="pb-32 grid grid-cols-2 md:grid-cols-4 gap-8">
-         {[
-           { label: 'Compras', val: '$420K', sub: 'Promedio Mensual' },
-           { label: 'Devoluciones', val: '02', sub: 'Tasa: 0.1%' },
-           { label: 'Proveedores', val: '12', sub: 'Verificados' },
-           { label: 'Latencia', val: '12ms', sub: 'API SAT' },
-         ].map((item, i) => (
-           <div key={i} className="glass-card p-6 rounded-[2rem] space-y-1 transition-colors">
-              <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{item.label}</p>
-              <p className="text-xl font-black italic" style={{ color: 'var(--text-primary)' }}>{item.val}</p>
-              <p className="text-[8px] font-bold uppercase tracking-tighter" style={{ color: 'var(--text-muted)' }}>{item.sub}</p>
-           </div>
-         ))}
-      </section>
+          )
+        })}
+      </div>
     </div>
-  );
+  )
 }

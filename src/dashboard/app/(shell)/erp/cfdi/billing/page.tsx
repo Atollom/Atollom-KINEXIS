@@ -1,208 +1,179 @@
-"use client";
+'use client'
 
-import { useState, useMemo } from "react";
-import { CFDI_RECIBIDAS, CFDI_STATS, type CFDIRecibida } from "@/lib/mockData";
-import { useToast } from "@/components/ToastProvider";
+import { useEffect, useState } from 'react'
+import { FileText, CheckCircle, AlertCircle, Clock, Download } from 'lucide-react'
 
-type Filter = "todas" | "pagadas" | "por_pagar" | "vencidas";
-
-const FMT = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
-
-const today = new Date("2026-05-03");
-
-function isVencida(r: CFDIRecibida) {
-  return !r.pagada && new Date(r.fecha_vencimiento) < today;
+interface CFDIRecord {
+  id: string
+  folio: string
+  series: string | null
+  uuid: string | null
+  receptor_name: string
+  receptor_rfc: string
+  total: number
+  status: 'valid' | 'cancelled' | 'pending'
+  type: string
+  issued_at: string
+  xml_url: string | null
+  pdf_url: string | null
 }
 
-function PayBadge({ factura }: { factura: CFDIRecibida }) {
-  if (factura.status === "cancelada") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black label-tracking text-red-400 bg-red-400/10">
-        <span className="material-symbols-outlined !text-[10px]">cancel</span>
-        CANCELADA
-      </span>
-    );
-  }
-  if (factura.pagada) {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black label-tracking text-[#CCFF00] bg-[#CCFF00]/10">
-        <span className="material-symbols-outlined !text-[10px]">check_circle</span>
-        PAGADA
-      </span>
-    );
-  }
-  if (isVencida(factura)) {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black label-tracking text-red-400 bg-red-400/10">
-        <span className="material-symbols-outlined !text-[10px]">error</span>
-        VENCIDA
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black label-tracking text-amber-400 bg-amber-400/10">
-      <span className="material-symbols-outlined !text-[10px]">schedule</span>
-      POR PAGAR
-    </span>
-  );
+interface Stats {
+  total: number
+  valid: number
+  cancelled: number
+  pending: number
+  total_invoiced: number
 }
 
-export default function FacturasRecibidasPage() {
-  const { showToast } = useToast();
-  const [filter, setFilter] = useState<Filter>("todas");
+function fmt(n: number) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n)
+}
 
-  const filtered = useMemo(() => {
-    if (filter === "pagadas") return CFDI_RECIBIDAS.filter(f => f.pagada);
-    if (filter === "por_pagar") return CFDI_RECIBIDAS.filter(f => !f.pagada && !isVencida(f) && f.status !== "cancelada");
-    if (filter === "vencidas") return CFDI_RECIBIDAS.filter(f => isVencida(f));
-    return CFDI_RECIBIDAS;
-  }, [filter]);
+function relativeTime(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const days = Math.floor(diff / 86400000)
+  if (days === 0) return 'Hoy'
+  if (days === 1) return 'Ayer'
+  return `Hace ${days}d`
+}
 
-  const totalFiltrado = filtered.reduce((s, f) => s + f.total, 0);
+const statusConfig = {
+  valid: { label: 'Vigente', color: 'bg-green-100 text-green-700', icon: <CheckCircle className="w-3.5 h-3.5" /> },
+  cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-700', icon: <AlertCircle className="w-3.5 h-3.5" /> },
+  pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700', icon: <Clock className="w-3.5 h-3.5" /> },
+}
 
-  const counts = {
-    todas: CFDI_RECIBIDAS.length,
-    pagadas: CFDI_RECIBIDAS.filter(f => f.pagada).length,
-    por_pagar: CFDI_RECIBIDAS.filter(f => !f.pagada && !isVencida(f) && f.status !== "cancelada").length,
-    vencidas: CFDI_RECIBIDAS.filter(f => isVencida(f)).length,
-  };
+export default function CFDIBillingPage() {
+  const [invoices, setInvoices] = useState<CFDIRecord[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [filter, setFilter] = useState<'all' | 'valid' | 'cancelled' | 'pending'>('all')
+  const [loading, setLoading] = useState(true)
 
-  function handlePay(folio: string) {
-    showToast({ type: "success", title: "Pago Registrado", message: `Factura ${folio} marcada como pagada` });
-  }
+  useEffect(() => {
+    fetch('/api/erp/cfdi/billing')
+      .then(r => r.json())
+      .then(d => {
+        setInvoices(d.invoices ?? [])
+        setStats(d.stats ?? null)
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
-  function handleXml(folio: string) {
-    showToast({ type: "success", title: "XML Descargado", message: `Factura ${folio}` });
-  }
+  const filtered = filter === 'all' ? invoices : invoices.filter(i => i.status === filter)
 
   return (
-    <div className="space-y-10 animate-in">
-      {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <span className="text-[0.75rem] font-bold label-tracking text-[#FFE600] drop-shadow-[0_0_8px_rgba(255,230,0,0.3)]">
-            ERP · CFDI 4.0 / Facturas Recibidas
-          </span>
-          <h1 className="text-4xl md:text-5xl font-black tight-tracking text-on-surface">
-            Facturas Recibidas
-          </h1>
-          <p className="text-sm text-on-surface-variant">
-            {filtered.length} documentos · <span className="text-primary font-bold">{FMT.format(totalFiltrado)}</span>
-          </p>
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Facturación CFDI</h1>
+          <p className="text-sm text-gray-500 mt-1">Comprobantes fiscales digitales timbrados ante el SAT</p>
         </div>
-        <button
-          onClick={() => showToast({ type: "info", title: "Importar XML", message: "Arrastra un XML del SAT para importar la factura recibida" })}
-          className="px-8 py-4 neon-disruptor rounded-2xl text-[10px] font-black label-tracking shadow-glow self-start md:self-auto flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined !text-[16px]">upload_file</span>
-          IMPORTAR XML
-        </button>
-      </header>
-
-      {/* KPI strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Recibidas (mes)", value: CFDI_STATS.recibidas.total, icon: "inbox", color: "text-primary" },
-          { label: "Total Por Pagar", value: FMT.format(CFDI_STATS.recibidas.monto_total), icon: "payments", color: "text-amber-400" },
-          { label: "Pendientes de Pago", value: CFDI_STATS.recibidas.pendientes, icon: "schedule", color: "text-orange-400" },
-          { label: "Vencidas", value: CFDI_STATS.recibidas.vencidas, icon: "error", color: "text-red-400" },
-        ].map(k => (
-          <div key={k.label} className="glass-card p-6 rounded-[1.5rem] border border-white/5">
-            <div className="flex items-center gap-2 mb-3">
-              <span className={`material-symbols-outlined !text-[18px] ${k.color}`}>{k.icon}</span>
-              <span className="text-[9px] font-black label-tracking text-on-surface/40 uppercase">{k.label}</span>
-            </div>
-            <p className="text-2xl font-black tight-tracking text-on-surface">{k.value}</p>
-          </div>
-        ))}
+        <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">Agente #13 · ERP</span>
       </div>
 
-      {/* Filters */}
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-5 animate-pulse h-24 border border-gray-100" />
+          ))}
+        </div>
+      ) : stats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><FileText className="w-4 h-4 text-gray-400" /><span className="text-xs text-gray-500">Total CFDIs</span></div>
+            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><CheckCircle className="w-4 h-4 text-green-500" /><span className="text-xs text-gray-500">Vigentes</span></div>
+            <p className="text-2xl font-bold text-green-700">{stats.valid}</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><AlertCircle className="w-4 h-4 text-red-500" /><span className="text-xs text-gray-500">Cancelados</span></div>
+            <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><FileText className="w-4 h-4 text-blue-500" /><span className="text-xs text-gray-500">Facturado total</span></div>
+            <p className="text-xl font-bold text-blue-700">{fmt(stats.total_invoiced)}</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-2 flex-wrap">
-        {(["todas", "pagadas", "por_pagar", "vencidas"] as Filter[]).map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-xl text-[10px] font-black label-tracking transition-all ${
-              filter === f
-                ? "bg-primary text-black"
-                : "glass-card border border-white/5 text-on-surface-variant hover:border-primary/20"
-            }`}
-          >
-            {f === "todas" ? "TODAS" : f === "por_pagar" ? "POR PAGAR" : f.toUpperCase()} ({counts[f]})
+        {(['all', 'valid', 'cancelled', 'pending'] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === f ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            {f === 'all' ? 'Todos' : statusConfig[f]?.label}
+            {f !== 'all' && !loading && <span className="ml-1 opacity-70">({invoices.filter(i => i.status === f).length})</span>}
           </button>
         ))}
       </div>
 
-      {/* Table */}
-      <div className="glass-card rounded-[2rem] border border-white/5 overflow-hidden">
-        <div className="grid grid-cols-[1.5fr_1.8fr_0.8fr_0.8fr_0.8fr_1fr_auto] gap-4 px-8 py-4 border-b border-white/5">
-          {["Folio / UUID", "Emisor", "Subtotal", "IVA", "Total", "Estado", ""].map((h, i) => (
-            <span key={i} className="text-[9px] font-black label-tracking text-on-surface/30 uppercase">{h}</span>
-          ))}
-        </div>
-
-        <div className="divide-y divide-white/5">
-          {filtered.map(f => (
-            <div
-              key={f.id}
-              className="grid grid-cols-[1.5fr_1.8fr_0.8fr_0.8fr_0.8fr_1fr_auto] gap-4 items-center px-8 py-5 hover:bg-white/[0.02] transition-colors group"
-            >
-              {/* Folio */}
-              <div>
-                <p className="text-[11px] font-black text-primary tight-tracking">{f.folio}</p>
-                <p className="text-[9px] text-on-surface/30 font-mono">{f.uuid.substring(0, 8)}…</p>
-                <p className="text-[9px] text-on-surface/40 mt-0.5">
-                  Vence: {new Date(f.fecha_vencimiento).toLocaleDateString("es-MX")}
-                </p>
-              </div>
-
-              {/* Emisor */}
-              <div className="min-w-0">
-                <p className="text-[11px] font-bold text-on-surface truncate">{f.emisor_nombre}</p>
-                <p className="text-[9px] font-mono text-on-surface/40">{f.emisor_rfc}</p>
-                <p className="text-[9px] text-on-surface/30">
-                  {new Date(f.fecha_emision).toLocaleDateString("es-MX")}
-                </p>
-              </div>
-
-              {/* Subtotal */}
-              <p className="text-[11px] font-bold text-on-surface">{FMT.format(f.subtotal)}</p>
-
-              {/* IVA */}
-              <p className="text-[11px] text-on-surface/60">{FMT.format(f.iva)}</p>
-
-              {/* Total */}
-              <p className="text-[12px] font-black text-on-surface">{FMT.format(f.total)}</p>
-
-              {/* Status */}
-              <PayBadge factura={f} />
-
-              {/* Actions */}
-              <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => handleXml(f.folio)}
-                  className="px-2 py-1 rounded-lg text-[9px] font-black label-tracking text-blue-400 bg-blue-400/10 hover:bg-blue-400/20 transition-colors"
-                  title="Descargar XML"
-                >
-                  XML
-                </button>
-                {!f.pagada && f.status !== "cancelada" && (
-                  <button
-                    onClick={() => handlePay(f.folio)}
-                    className="px-2 py-1 rounded-lg text-[9px] font-black label-tracking text-[#CCFF00] bg-[#CCFF00]/10 hover:bg-[#CCFF00]/20 transition-colors"
-                    title="Registrar pago"
-                  >
-                    PAGAR
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {loading ? (
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-14 bg-gray-100 rounded animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-12 text-center text-gray-400">
+            <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="font-medium">Sin CFDIs en esta categoría</p>
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Folio</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Receptor</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">RFC</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">UUID</th>
+                <th className="text-right px-4 py-3 font-medium text-gray-500">Total</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Estado</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Fecha</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Descarga</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map(inv => {
+                const sc = statusConfig[inv.status]
+                return (
+                  <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs font-bold text-gray-700">{inv.series ? `${inv.series}-` : ''}{inv.folio}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900 max-w-xs truncate">{inv.receptor_name}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{inv.receptor_rfc}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-gray-400 max-w-xs truncate">{inv.uuid ? inv.uuid.slice(0, 8) + '...' : '—'}</td>
+                    <td className="px-4 py-3 text-right font-bold text-gray-900">{fmt(inv.total)}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${sc?.color}`}>
+                        {sc?.icon}
+                        {sc?.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-400 text-xs">{relativeTime(inv.issued_at)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        {inv.pdf_url && (
+                          <a href={inv.pdf_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800">
+                            <Download className="w-3 h-3" />PDF
+                          </a>
+                        )}
+                        {inv.xml_url && (
+                          <a href={inv.xml_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800">
+                            <Download className="w-3 h-3" />XML
+                          </a>
+                        )}
+                        {!inv.pdf_url && !inv.xml_url && <span className="text-gray-300 text-xs">—</span>}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
-
-      <div className="h-10" />
     </div>
-  );
+  )
 }

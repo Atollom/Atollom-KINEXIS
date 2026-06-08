@@ -1,158 +1,184 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
-import Link from "next/link";
+import { useEffect, useState } from 'react'
+import { Users, TrendingUp, DollarSign, Trophy, MessageSquare, Headphones, Target, Star } from 'lucide-react'
+import Link from 'next/link'
 
-export default function CRMSummaryPage() {
-  const stats = useMemo(() => [
-    { label: "Prospectos Activos", value: "154", growth: "+18%", icon: "person_search", color: "text-blue-400" },
-    { label: "Valor del Pipeline", value: "$2.4M", growth: "+12%", icon: "payments", color: "text-primary" },
-    { label: "Tasa de Cierre", value: "24%", growth: "+5%", icon: "task_alt", color: "text-emerald-400" },
-    { label: "Ciclo Promedio de Venta", value: "14d", growth: "-2d", icon: "timer", color: "text-amber-400" },
-  ], []);
+interface CRMStats {
+  active_leads: number
+  pipeline_value: number
+  close_rate: number
+  won_count: number
+  total_leads: number
+  stage_counts: Record<string, number>
+  stage_values: Record<string, number>
+  recent_activity: {
+    id: string
+    name: string
+    company: string
+    stage: string
+    value: number
+    updated_at: string
+  }[]
+}
 
-  const recentActivity = [
-    { id: 1, type: "Cotización Aprobada", customer: "Tech Logistics", value: 125000, time: "Hace 15 min" },
-    { id: 2, type: "Nuevo Prospecto", customer: "Ana González", channel: "WhatsApp", time: "Hace 1 hr" },
-    { id: 3, type: "Reunión Agendada", customer: "Global Corp", contact: "Carlos Riva", time: "Hoy 14:00" },
-  ];
+function fmt(n: number) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+}
+
+function relativeTime(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const hours = Math.floor(diff / 3600000)
+  if (hours < 1) return 'Hace menos de 1h'
+  if (hours < 24) return `Hace ${hours}h`
+  return `Hace ${Math.floor(hours / 24)}d`
+}
+
+const stageOrder = ['new', 'contacted', 'quote_sent', 'negotiating', 'won', 'lost']
+const stageLabels: Record<string, string> = {
+  new: 'Nuevo', contacted: 'Contactado', quote_sent: 'Cotiz.', negotiating: 'Negociando', won: 'Ganado', lost: 'Perdido',
+}
+const stageColors: Record<string, string> = {
+  new: 'bg-gray-200', contacted: 'bg-blue-400', quote_sent: 'bg-yellow-400',
+  negotiating: 'bg-purple-400', won: 'bg-green-500', lost: 'bg-red-400',
+}
+
+const quickLinks = [
+  { label: 'Pipeline Kanban', href: '/crm/pipeline', icon: Target, color: 'text-purple-600', bg: 'bg-purple-50' },
+  { label: 'Lead Scorer', href: '/crm/pipeline/scorer', icon: Star, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+  { label: 'Oportunidades', href: '/crm/sales/opportunities', icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { label: 'Deals Cerrados', href: '/crm/sales/deals', icon: Trophy, color: 'text-green-600', bg: 'bg-green-50' },
+  { label: 'Inbox Unificado', href: '/crm/inbox/unified', icon: MessageSquare, color: 'text-pink-600', bg: 'bg-pink-50' },
+  { label: 'Soporte / Tickets', href: '/crm/support/tickets', icon: Headphones, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+]
+
+export default function CRMPage() {
+  const [stats, setStats] = useState<CRMStats | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/crm/stats')
+      .then(r => r.json())
+      .then(setStats)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const maxStageValue = stats
+    ? Math.max(...stageOrder.map(s => stats.stage_values[s] ?? 0), 1)
+    : 1
 
   return (
-    <div className="space-y-10 animate-in">
-      {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <span className="text-[0.75rem] font-bold label-tracking text-primary drop-shadow-glow">
-            Motor de Relaciones / CRM Global
-          </span>
-          <h1 className="text-4xl md:text-5xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>
-            Panel de Ventas
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-4">
-           <Link href="/crm/inbox" className="glass-card px-8 py-5 rounded-3xl flex items-center gap-4 hover:border-primary/30 transition-all group">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                 <span className="material-symbols-outlined !text-[20px]">forum</span>
-              </div>
-              <div className="text-left">
-                 <p className="text-[10px] font-black text-on-surface-variant label-tracking uppercase">Bandeja Unificada</p>
-                 <p className="text-sm font-black text-on-surface">12 Mensajes Sin Leer</p>
-              </div>
-           </Link>
-        </div>
-      </header>
-
-      {/* Primary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-         {stats.map((s, i) => (
-           <div key={i} className="glass-card p-8 rounded-[2rem] relative overflow-hidden group">
-              <div className="relative z-10 space-y-4">
-                 <div className="flex justify-between items-start">
-                    <span className={`material-symbols-outlined !text-3xl ${s.color}`}>{s.icon}</span>
-                    <span className="text-[10px] font-black text-primary bg-primary/5 px-2 py-0.5 rounded-full">{s.growth}</span>
-                 </div>
-                 <div>
-                    <p className="text-[10px] font-black label-tracking uppercase" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
-                    <p className="text-3xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>{s.value}</p>
-                 </div>
-              </div>
-           </div>
-         ))}
+    <div className="flex flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">CRM — Gestión de Relaciones</h1>
+        <p className="text-sm text-gray-500 mt-1">Pipeline, leads, comunicación y soporte al cliente</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-         {/* Left Col: Pipeline Visualization & Leads */}
-         <div className="lg:col-span-8 space-y-10">
-            {/* Pipeline Funnel Preview */}
-            <section className="glass-card p-10 rounded-[3rem] relative overflow-hidden">
-               <h3 className="text-[10px] font-black label-tracking uppercase italic mb-10 relative z-10" style={{ color: 'var(--text-secondary)' }}>Velocidad del Pipeline Activo</h3>
+      {/* KPIs */}
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-5 animate-pulse h-24 border border-gray-100" />
+          ))}
+        </div>
+      ) : stats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><Users className="w-4 h-4 text-blue-500" /><span className="text-xs text-gray-500">Leads activos</span></div>
+            <p className="text-2xl font-bold text-blue-700">{stats.active_leads}</p>
+            <p className="text-xs text-gray-400">{stats.total_leads} totales</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><DollarSign className="w-4 h-4 text-green-500" /><span className="text-xs text-gray-500">Pipeline</span></div>
+            <p className="text-xl font-bold text-green-700">{fmt(stats.pipeline_value)}</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><TrendingUp className="w-4 h-4 text-purple-500" /><span className="text-xs text-gray-500">Tasa de cierre</span></div>
+            <p className="text-2xl font-bold text-purple-700">{stats.close_rate}%</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-2"><Trophy className="w-4 h-4 text-yellow-500" /><span className="text-xs text-gray-500">Deals ganados</span></div>
+            <p className="text-2xl font-bold text-yellow-600">{stats.won_count}</p>
+          </div>
+        </div>
+      )}
 
-               <div className="flex flex-col gap-8 relative z-10">
-                  {[
-                    { label: 'Prospectos', count: '84 Leads', value: '$1.2M Valor', width: '100%', opacity: 0.4 },
-                    { label: 'Cotizaciones Enviadas', count: '32 Cots.', value: '$850k Valor', width: '70%', opacity: 0.6 },
-                    { label: 'En Negociación', count: '12 Items', value: '$420k Valor', width: '40%', opacity: 1 },
-                  ].map((stage, idx) => (
-                    <div key={idx} className="space-y-3" style={{ paddingLeft: `${idx * 40}px` }}>
-                       <div className="flex justify-between items-end">
-                          <p className="text-sm font-black" style={{ color: 'var(--text-primary)' }}>
-                            {stage.label} <span className="font-medium ml-2" style={{ color: 'var(--text-muted)' }}>{stage.count}</span>
-                          </p>
-                          <p className="text-[11px] font-black text-primary italic">{stage.value}</p>
-                       </div>
-                       <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-base)' }}>
-                          <div className="h-full rounded-full" style={{ width: stage.width, backgroundColor: 'var(--accent-primary)', opacity: stage.opacity }} />
-                       </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Funnel */}
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <h2 className="font-semibold text-gray-900 mb-4">Funnel de Ventas</h2>
+          {loading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />
+              ))}
+            </div>
+          ) : stats ? (
+            <div className="space-y-2">
+              {stageOrder.map(stage => {
+                const count = stats.stage_counts[stage] ?? 0
+                const value = stats.stage_values[stage] ?? 0
+                const pct = Math.round((value / maxStageValue) * 100)
+                return (
+                  <div key={stage} className="flex items-center gap-3">
+                    <span className="w-24 text-xs text-gray-500 shrink-0">{stageLabels[stage]}</span>
+                    <div className="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden relative">
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ${stageColors[stage]}`}
+                        style={{ width: `${Math.max(pct, count > 0 ? 4 : 0)}%` }}
+                      />
                     </div>
-                  ))}
-               </div>
-
-               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] pointer-events-none" />
-            </section>
-
-            {/* Leads Redirect Card */}
-            <Link href="/crm/leads" className="group block">
-               <div className="glass-card p-8 rounded-[2.5rem] group-hover:border-primary/20 transition-all flex items-center justify-between">
-                  <div className="flex items-center gap-6">
-                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center group-hover:text-primary transition-colors" style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-muted)' }}>
-                        <span className="material-symbols-outlined !text-3xl">person_search</span>
-                     </div>
-                     <div>
-                        <h4 className="text-xl font-black tight-tracking" style={{ color: 'var(--text-primary)' }}>Agente de Inteligencia de Prospectos</h4>
-                        <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Gestionar base de prospectos y scoring automático.</p>
-                     </div>
+                    <span className="text-xs text-gray-400 w-6 text-right shrink-0">{count}</span>
+                    <span className="text-xs font-medium text-gray-700 w-24 text-right shrink-0">{value > 0 ? fmt(value) : '—'}</span>
                   </div>
-                  <span className="material-symbols-outlined text-primary group-hover:translate-x-2 transition-transform">arrow_forward</span>
-               </div>
-            </Link>
-         </div>
+                )
+              })}
+            </div>
+          ) : null}
+        </div>
 
-         {/* Right Col: Activity & Intent Analysis */}
-         <div className="lg:col-span-4 space-y-10">
-            {/* Intent Analysis AI */}
-            <section className="glass-card p-8 rounded-[2.5rem] space-y-8">
-               <h3 className="text-[10px] font-black label-tracking uppercase italic" style={{ color: 'var(--text-secondary)' }}>Reconocimiento de Intención (IA)</h3>
-
-               <div className="space-y-6">
-                  {[
-                    { label: "Intención de Compra", pct: 72, color: 'var(--accent-primary)' },
-                    { label: "Consulta de Soporte", pct: 45, color: '#60a5fa' },
-                    { label: "Reclamo/Queja", pct: 12, color: 'var(--accent-danger)' },
-                  ].map(intent => (
-                    <div key={intent.label} className="space-y-2">
-                       <div className="flex justify-between text-[11px] font-bold">
-                          <span style={{ color: 'var(--text-secondary)' }}>{intent.label}</span>
-                          <span style={{ color: 'var(--text-primary)' }}>{intent.pct}%</span>
-                       </div>
-                       <div className="w-full h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-base)' }}>
-                          <div className="h-full rounded-full" style={{ width: `${intent.pct}%`, backgroundColor: intent.color }} />
-                       </div>
-                    </div>
-                  ))}
-               </div>
-            </section>
-
-            {/* Recent Activity Telemetry */}
-            <section className="glass-card p-8 rounded-[2.5rem]">
-                <h3 className="text-[10px] font-black label-tracking uppercase italic mb-8" style={{ color: 'var(--text-secondary)' }}>Actividad Reciente</h3>
-                <div className="space-y-6">
-                   {recentActivity.map(act => (
-                     <div key={act.id} className="flex gap-4 relative">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                        <div>
-                           <p className="text-[11px] font-black" style={{ color: 'var(--text-primary)' }}>{act.type}</p>
-                           <p className="text-[10px] font-bold leading-tight" style={{ color: 'var(--text-secondary)' }}>{act.customer} • {act.time}</p>
-                           {act.value && <p className="text-[10px] font-black text-primary mt-1">${act.value.toLocaleString()}</p>}
-                        </div>
-                     </div>
-                   ))}
+        {/* Activity */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <h2 className="font-semibold text-gray-900 mb-4">Actividad Reciente</h2>
+          {loading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-10 bg-gray-100 rounded animate-pulse" />
+              ))}
+            </div>
+          ) : (stats?.recent_activity ?? []).length === 0 ? (
+            <p className="text-sm text-gray-400">Sin actividad reciente</p>
+          ) : (
+            <div className="space-y-3">
+              {stats!.recent_activity.map(item => (
+                <div key={item.id} className="flex items-start gap-3">
+                  <div className="w-2 h-2 rounded-full bg-green-400 mt-1.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
+                    <p className="text-xs text-gray-400">{stageLabels[item.stage] ?? item.stage} · {relativeTime(item.updated_at)}</p>
+                  </div>
                 </div>
-            </section>
-         </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="h-20" />
+      {/* Quick links */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+        {quickLinks.map(link => {
+          const Icon = link.icon
+          return (
+            <Link key={link.href} href={link.href} className="group bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:border-green-200 hover:shadow-md transition-all text-center">
+              <div className={`inline-flex p-2.5 rounded-xl ${link.bg} mb-3`}>
+                <Icon className={`w-5 h-5 ${link.color}`} />
+              </div>
+              <p className="text-xs font-medium text-gray-700 group-hover:text-green-700 transition-colors">{link.label}</p>
+            </Link>
+          )
+        })}
+      </div>
     </div>
-  );
+  )
 }

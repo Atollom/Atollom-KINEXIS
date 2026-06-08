@@ -1,96 +1,92 @@
-"use client";
+'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from 'react'
+import { BookOpen, TrendingUp, TrendingDown, Scale, FileText } from 'lucide-react'
+import Link from 'next/link'
+
+interface AccountingSummary {
+  total_assets: number
+  total_liabilities: number
+  total_income: number
+  total_expenses: number
+  net_income: number
+}
+
+function fmt(n: number) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(n)
+}
 
 export default function AccountingPage() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState("Abril 2026");
+  const [summary, setSummary] = useState<AccountingSummary | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const handleGenerate = () => {
-    setIsGenerating(true);
-    setTimeout(() => setIsGenerating(false), 2000);
-  };
+  useEffect(() => {
+    fetch('/api/erp/accounting/chart')
+      .then(r => r.json())
+      .then(d => setSummary(d.summary ?? null))
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const modules = [
+    { title: 'Catálogo de Cuentas', description: 'Plan contable del tenant con saldos por tipo', href: '/erp/accounting/chart', icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { title: 'Libro Diario', description: 'Registro cronológico de asientos contables', href: '/erp/accounting/journal', icon: FileText, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { title: 'Reportes', description: 'Estados financieros y reportes de periodo', href: '/erp/accounting/reports', icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
+  ]
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-12 animate-in pb-20">
-      
-      {/* Visual Identity */}
-      <div className="relative">
-         <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shadow-[0_0_50px_rgba(204,255,0,0.3)] animate-float">
-            <span className="material-symbols-outlined !text-6xl text-black">folder_zip</span>
-         </div>
-         <div className="absolute -inset-4 bg-primary/20 blur-[60px] -z-10 rounded-full" />
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Contabilidad</h1>
+          <p className="text-sm text-gray-500 mt-1">Registro contable, catálogos y estados financieros</p>
+        </div>
+        <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">ERP · Contabilidad</span>
       </div>
 
-      <div className="text-center space-y-4 max-w-xl">
-         <span className="text-[0.75rem] font-black label-tracking text-primary uppercase">Accounting Concierge / Operational Export</span>
-         <h1 className="text-5xl font-black tight-tracking text-on-surface">Digital Assets Dispatch</h1>
-         <p className="text-sm font-medium text-on-surface-variant opacity-60 leading-relaxed">
-            Genera un paquete comprimido (.zip) con todos los recursos fiscales, XMLs de facturación y reportes de inventario necesarios para tu contador.
-         </p>
-      </div>
-
-      {/* Control Card */}
-      <div className="glass-card p-10 rounded-[3rem] border border-white/5 w-full max-w-2xl flex flex-col items-center gap-10 shadow-2xl relative overflow-hidden">
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full relative z-10">
-            <div className="space-y-3">
-               <label className="text-[10px] font-black text-on-surface/30 label-tracking uppercase ml-4">Periodo Contable</label>
-               <select 
-                 className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm font-black focus:border-primary/50 outline-none appearance-none cursor-pointer"
-                 value={selectedMonth}
-                 onChange={(e) => setSelectedMonth(e.target.value)}
-               >
-                  <option>Abril 2026</option>
-                  <option>Marzo 2026</option>
-                  <option>Febrero 2026</option>
-               </select>
+      {/* Financial position */}
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-4 animate-pulse h-20 border border-gray-100" />
+          ))}
+        </div>
+      ) : summary && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            { label: 'Activos', value: summary.total_assets, color: 'text-blue-700', icon: <Scale className="w-4 h-4 text-blue-400" /> },
+            { label: 'Pasivos', value: summary.total_liabilities, color: 'text-red-600', icon: <TrendingDown className="w-4 h-4 text-red-400" /> },
+            { label: 'Ingresos', value: summary.total_income, color: 'text-green-700', icon: <TrendingUp className="w-4 h-4 text-green-400" /> },
+            { label: 'Gastos', value: summary.total_expenses, color: 'text-orange-600', icon: <TrendingDown className="w-4 h-4 text-orange-400" /> },
+            { label: 'Utilidad Neta', value: summary.net_income, color: summary.net_income >= 0 ? 'text-green-700' : 'text-red-600', icon: <Scale className="w-4 h-4 text-gray-400" /> },
+          ].map(card => (
+            <div key={card.label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-1.5 mb-1">
+                {card.icon}
+                <span className="text-xs text-gray-500">{card.label}</span>
+              </div>
+              <p className={`text-lg font-bold ${card.color}`}>{fmt(card.value)}</p>
             </div>
-            <div className="space-y-3">
-               <label className="text-[10px] font-black text-on-surface/30 label-tracking uppercase ml-4">Tipo de Paquete</label>
-               <div className="flex bg-white/5 rounded-2xl p-1 border border-white/10">
-                  <button className="flex-1 py-4 bg-primary text-black rounded-xl text-[10px] font-black uppercase tracking-widest shadow-glow">FULL FISCAL</button>
-                  <button className="flex-1 py-4 text-on-surface-variant text-[10px] font-black uppercase tracking-widest">MINIMAL</button>
-               </div>
-            </div>
-         </div>
+          ))}
+        </div>
+      )}
 
-         <div className="w-full bg-white/[0.02] border border-white/5 rounded-[2rem] p-8 space-y-6 relative z-10">
-            <h4 className="text-[10px] font-black label-tracking text-on-surface/40 uppercase">Contenido del Manifiesto</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               {[
-                 { label: "XMLs Facturación (Emitidos)", count: 245 },
-                 { label: "PDFs Comprobantes Pago", count: 18 },
-                 { label: "Reporte Valuación Almacén", type: "XLSX" },
-                 { label: "Resumen de Ventas Omnichannel", type: "PDF" },
-               ].map((item, i) => (
-                 <div key={i} className="flex items-center gap-4 text-left">
-                    <span className="material-symbols-outlined text-primary !text-[18px]">check_circle</span>
-                    <div>
-                       <p className="text-[11px] font-bold text-on-surface leading-tight">{item.label}</p>
-                       <p className="text-[9px] font-black text-on-surface-variant">{item.count || item.type} detectados</p>
-                    </div>
-                 </div>
-               ))}
-            </div>
-         </div>
-
-         <button 
-           onClick={handleGenerate}
-           disabled={isGenerating}
-           className={`w-full py-6 rounded-2xl text-xs font-black uppercase label-tracking transition-all shadow-glow relative z-10 ${isGenerating ? 'bg-white/10 text-on-surface/30' : 'neon-disruptor hover:scale-[1.02]'}`}
-         >
-            {isGenerating ? 'COMPRIMIENDO ACTIVOS NEURALES...' : 'GENERAR Y DESCARGAR ZIP'}
-         </button>
-
-         {/* Ambient Glow */}
-         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[120px] pointer-events-none" />
+      {/* Sub-modules */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {modules.map(mod => {
+          const Icon = mod.icon
+          return (
+            <Link key={mod.href} href={mod.href} className="group bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:border-green-200 hover:shadow-md transition-all">
+              <div className={`inline-flex p-3 rounded-xl ${mod.bg} mb-4`}>
+                <Icon className={`w-6 h-6 ${mod.color}`} />
+              </div>
+              <h2 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors mb-1">{mod.title}</h2>
+              <p className="text-sm text-gray-500">{mod.description}</p>
+              <p className="text-xs text-green-600 mt-3 font-medium">Ir al módulo →</p>
+            </Link>
+          )
+        })}
       </div>
-
-      <div className="flex items-center gap-3 text-on-surface/30">
-         <span className="material-symbols-outlined !text-[16px]">verified_user</span>
-         <p className="text-[10px] font-bold uppercase label-tracking tracking-[0.2em]">Paquete verificado y firmado por Samantha AI</p>
-      </div>
-
     </div>
-  );
+  )
 }
