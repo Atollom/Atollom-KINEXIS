@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase'
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { User, Mail, Building2, Save } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -11,7 +11,7 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    const supabase = createClient()
+    const supabase = createBrowserSupabaseClient()
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUser({ email: data.user.email, full_name: data.user.user_metadata?.full_name })
@@ -22,7 +22,7 @@ export default function ProfilePage() {
 
   async function save() {
     setSaving(true)
-    const supabase = createClient()
+    const supabase = createBrowserSupabaseClient()
     await supabase.auth.updateUser({ data: { full_name: name } })
     setSaved(true)
     setSaving(false)

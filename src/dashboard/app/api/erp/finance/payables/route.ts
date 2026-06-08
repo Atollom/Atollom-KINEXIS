@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     if (error) throw error
 
     const items = (pos || []).map(po => {
-      const supplier = po.approved_suppliers as { name: string; contact_email: string } | null
+      const supplier = (po.approved_suppliers as unknown) as { name: string; contact_email: string } | null
       const daysPending = Math.floor((Date.now() - new Date(po.created_at).getTime()) / 86400000)
       const itemCount = Array.isArray(po.items) ? po.items.length : 0
       return {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase'
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { Users, Shield, Mail, Clock } from 'lucide-react'
 
 interface Member { id: string; email: string; role: string; created_at: string }
@@ -25,7 +25,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const supabase = createClient()
+    const supabase = createBrowserSupabaseClient()
     supabase.from('tenant_users').select('id, role, created_at, users(email)').then(({ data }) => {
       setMembers((data ?? []).map((d: { id: string; role: string; created_at: string; users?: { email?: string } | { email?: string }[] }) => ({
         id: d.id,
@@ -33,7 +33,7 @@ export default function UsersPage() {
         role: d.role ?? 'agente',
         created_at: d.created_at,
       })))
-    }).finally(() => setLoading(false))
+    }).then(() => setLoading(false), () => setLoading(false))
   }, [])
 
   return (

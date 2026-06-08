@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { PackageCheck, Clock, CheckCircle2, Truck } from 'lucide-react'
 
 interface ReceivingItem {
@@ -27,7 +27,7 @@ function fmt(n: number) {
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n)
 }
 
-const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+const statusConfig: Record<string, { label: string; color: string; icon: ReactNode }> = {
   APPROVED: { label: 'Aprobada', color: 'bg-blue-100 text-blue-700', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
   SENT: { label: 'En tránsito', color: 'bg-yellow-100 text-yellow-700', icon: <Truck className="w-3.5 h-3.5" /> },
   RECEIVED: { label: 'Recibida', color: 'bg-green-100 text-green-700', icon: <PackageCheck className="w-3.5 h-3.5" /> },

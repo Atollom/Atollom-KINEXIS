@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { ArrowUpCircle, ArrowDownCircle, RefreshCw, Package } from 'lucide-react'
 
 interface Movement {
@@ -31,7 +31,7 @@ function relativeTime(iso: string) {
   return `Hace ${Math.floor(hours / 24)}d`
 }
 
-const typeConfig: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
+const typeConfig: Record<string, { icon: ReactNode; color: string; bg: string }> = {
   entry: { icon: <ArrowDownCircle className="w-4 h-4" />, color: 'text-green-700', bg: 'bg-green-50' },
   exit: { icon: <ArrowUpCircle className="w-4 h-4" />, color: 'text-red-700', bg: 'bg-red-50' },
   adjustment: { icon: <RefreshCw className="w-4 h-4" />, color: 'text-blue-700', bg: 'bg-blue-50' },

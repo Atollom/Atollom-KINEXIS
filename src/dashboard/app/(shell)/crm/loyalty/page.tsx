@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ElementType } from 'react'
 import { Star, Trophy, TrendingUp, Users } from 'lucide-react'
 
 interface LoyaltySegment {
@@ -8,7 +8,7 @@ interface LoyaltySegment {
   count: number
   value: number
   color: string
-  icon: React.ElementType
+  icon: ElementType
   range: string
 }
 

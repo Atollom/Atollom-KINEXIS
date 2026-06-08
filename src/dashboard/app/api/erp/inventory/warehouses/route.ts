@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
           .slice(0, 5)
           .map(i => ({
             sku: i.sku,
-            name: (i.products as { name: string } | null)?.name ?? i.sku,
+            name: ((i.products as unknown) as { name: string } | null)?.name ?? i.sku,
             stock: i.stock ?? 0,
             days_remaining: i.days_remaining ?? 0,
           })),

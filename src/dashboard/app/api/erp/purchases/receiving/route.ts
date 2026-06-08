@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     if (error) throw error
 
     const items = (pos || []).map(po => {
-      const supplier = po.approved_suppliers as { name: string; contact_phone: string } | null
+      const supplier = (po.approved_suppliers as unknown) as { name: string; contact_phone: string } | null
       const poItems = Array.isArray(po.items) ? po.items as { sku: string; qty: number; unit_cost: number }[] : []
       return {
         id: po.id,

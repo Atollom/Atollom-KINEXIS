@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase'
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { Lock, Shield, LogOut, Eye, EyeOff } from 'lucide-react'
 
 export default function SecurityPage() {
@@ -16,7 +16,7 @@ export default function SecurityPage() {
     if (newPw !== confirmPw) { setMsg({ type: 'err', text: 'Las contraseñas no coinciden' }); return }
     if (newPw.length < 8) { setMsg({ type: 'err', text: 'Mínimo 8 caracteres' }); return }
     setSaving(true)
-    const supabase = createClient()
+    const supabase = createBrowserSupabaseClient()
     const { error } = await supabase.auth.updateUser({ password: newPw })
     if (error) setMsg({ type: 'err', text: error.message })
     else {
@@ -27,7 +27,7 @@ export default function SecurityPage() {
   }
 
   async function signOut() {
-    const supabase = createClient()
+    const supabase = createBrowserSupabaseClient()
     await supabase.auth.signOut()
     window.location.href = '/login'
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Search, Truck, MapPin, Clock, Package } from 'lucide-react'
 
 interface TrackingEvent {
@@ -32,7 +32,7 @@ export default function TrackingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSearch(e: React.FormEvent) {
+  async function handleSearch(e: FormEvent) {
     e.preventDefault()
     if (!query.trim()) return
     setLoading(true)
