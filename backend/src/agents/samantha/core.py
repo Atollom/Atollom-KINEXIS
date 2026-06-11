@@ -64,7 +64,8 @@ class SamanthaGemini:
             import google.generativeai as genai
             api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
             genai.configure(api_key=api_key)
-            self._model = genai.GenerativeModel("gemini-2.0-flash-exp")
+            model_name = os.getenv("GEMINI_MODEL_NAME", "gemini-2.0-flash")
+            self._model = genai.GenerativeModel(model_name)
         return self._model
 
     async def query(
