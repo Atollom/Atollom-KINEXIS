@@ -1,115 +1,262 @@
 'use client'
 
-import { Globe, CheckCircle, Clock, AlertCircle, ExternalLink } from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { CheckCircle, AlertCircle, Loader2, Link2, Link2Off, ExternalLink } from 'lucide-react'
 
-const integrations = [
+// ── types ──────────────────────────────────────────────────────────────────────
+
+interface PlatformStatus {
+  connected:     boolean
+  label?:        string
+  detail?:       string
+  ml_nickname?:  string
+  fb_name?:      string
+  seller_id?:    string
+  [key: string]: unknown
+}
+
+interface AllStatuses {
+  ml:     PlatformStatus
+  meta:   PlatformStatus
+  amazon: PlatformStatus
+}
+
+// ── static platform config ────────────────────────────────────────────────────
+
+const OAUTH_PLATFORMS = [
   {
-    name: 'Supabase', category: 'Base de datos', status: 'active',
-    description: 'PostgreSQL 15 con RLS y Auth. Base principal de KINEXIS.',
-    docs: 'https://supabase.com/docs',
-  },
-  {
-    name: 'FacturAPI (CFDI)', category: 'Fiscal', status: 'active',
-    description: 'Timbrado de CFDIs 4.0 ante el SAT. Integración con Agente #13.',
-    docs: 'https://www.facturapi.io/docs',
-  },
-  {
-    name: 'Skydropx', category: 'Logística', status: 'active',
-    description: 'Generación de guías y comparador de paqueterías.',
-    docs: 'https://skydropx.com/docs',
-  },
-  {
-    name: 'Stripe', category: 'Pagos', status: 'active',
-    description: 'Procesamiento de suscripciones de KINEXIS.',
-    docs: 'https://stripe.com/docs',
-  },
-  {
-    name: 'Mercado Libre', category: 'E-commerce', status: 'pending',
-    description: 'En espera de certificación de desarrollador. Productos, pedidos y fulfillment.',
+    key: 'ml' as const,
+    name: 'Mercado Libre',
+    category: 'E-commerce',
+    description: 'Sincroniza productos, pedidos y preguntas. Un solo clic conecta tu cuenta de vendedor.',
+    icon: '🛒',
     docs: 'https://developers.mercadolibre.com.mx',
+    successParam: 'ml',
+    connectedLabel: (s: PlatformStatus) => s.label || 'Cuenta MercadoLibre conectada',
   },
   {
-    name: 'Amazon MWS/SP-API', category: 'E-commerce', status: 'pending',
-    description: 'En espera de aprobación de cuenta de vendedor. FBA y analíticas.',
-    docs: 'https://developer.amazonservices.com',
-  },
-  {
-    name: 'Shopify', category: 'E-commerce', status: 'pending',
-    description: 'En espera de aprobación de partner. Pedidos, productos y fulfillment.',
-    docs: 'https://shopify.dev/docs/api',
-  },
-  {
-    name: 'WhatsApp Business', category: 'Mensajería', status: 'pending',
-    description: 'En espera de aprobación de Meta. Inbox y automatización de mensajes.',
-    docs: 'https://developers.facebook.com/docs/whatsapp',
-  },
-  {
-    name: 'Instagram Graph', category: 'Mensajería', status: 'pending',
-    description: 'DMs de Instagram. Pendiente certificación Meta.',
-    docs: 'https://developers.facebook.com/docs/instagram-api',
-  },
-  {
-    name: 'Facebook Graph', category: 'Mensajería', status: 'pending',
-    description: 'Messenger de Facebook. Pendiente certificación Meta.',
+    key: 'meta' as const,
+    name: 'Meta Business',
+    category: 'Mensajería',
+    description: 'Conecta WhatsApp Business, Instagram DMs y Facebook Messenger en un solo flujo de autorización.',
+    icon: '💬',
     docs: 'https://developers.facebook.com/docs',
+    successParam: 'meta',
+    connectedLabel: (s: PlatformStatus) => s.label || 'WhatsApp + Instagram + Facebook conectados',
   },
   {
-    name: 'Anthropic Claude', category: 'IA', status: 'active',
-    description: 'Samantha AI y agentes especializados. Modelo principal: claude-sonnet-4-6.',
-    docs: 'https://docs.anthropic.com',
-  },
-  {
-    name: 'Google Gemini', category: 'IA', status: 'active',
-    description: 'Proveedor alternativo de LLM. Gemini 2.5 Flash para respuestas de bajo costo.',
-    docs: 'https://ai.google.dev/docs',
+    key: 'amazon' as const,
+    name: 'Amazon SP-API',
+    category: 'E-commerce',
+    description: 'Autoriza el acceso a tu cuenta de Seller Central. Gestiona FBA, inventario y reportes.',
+    icon: '📦',
+    docs: 'https://developer-docs.amazon.com/sp-api',
+    successParam: 'amazon',
+    connectedLabel: (s: PlatformStatus) => s.label || `Seller ${s.detail || ''} conectado`,
   },
 ]
 
-const statusConfig = {
-  active: { label: 'Activo', color: 'bg-green-100 text-green-700', icon: <CheckCircle className="w-4 h-4 text-green-500" /> },
-  pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700', icon: <Clock className="w-4 h-4 text-yellow-500" /> },
-  error: { label: 'Error', color: 'bg-red-100 text-red-700', icon: <AlertCircle className="w-4 h-4 text-red-500" /> },
-}
+const STATIC_SERVICES = [
+  { name: 'Supabase',         category: 'Base de datos', desc: 'PostgreSQL + RLS + Auth.', active: true  },
+  { name: 'FacturAPI (CFDI)', category: 'Fiscal',        desc: 'Timbrado CFDI 4.0 ante el SAT.', active: true  },
+  { name: 'Stripe',           category: 'Pagos',         desc: 'Suscripciones KINEXIS.', active: true  },
+  { name: 'Skydropx',         category: 'Logística',     desc: 'Generación de guías de envío.', active: true  },
+  { name: 'Google Gemini',    category: 'IA',            desc: 'LLM principal de Samantha.', active: true  },
+  { name: 'Resend',           category: 'Email',         desc: 'Transaccional y notificaciones.', active: true  },
+]
 
-const categories = ['Todos', 'Base de datos', 'E-commerce', 'Mensajería', 'Fiscal', 'Logística', 'Pagos', 'IA']
+// ── component ─────────────────────────────────────────────────────────────────
 
 export default function IntegrationsPage() {
+  const searchParams  = useSearchParams()
+  const router        = useRouter()
+  const [statuses,    setStatuses]    = useState<AllStatuses | null>(null)
+  const [loading,     setLoading]     = useState(true)
+  const [connecting,  setConnecting]  = useState<string | null>(null)
+  const [toast,       setToast]       = useState<{ msg: string; ok: boolean } | null>(null)
+
+  const showToast = useCallback((msg: string, ok: boolean) => {
+    setToast({ msg, ok })
+    setTimeout(() => setToast(null), 4000)
+  }, [])
+
+  // Detect OAuth callback result from URL params
+  useEffect(() => {
+    const checks: Array<[string, string]> = [
+      ['ml',     'MercadoLibre'],
+      ['meta',   'Meta Business'],
+      ['amazon', 'Amazon'],
+    ]
+    for (const [param, label] of checks) {
+      const val = searchParams.get(param)
+      if (val === 'connected') { showToast(`${label} conectado correctamente`, true);  break }
+      if (val === 'error')     { showToast(`Error al conectar ${label}`, false);        break }
+      if (val === 'invalid_state') { showToast('Sesión expirada, intenta de nuevo', false); break }
+    }
+    if (searchParams.size > 0) {
+      router.replace('/settings/integrations', { scroll: false })
+    }
+  }, [searchParams, showToast, router])
+
+  // Fetch real connection statuses
+  const fetchStatuses = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/integrations/status')
+      if (res.ok) {
+        const data: AllStatuses = await res.json()
+        // Map backend fields to display labels
+        if (data.ml?.connected)     data.ml.label     = `@${data.ml?.['ml_nickname'] || 'cuenta ML'}`
+        if (data.meta?.connected)   data.meta.label   = data.meta?.['fb_name'] || 'Cuenta Meta'
+        if (data.amazon?.connected) data.amazon.label  = `Seller ${data.amazon?.['seller_id'] || ''}`
+        setStatuses(data)
+      }
+    } catch { /* backend offline — show all as not connected */ }
+    finally  { setLoading(false) }
+  }, [])
+
+  useEffect(() => { fetchStatuses() }, [fetchStatuses])
+
+  const handleConnect = async (platform: string) => {
+    setConnecting(platform)
+    try {
+      const res  = await fetch(`/api/integrations/connect?platform=${platform}`)
+      const data = await res.json()
+      if (data.auth_url) {
+        window.location.href = data.auth_url
+      } else {
+        showToast(data.detail || 'No se pudo iniciar la conexión', false)
+        setConnecting(null)
+      }
+    } catch {
+      showToast('Error de conexión', false)
+      setConnecting(null)
+    }
+  }
+
+  const handleDisconnect = async (platform: string, name: string) => {
+    if (!confirm(`¿Desconectar ${name}? Se eliminarán las credenciales guardadas.`)) return
+    try {
+      await fetch(`/api/integrations/disconnect?platform=${platform}`, { method: 'DELETE' })
+      showToast(`${name} desconectado`, true)
+      fetchStatuses()
+    } catch {
+      showToast('Error al desconectar', false)
+    }
+  }
+
+  const statusOf = (key: 'ml' | 'meta' | 'amazon'): PlatformStatus =>
+    statuses?.[key] ?? { connected: false }
+
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Integraciones</h1>
-          <p className="text-sm text-gray-500 mt-1">Estado de todas las APIs y servicios conectados</p>
+    <div className="flex flex-col gap-8 p-6 max-w-5xl">
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white transition-all
+          ${toast.ok ? 'bg-green-600' : 'bg-red-600'}`}>
+          {toast.ok ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          {toast.msg}
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-400">{integrations.filter(i => i.status === 'active').length} activas · {integrations.filter(i => i.status === 'pending').length} pendientes</span>
-        </div>
+      )}
+
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Integraciones</h1>
+        <p className="text-sm text-gray-500 mt-1">Conecta tus canales de venta y mensajería — las credenciales se guardan automáticamente</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {integrations.map(intg => {
-          const sc = statusConfig[intg.status as keyof typeof statusConfig]
-          return (
-            <div key={intg.name} className={`bg-white rounded-xl shadow-sm border p-5 ${intg.status === 'pending' ? 'border-yellow-100 opacity-75' : 'border-gray-100'}`}>
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{intg.name}</h3>
-                  <span className="text-xs text-gray-400">{intg.category}</span>
+      {/* OAuth platforms */}
+      <section>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Conectar con OAuth</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {OAUTH_PLATFORMS.map(p => {
+            const st       = statusOf(p.key)
+            const isConn   = st.connected
+            const isBusy   = connecting === p.key
+            return (
+              <div key={p.key}
+                className={`bg-white rounded-xl border p-5 flex flex-col gap-4 shadow-sm transition-all
+                  ${isConn ? 'border-green-200 bg-green-50/30' : 'border-gray-100'}`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{p.icon}</span>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 leading-tight">{p.name}</h3>
+                        <span className="text-xs text-gray-400">{p.category}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 text-gray-300 animate-spin mt-1" />
+                  ) : isConn ? (
+                    <span className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                      <CheckCircle className="w-3 h-3" /> Activo
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Sin conectar</span>
+                  )}
                 </div>
-                <div className="flex items-center gap-1.5">
-                  {sc.icon}
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>{sc.label}</span>
+
+                <p className="text-sm text-gray-500 flex-1">{p.description}</p>
+
+                {isConn && (
+                  <p className="text-xs text-green-700 font-medium bg-green-100 rounded-lg px-3 py-1.5">
+                    {p.connectedLabel(st)}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-2 mt-auto pt-1">
+                  {isConn ? (
+                    <button
+                      onClick={() => handleDisconnect(p.key, p.name)}
+                      className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-600 font-medium transition-colors"
+                    >
+                      <Link2Off className="w-3.5 h-3.5" /> Desconectar
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleConnect(p.key)}
+                      disabled={isBusy}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      {isBusy
+                        ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Redirigiendo…</>
+                        : <><Link2 className="w-3.5 h-3.5" /> Conectar</>
+                      }
+                    </button>
+                  )}
+                  <a href={p.docs} target="_blank" rel="noreferrer"
+                    className="ml-auto text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1">
+                    <ExternalLink className="w-3 h-3" /> Docs
+                  </a>
                 </div>
               </div>
-              <p className="text-sm text-gray-500 mb-3">{intg.description}</p>
-              <a href={intg.docs} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800 font-medium">
-                <ExternalLink className="w-3 h-3" />
-                Ver documentación
-              </a>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* Static services */}
+      <section>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Servicios configurados</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {STATIC_SERVICES.map(s => (
+            <div key={s.name} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3 shadow-sm">
+              <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{s.name}</p>
+                <p className="text-xs text-gray-400">{s.desc}</p>
+              </div>
+              <span className="ml-auto text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium shrink-0">Activo</span>
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      </section>
+
     </div>
   )
 }
