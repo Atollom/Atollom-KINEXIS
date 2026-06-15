@@ -1,7 +1,9 @@
-"""Agent #32 — Quote Generator (PDF via ReportLab)"""
+"""Agent #32 — Quote Generator (PDF via ReportLab + DB persistence)"""
 import io
 import logging
 from datetime import datetime, timedelta
+
+from src.utils.database import db
 
 logger = logging.getLogger(__name__)
 
@@ -9,14 +11,15 @@ logger = logging.getLogger(__name__)
 class QuoteGeneratorAgent:
     name = "Quote Generator #32"
 
-    async def execute(self, data):
+    async def execute(self, data: dict) -> dict:
         try:
             from reportlab.lib.pagesizes import letter
             from reportlab.lib import colors
             from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib.styles import getSampleStyleSheet
             from reportlab.lib.units import inch
 
+            tenant_id = data.get("tenant_id")
             customer = data.get("customer", {})
             items = data.get("items", [])
             tax_rate = float(data.get("tax_rate", 0.16))
@@ -34,17 +37,14 @@ class QuoteGeneratorAgent:
             styles = getSampleStyleSheet()
             story = []
 
-            # Header
             story.append(Paragraph("<b>KINEXIS</b> — Cotización", styles["Title"]))
             story.append(Paragraph(f"Folio: {quote_number} | Vigencia: {valid_until}", styles["Normal"]))
             story.append(Spacer(1, 12))
 
-            # Customer
             story.append(Paragraph(f"<b>Cliente:</b> {customer.get('name', 'N/A')}", styles["Normal"]))
             story.append(Paragraph(f"<b>RFC:</b> {customer.get('rfc', 'N/A')}", styles["Normal"]))
             story.append(Spacer(1, 12))
 
-            # Items table
             table_data = [["Descripción", "Cant.", "P. Unit.", "Subtotal"]]
             for item in items:
                 qty = float(item.get("qty", 1))
@@ -71,13 +71,36 @@ class QuoteGeneratorAgent:
             story.append(t)
             story.append(Spacer(1, 12))
 
-            terms_map = {"30_days": "30 días", "15_days": "15 días", "immediate": "Contado"}
+            terms_map = {"30_days": "30 días", "15_days": "15 días", "immediate": "Contado", "60_days": "60 días"}
             story.append(Paragraph(f"<b>Condiciones de pago:</b> {terms_map.get(payment_terms, payment_terms)}", styles["Normal"]))
             if data.get("notes"):
                 story.append(Paragraph(f"<b>Notas:</b> {data['notes']}", styles["Normal"]))
 
             doc.build(story)
             pdf_bytes = buf.getvalue()
+
+            if tenant_id:
+                try:
+                    lead_id = customer.get("lead_id")
+                    await db.execute(
+                        """INSERT INTO quotes
+                           (tenant_id, quote_number, customer_name, customer_rfc, lead_id,
+                            subtotal, iva, total, payment_terms, valid_until, items, status, created_at)
+                           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,'draft',NOW())""",
+                        tenant_id,
+                        quote_number,
+                        customer.get("name", ""),
+                        customer.get("rfc", ""),
+                        str(lead_id) if lead_id else None,
+                        subtotal,
+                        tax,
+                        total,
+                        payment_terms,
+                        valid_until,
+                        __import__("json").dumps(items),
+                    )
+                except Exception as db_exc:
+                    logger.warning("Quote DB save failed (PDF still generated): %s", db_exc)
 
             return {
                 "success": True,
