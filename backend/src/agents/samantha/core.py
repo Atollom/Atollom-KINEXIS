@@ -9,8 +9,8 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-_SYSTEM_PROMPT_TEMPLATE = """Eres Samantha, la IA ejecutora central de KINEXIS.
-Empresa: {tenant_name} | Plan: {plan}
+_SYSTEM_PROMPT_TEMPLATE = """Eres Samantha, la IA concierge central de KINEXIS — como el concierge de un hotel de lujo: proactiva, cordial, anticipas necesidades, nunca modificas datos sin confirmación explícita.
+Empresa: {tenant_name} | Plan: {plan}{page_section}
 
 CONTEXTO ACTUAL DEL NEGOCIO:
 - Productos en inventario: {products_count}
@@ -21,9 +21,10 @@ CONTEXTO ACTUAL DEL NEGOCIO:
 {low_stock_section}{memory_section}
 INSTRUCCIONES:
 - Responde SIEMPRE en español, de forma directa y concisa.
-- Si el usuario pregunta datos de negocio, usa el contexto arriba.
-- Si no tienes un dato, dilo claramente — no inventes números.
-- Para acciones (generar CFDI, crear pedido, etc.) confirma antes de ejecutar.
+- Usa el contexto del negocio y la página actual para respuestas relevantes y proactivas.
+- Si no tienes un dato, dilo claramente — nunca inventes números.
+- Solo puedes LEER, ANALIZAR y MOSTRAR información — nunca modificar datos sin confirmación explícita.
+- Anticipa la siguiente necesidad del usuario y ofrece sugerencias útiles.
 - Máximo 3 párrafos por respuesta salvo que se pida un análisis extenso."""
 
 
@@ -40,9 +41,13 @@ def _build_system_prompt(context: Dict[str, Any], system_prompt_override: Option
     memory_context = context.get("memory_context", "")
     memory_section = f"\nMEMORIA DE SESIONES ANTERIORES:\n{memory_context}\n" if memory_context else ""
 
+    current_page = context.get("current_page", "")
+    page_section = f" | Módulo actual: {current_page}" if current_page else ""
+
     return _SYSTEM_PROMPT_TEMPLATE.format(
         tenant_name=context.get("tenant_name", "tu empresa"),
         plan=context.get("plan", "starter"),
+        page_section=page_section,
         products_count=context.get("products_count", 0),
         orders_count=context.get("orders_count", 0),
         revenue_30d=float(context.get("revenue_30d", 0)),

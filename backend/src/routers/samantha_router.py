@@ -43,6 +43,8 @@ class ChatRequest(BaseModel):
     # Multimedia attachments for the current query (images, PDFs)
     # Each item: {name: str, type: str (MIME), data: str (base64)}
     attachments: Optional[List[Dict[str, Any]]] = None
+    # Current page/module the user is viewing (e.g. "/erp/cfdi", "/crm/pipeline")
+    current_page: Optional[str] = None
 
 
 @router.post("/chat")
@@ -137,8 +139,10 @@ async def chat(request: Request, body: ChatRequest):
     else:
         logger.warning("[SAMANTHA DEBUG] No supabase_user_id — memory features skipped")
 
-    # Inject memory into context so _build_system_prompt can include it
+    # Inject memory and page context so _build_system_prompt can include them
     context["memory_context"] = memory_context
+    if body.current_page:
+        context["current_page"] = body.current_page
 
     # 4. Check API key
     provider = os.getenv("LLM_PROVIDER", "gemini").lower()
