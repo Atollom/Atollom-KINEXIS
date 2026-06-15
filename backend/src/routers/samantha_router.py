@@ -360,54 +360,87 @@ async def boot_memories(
     return {"memories": memories, "count": len(memories)}
 
 
+class SeedMemoriesRequest(BaseModel):
+    tenant_id: str
+    supabase_user_id: str
+    # Optional real company context from onboarding
+    company_name: Optional[str] = None
+    owner_name: Optional[str] = None
+    owner_email: Optional[str] = None
+    rfc: Optional[str] = None
+    razon_social: Optional[str] = None
+    regimen_fiscal: Optional[str] = None
+    industry: Optional[str] = None
+    company_size: Optional[str] = None
+    platforms: Optional[list] = None
+
+
 @router.post("/memory/seed")
 async def seed_memories(
-    tenant_id: str,
-    supabase_user_id: str,
+    body: SeedMemoriesRequest,
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Seed initial memories for a user. Idempotent — safe to call multiple times.
-    Requires authentication — callers can only seed their own tenant.
+    Seed initial memories. Idempotent — safe to call multiple times.
+    Accepts real company context from onboarding to personalize Samantha.
     """
-    if current_user["tenant_id"] != tenant_id:
-        raise HTTPException(
-            status_code=403,
-            detail="Forbidden: cannot seed memories for another tenant",
-        )
+    if str(current_user["tenant_id"]) != body.tenant_id:
+        raise HTTPException(status_code=403, detail="Forbidden: cannot seed memories for another tenant")
 
-    internal_user_id = await _resolve_user_id(supabase_user_id)
+    internal_user_id = await _resolve_user_id(body.supabase_user_id)
     memory_svc = get_memory_service()
 
-    seed_memories_data = [
+    company   = body.company_name   or "tu empresa"
+    owner     = body.owner_name     or "el propietario"
+    industry  = body.industry       or "comercio"
+    platforms = body.platforms      or []
+
+    seed_memories_data: list = [
         {
             "content": (
-                "El usuario prefiere comunicación formal y directa. "
-                "Sin emojis. Respuestas concisas y accionables."
+                f"Empresa: {company}. Industria: {industry}. "
+                f"Propietario: {owner}."
+                + (f" Email de contacto: {body.owner_email}." if body.owner_email else "")
+                + (f" Tamaño estimado: {body.company_size} empleados." if body.company_size else "")
             ),
-            "summary": "Preferencia de comunicación: formal, directa, sin emojis, respuestas cortas.",
+            "summary": f"Empresa {company} — industria: {industry}, dueño: {owner}.",
             "importance": 9,
-            "tags": ["preferencia", "comunicación", "estilo"],
+            "tags": ["empresa", "perfil", "propietario", industry],
         },
         {
             "content": (
-                "Cliente principal de Kap Tools: Constructora ABC. "
-                "Realizan pedidos de taladros y brocas cada mes."
+                f"Configuración fiscal: RFC {body.rfc or 'pendiente'}, "
+                f"Razón Social: {body.razon_social or 'pendiente'}, "
+                f"Régimen Fiscal: {body.regimen_fiscal or 'por confirmar'}."
             ),
-            "summary": "Cliente principal: Constructora ABC — pedidos mensuales de taladros y brocas.",
+            "summary": f"RFC: {body.rfc or 'pendiente'} — {body.razon_social or company}.",
             "importance": 8,
-            "tags": ["cliente", "patrón", "ventas"],
+            "tags": ["fiscal", "rfc", "facturación", "cfdi"],
         },
         {
             "content": (
-                "El producto TAL-003 (taladro percutor 850W) genera alertas de stock crítico frecuentemente. "
-                "Mantener mínimo 10 unidades en almacén."
+                "Samantha debe responder siempre en español, con tono profesional y cordial. "
+                "Respuestas directas, concisas y orientadas a la acción. "
+                "No inventar datos — si no tiene información, pedirla. "
+                "Actuar como concierge ejecutiva de alto nivel."
             ),
-            "summary": "TAL-003 genera alertas de stock crítico. Stock mínimo recomendado: 10 unidades.",
-            "importance": 8,
-            "tags": ["inventario", "urgencia", "TAL-003"],
+            "summary": "Estilo de comunicación: profesional, directo, en español, orientado a acción.",
+            "importance": 9,
+            "tags": ["estilo", "preferencia", "comunicación", "personalidad"],
         },
     ]
 
-    result = await memory_svc.seed_initial_memories(tenant_id, internal_user_id, seed_memories_data)
+    if platforms:
+        plats_str = ", ".join(platforms)
+        seed_memories_data.append({
+            "content": (
+                f"Plataformas de venta y comunicación planificadas: {plats_str}. "
+                "Conectar vía OAuth desde Ajustes → Integraciones."
+            ),
+            "summary": f"Plataformas a conectar: {plats_str}.",
+            "importance": 7,
+            "tags": ["integraciones", "canales", *platforms],
+        })
+
+    result = await memory_svc.seed_initial_memories(body.tenant_id, internal_user_id, seed_memories_data)
     return result

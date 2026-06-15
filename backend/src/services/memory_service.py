@@ -91,7 +91,68 @@ class SamanthaMemoryService:
             logger.warning("MemoryService.get_boot_memories failed: %s", exc)
             return []
 
-    # ── Semantic search (Day 2 — disabled until Google API confirmed) ─────────
+    # ── Keyword search (tag + content ILIKE) ─────────────────────────────────
+
+    _TAG_MAP = {
+        "orden": ["ordenes", "ventas", "pedidos"],
+        "pedido": ["ordenes", "ventas", "pedidos"],
+        "venta": ["ventas", "ordenes"],
+        "factura": ["fiscal", "cfdi", "facturación"],
+        "cfdi": ["fiscal", "cfdi", "facturación"],
+        "rfc": ["fiscal", "rfc"],
+        "inventario": ["inventario", "stock", "almacén"],
+        "stock": ["inventario", "stock"],
+        "cliente": ["cliente", "ventas"],
+        "crm": ["cliente", "crm"],
+        "integra": ["integraciones", "canales"],
+        "mercado": ["integraciones", "canales", "mercadolibre"],
+        "amazon": ["integraciones", "amazon"],
+        "whatsapp": ["integraciones", "whatsapp"],
+        "empresa": ["empresa", "perfil"],
+        "estilo": ["estilo", "preferencia"],
+        "comunicacion": ["comunicación", "estilo"],
+    }
+
+    def _search_sync(self, tenant_id: str, user_id: str, query: str, limit: int) -> List[Dict[str, Any]]:
+        query_lower = query.lower()
+        candidate_tags: List[str] = []
+        for keyword, tags in self._TAG_MAP.items():
+            if keyword in query_lower:
+                candidate_tags.extend(tags)
+        candidate_tags = list(set(candidate_tags))
+
+        conn = psycopg2.connect(self._db_url, cursor_factory=RealDictCursor)
+        try:
+            cur = conn.cursor()
+            if candidate_tags:
+                cur.execute(
+                    """
+                    SELECT id, content, summary, importance, tags
+                    FROM samantha_memories
+                    WHERE tenant_id = %s AND user_id = %s
+                      AND parent_id IS NULL AND superseded_at IS NULL
+                      AND (tags && %s OR content ILIKE %s)
+                    ORDER BY importance DESC, event_timestamp DESC
+                    LIMIT %s
+                    """,
+                    (tenant_id, user_id, candidate_tags, f"%{query_lower[:40]}%", limit),
+                )
+            else:
+                cur.execute(
+                    """
+                    SELECT id, content, summary, importance, tags
+                    FROM samantha_memories
+                    WHERE tenant_id = %s AND user_id = %s
+                      AND parent_id IS NULL AND superseded_at IS NULL
+                      AND content ILIKE %s
+                    ORDER BY importance DESC, event_timestamp DESC
+                    LIMIT %s
+                    """,
+                    (tenant_id, user_id, f"%{query_lower[:40]}%", limit),
+                )
+            return [dict(r) for r in cur.fetchall()]
+        finally:
+            conn.close()
 
     async def search_memories(
         self,
@@ -101,8 +162,17 @@ class SamanthaMemoryService:
         threshold: float = 0.7,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        """Semantic search — disabled in Day 1; returns [] gracefully."""
-        return []
+        """Keyword + tag search (replaces vector search until embeddings are live)."""
+        if not self._initialized:
+            return []
+        try:
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(
+                None, partial(self._search_sync, tenant_id, user_id, query, limit)
+            )
+        except Exception as exc:
+            logger.warning("MemoryService.search_memories failed: %s", exc)
+            return []
 
     # ── Save (Supabase service role — for agent writes) ───────────────────────
 

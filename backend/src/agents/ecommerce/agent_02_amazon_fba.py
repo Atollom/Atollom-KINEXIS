@@ -29,11 +29,7 @@ class AmazonFBAAgent:
             return {"success": False, "error": str(exc), "data": {}}
 
     async def _get_amazon(self, tenant_id: str):
-        creds = await db.fetch_one(
-            "SELECT seller_id, marketplace_id FROM amazon_credentials WHERE tenant_id=$1",
-            tenant_id,
-        )
-        return AmazonIntegration({"seller_id": creds["seller_id"]} if creds else None)
+        return await AmazonIntegration.get_instance_for_tenant(tenant_id)
 
     async def _sync_inventory(self, tenant_id: str, data: dict) -> dict:
         amazon = await self._get_amazon(tenant_id)
