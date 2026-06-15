@@ -176,6 +176,27 @@ class SamanthaMemoryService:
 
     # ── Save (Supabase service role — for agent writes) ───────────────────────
 
+    def _count_recent_similar_sync(
+        self, tenant_id: str, user_id: str, tags: List[str], hours: int = 24
+    ) -> int:
+        """Count memories with overlapping tags saved in the last N hours."""
+        conn = psycopg2.connect(self._db_url, cursor_factory=RealDictCursor)
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                f"""
+                SELECT COUNT(*) AS cnt FROM samantha_memories
+                WHERE tenant_id = %s AND user_id = %s
+                  AND tags && %s
+                  AND event_timestamp > NOW() - INTERVAL '{int(hours)} hours'
+                  AND agent_source = 'samantha_chat'
+                """,
+                (tenant_id, user_id, tags),
+            )
+            return cur.fetchone()["cnt"]
+        finally:
+            conn.close()
+
     async def save_memory(
         self,
         tenant_id: str,
@@ -187,17 +208,39 @@ class SamanthaMemoryService:
         session_id: Optional[str] = None,
         summary: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Save a memory (no embedding for now — embedding column left NULL)."""
+        """
+        Save a memory. If a similar memory (overlapping tags) was saved in the
+        last 24 hours, raises its importance by 1 instead of adding a duplicate
+        — reinforcement learning for recurring topics.
+        """
         if not self._can_write or self.supabase is None:
             logger.warning("MemoryService.save_memory: SUPABASE_SERVICE_ROLE_KEY not set")
             return {}
+
+        resolved_tags = tags or []
+
+        # Reinforce importance if the same topic came up recently
+        if resolved_tags and self._initialized:
+            try:
+                loop = asyncio.get_event_loop()
+                recent_count = await loop.run_in_executor(
+                    None,
+                    partial(self._count_recent_similar_sync, tenant_id, user_id, resolved_tags, 24),
+                )
+                if recent_count >= 2:
+                    importance = min(10, importance + 1)
+                if recent_count >= 5:
+                    importance = min(10, importance + 1)
+            except Exception:
+                pass  # non-fatal
+
         try:
             row = {
                 "tenant_id": tenant_id,
                 "user_id": user_id,
                 "content": content,
                 "importance": max(1, min(10, importance)),
-                "tags": tags or [],
+                "tags": resolved_tags,
                 "agent_source": agent_source or "samantha_chat",
                 "session_id": session_id,
                 "summary": summary,

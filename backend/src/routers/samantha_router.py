@@ -194,6 +194,25 @@ async def chat(request: Request, body: ChatRequest):
         except Exception:
             pass
 
+    # 7. Adaptive memory — learn from this exchange (fire & forget, non-blocking)
+    if not is_onboarding and body.tenant_id != NIL_UUID and body.supabase_user_id:
+        try:
+            user_row = await get_user_by_supabase_id(body.supabase_user_id)
+            if user_row:
+                import asyncio
+                asyncio.create_task(
+                    _learn_from_exchange(
+                        tenant_id=body.tenant_id,
+                        user_id=user_row["id"],
+                        query=body.query,
+                        response=response_text,
+                        session_id=body.session_id or "",
+                        current_page=body.current_page or "",
+                    )
+                )
+        except Exception as exc:
+            logger.debug("Adaptive memory skipped: %s", exc)
+
     return {
         "response": response_text,
         "intent": "llm_response",
@@ -219,6 +238,123 @@ async def _load_memories(
     boot = boot if isinstance(boot, list) else []
     relevant = relevant if isinstance(relevant, list) else []
     return boot, relevant
+
+
+# ── Adaptive learning: extract memory from a Q&A exchange ────────────────────
+
+# Keyword → (tags, importance_boost) — signals a memory-worthy exchange
+_MEMORY_SIGNALS: List[tuple[str, List[str], int]] = [
+    # Preferences & style
+    ("prefiero",        ["preferencia", "estilo"],           6),
+    ("me gusta",        ["preferencia", "estilo"],           6),
+    ("siempre",         ["patrón", "rutina"],                6),
+    ("nunca",           ["preferencia", "restricción"],      6),
+    ("quisiera",        ["preferencia"],                     5),
+    ("avísame",         ["alerta", "notificación"],          6),
+    ("recuerda",        ["preferencia", "alerta"],           7),
+    ("importante",      ["prioridad"],                       6),
+    # Schedules
+    ("cada lunes",      ["rutina", "horario"],               7),
+    ("cada viernes",    ["rutina", "horario"],               7),
+    ("diariamente",     ["rutina"],                          6),
+    ("semanalmente",    ["rutina"],                          6),
+    ("mensualmente",    ["rutina"],                          6),
+    ("todos los",       ["rutina"],                          5),
+    ("cada semana",     ["rutina", "horario"],               6),
+    # Clients / business
+    ("cliente",         ["cliente", "ventas"],               5),
+    ("proveedor",       ["proveedor", "compras"],            5),
+    ("vip",             ["cliente", "vip"],                  7),
+    # Data format preferences
+    ("excel",           ["preferencia", "reportes"],         6),
+    ("pdf",             ["preferencia", "reportes"],         5),
+    ("reporte",         ["preferencia", "reportes"],         5),
+    ("formato",         ["preferencia"],                     5),
+    # Urgencies and issues
+    ("urgente",         ["urgencia"],                        7),
+    ("crítico",         ["urgencia"],                        7),
+    ("problema con",    ["incidencia"],                      6),
+    ("no funciona",     ["incidencia"],                      6),
+]
+
+# Page → default tags when saving memory from that module
+_PAGE_TAGS: Dict[str, List[str]] = {
+    "/ecommerce":   ["ecommerce", "ventas"],
+    "/ecommerce/ml": ["mercadolibre", "ecommerce"],
+    "/ecommerce/amazon": ["amazon", "ecommerce"],
+    "/ecommerce/shopify": ["shopify", "ecommerce"],
+    "/crm":         ["crm", "clientes"],
+    "/crm/pipeline": ["pipeline", "ventas"],
+    "/erp":         ["erp"],
+    "/erp/cfdi":    ["fiscal", "cfdi"],
+    "/erp/inventory": ["inventario", "stock"],
+    "/erp/finance": ["finanzas"],
+    "/dashboard":   ["dashboard"],
+}
+
+
+def _get_page_tags(current_page: str) -> List[str]:
+    if not current_page:
+        return []
+    for k in sorted(_PAGE_TAGS.keys(), key=len, reverse=True):
+        if current_page.startswith(k):
+            return _PAGE_TAGS[k]
+    return []
+
+
+async def _learn_from_exchange(
+    tenant_id: str,
+    user_id: str,
+    query: str,
+    response: str,
+    session_id: str,
+    current_page: str,
+) -> None:
+    """
+    Analyze a Q&A pair and persist memory-worthy insights.
+    Called as a background task — never blocks the chat response.
+    """
+    combined = (query + " " + response).lower()
+
+    matched_tags: List[str] = []
+    importance = 5
+
+    for keyword, tags, boost in _MEMORY_SIGNALS:
+        if keyword in combined:
+            matched_tags.extend(tags)
+            importance = max(importance, boost)
+
+    if not matched_tags:
+        return  # not memory-worthy
+
+    matched_tags = list(set(matched_tags))
+    page_tags = _get_page_tags(current_page)
+    all_tags = list(set(matched_tags + page_tags))
+
+    # Build a compact, human-readable memory
+    query_short = query[:120].strip()
+    response_short = response[:200].strip()
+    content = f"Conversación: el usuario preguntó «{query_short}». Samantha respondió sobre: {response_short}"
+    summary = query_short[:80]
+
+    try:
+        memory_svc = get_memory_service()
+        await memory_svc.save_memory(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            content=content,
+            importance=importance,
+            tags=all_tags,
+            agent_source="samantha_chat",
+            session_id=session_id,
+            summary=summary,
+        )
+        logger.debug(
+            "Memory saved — importance=%d tags=%s query=%s…",
+            importance, all_tags, query_short[:40],
+        )
+    except Exception as exc:
+        logger.warning("_learn_from_exchange save failed: %s", exc)
 
 
 @router.get("/credits/{tenant_id}")
